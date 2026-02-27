@@ -22,7 +22,7 @@
             {
               "id": "blog-url",
               "name": "BLOG_URL",
-              "value": "=https://REPLACE-WITH-VERCEL-URL",
+              "value": "=https://blog-75v06v954-disha-methis-projects.vercel.app",
               "type": "string"
             },
             {
