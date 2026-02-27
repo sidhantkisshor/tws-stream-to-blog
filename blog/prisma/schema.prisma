@@ -27,3 +27,11 @@ model Post {
   @@index([publishedAt(sort: Desc)])
   @@index([tags])
 }
+
+model Subscriber {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  countryCode String   @default("+91")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
