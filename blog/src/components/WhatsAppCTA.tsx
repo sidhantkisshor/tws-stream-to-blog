@@ -55,6 +55,7 @@ export function WhatsAppCTA() {
         <select
           value={countryCode}
           onChange={(e) => setCountryCode(e.target.value)}
+          aria-label="Country code"
           className="rounded-lg border border-deep-slate/20 bg-warm-white px-3 py-2 text-sm text-deep-slate"
         >
           <option value="+91">+91</option>
@@ -65,9 +66,11 @@ export function WhatsAppCTA() {
         </select>
         <input
           type="tel"
+          inputMode="numeric"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
           placeholder="Phone number"
+          aria-label="Phone number"
           required
           className="flex-1 rounded-lg border border-deep-slate/20 bg-warm-white px-4 py-2 text-sm text-deep-slate placeholder:text-deep-slate/40 focus:border-wealth-teal focus:outline-none"
         />

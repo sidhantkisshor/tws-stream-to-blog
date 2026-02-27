@@ -3,10 +3,34 @@ import { prisma } from "@/lib/prisma";
 
 const PHONE_PATTERNS: Record<string, RegExp> = {
   "+91": /^\d{10}$/,
+  "+1": /^\d{10}$/,
+  "+44": /^\d{10,11}$/,
+  "+971": /^\d{8,9}$/,
+  "+65": /^\d{8}$/,
 };
 const DEFAULT_PATTERN = /^\d{7,15}$/;
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 5; // 5 requests per window
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(ip) || [];
+  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW);
+  if (recent.length >= RATE_LIMIT_MAX) return true;
+  recent.push(now);
+  rateLimitMap.set(ip, recent);
+  return false;
+}
+
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+  }
+
   let body: { phone?: string; countryCode?: string };
   try {
     body = await request.json();
@@ -28,23 +52,27 @@ export async function POST(request: NextRequest) {
 
   const fullNumber = `${countryCode}${phone}`;
 
-  const existing = await prisma.subscriber.findUnique({
-    where: { phone: fullNumber },
-  });
+  try {
+    const existing = await prisma.subscriber.findUnique({
+      where: { phone: fullNumber },
+    });
 
-  if (existing) {
-    if (!existing.active) {
-      await prisma.subscriber.update({
-        where: { phone: fullNumber },
-        data: { active: true },
-      });
+    if (existing) {
+      if (!existing.active) {
+        await prisma.subscriber.update({
+          where: { phone: fullNumber },
+          data: { active: true },
+        });
+      }
+      return NextResponse.json({ ok: true });
     }
-    return NextResponse.json({ ok: true });
+
+    await prisma.subscriber.create({
+      data: { phone: fullNumber, countryCode },
+    });
+
+    return NextResponse.json({ ok: true }, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
-
-  await prisma.subscriber.create({
-    data: { phone: fullNumber, countryCode },
-  });
-
-  return NextResponse.json({ ok: true }, { status: 201 });
 }

@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 export function Nav() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-deep-slate/10 bg-warm-white/80 backdrop-blur-sm">
@@ -36,6 +42,7 @@ export function Nav() {
           onClick={() => setOpen(!open)}
           className="flex flex-col gap-1.5 sm:hidden"
           aria-label="Toggle menu"
+          aria-expanded={open}
         >
           <span className={`block h-0.5 w-6 bg-deep-slate transition-transform ${open ? "translate-y-2 rotate-45" : ""}`} />
           <span className={`block h-0.5 w-6 bg-deep-slate transition-opacity ${open ? "opacity-0" : ""}`} />

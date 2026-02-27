@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 
 interface ChartImageProps {
@@ -10,6 +10,7 @@ interface ChartImageProps {
 
 export function ChartImage({ src, alt }: ChartImageProps) {
   const [open, setOpen] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -20,6 +21,7 @@ export function ChartImage({ src, alt }: ChartImageProps) {
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
@@ -47,6 +49,7 @@ export function ChartImage({ src, alt }: ChartImageProps) {
           onClick={close}
         >
           <button
+            ref={closeRef}
             onClick={close}
             className="absolute right-4 top-4 text-2xl text-white/70 hover:text-white"
             aria-label="Close"
