@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TWS Trading Insights",
-  description: "Live stream trading analysis and market insights from TWS Wealth OS",
+  title: "TWSGurukulX — Trading Insights",
+  description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
 };
 
 export default function RootLayout({
@@ -20,7 +22,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased">
-        {children}
+        <Nav />
+        <div className="min-h-[calc(100vh-160px)]">{children}</div>
+        <Footer />
       </body>
     </html>
   );
