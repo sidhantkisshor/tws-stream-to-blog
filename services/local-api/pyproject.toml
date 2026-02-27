@@ -1,0 +1,19 @@
+[project]
+name = "tws-stream-processor"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "faster-whisper>=1.1.0",
+    "yt-dlp>=2025.1.0",
+    "opencv-python-headless>=4.10.0",
+    "arq>=0.26.0",
+    "redis>=5.2.0",
+    "boto3>=1.35.0",
+    "pydantic-settings>=2.7.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "httpx>=0.28.0"]
