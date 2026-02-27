@@ -20,4 +20,4 @@ def upload_to_r2(file_path: str, key: str, content_type: str = "image/jpeg") -> 
         key,
         ExtraArgs={"ContentType": content_type},
     )
-    return f"{settings.r2_endpoint}/{settings.r2_bucket}/{key}"
+    return f"{settings.r2_public_url}/{key}"

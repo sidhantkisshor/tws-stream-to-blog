@@ -1,19 +1,46 @@
+import json
 import uuid
+import redis
 
-# In-memory job store (ARQ handles persistence via Redis, this is the status cache)
-_jobs: dict[str, dict] = {}
+from src.config import settings
+
+_redis: redis.Redis | None = None
+
+
+def get_redis() -> redis.Redis:
+    global _redis
+    if _redis is None:
+        _redis = redis.from_url(settings.redis_url, decode_responses=True)
+    return _redis
+
+
+def _job_key(job_id: str) -> str:
+    return f"tws:job:{job_id}"
 
 
 def create_job() -> str:
     job_id = str(uuid.uuid4())
-    _jobs[job_id] = {"status": "pending", "result": None, "error": None}
+    r = get_redis()
+    r.set(
+        _job_key(job_id),
+        json.dumps({"status": "pending", "result": None, "error": None}),
+        ex=86400,  # expire after 24 hours
+    )
     return job_id
 
 
 def update_job(job_id: str, status: str, result: dict | None = None, error: str | None = None):
-    if job_id in _jobs:
-        _jobs[job_id] = {"status": status, "result": result, "error": error}
+    r = get_redis()
+    r.set(
+        _job_key(job_id),
+        json.dumps({"status": status, "result": result, "error": error}),
+        ex=86400,
+    )
 
 
 def get_job(job_id: str) -> dict | None:
-    return _jobs.get(job_id)
+    r = get_redis()
+    data = r.get(_job_key(job_id))
+    if data is None:
+        return None
+    return json.loads(data)

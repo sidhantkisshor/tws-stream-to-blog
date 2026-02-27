@@ -120,10 +120,9 @@ export default async function PostPage({
           {sections.map((section, i) => (
             <section key={i} className="mt-8">
               <h2 className="text-2xl font-bold text-deep-slate">{section.heading}</h2>
-              <div
-                className="mt-3 leading-relaxed text-deep-slate/80"
-                dangerouslySetInnerHTML={{ __html: section.body }}
-              />
+              <div className="mt-3 leading-relaxed text-deep-slate/80 whitespace-pre-line">
+                {section.body}
+              </div>
               {section.chartRef && (
                 <figure className="mt-4">
                   <Image

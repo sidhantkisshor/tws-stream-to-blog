@@ -22,8 +22,7 @@
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {
-          "timeout": 10000,
-          "allowUnauthorizedCerts": false
+          "timeout": 10000
         }
       },
       "id": "health-check",
@@ -46,9 +45,9 @@
           "conditions": [
             {
               "id": "local-online",
-              "leftValue": "={{ $json.statusCode || $json.status }}",
-              "rightValue": "",
-              "operator": { "type": "string", "operation": "exists" }
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": { "type": "string", "operation": "equals" }
             }
           ]
         }
@@ -58,7 +57,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [680, 300],
-      "notes": "Check if health check returned successfully (status: ok)"
+      "notes": "Checks health endpoint returned status: ok (not just any response)"
     },
     {
       "parameters": {
@@ -87,12 +86,9 @@
       }
     },
     {
-      "parameters": {
-        "amount": 30,
-        "unit": "seconds"
-      },
+      "parameters": { "amount": 30, "unit": "seconds" },
       "id": "wait-transcribe",
-      "name": "Wait 30s",
+      "name": "Wait 30s (Transcription)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [1140, 180]
@@ -135,8 +131,17 @@
       "name": "Transcription Done?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1580, 180],
-      "notes": "If not done, loop back to Wait 30s. If done, proceed to chart extraction."
+      "position": [1580, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store transcript from poll result for later use\nconst transcriptData = $node['Poll Transcription Status'].json;\nreturn [{ json: { transcript: transcriptData.result.full_text, video_id: $node['Webhook Trigger'].json.body.video_id } }];"
+      },
+      "id": "store-transcript",
+      "name": "Store Transcript Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 180]
     },
     {
       "parameters": {
@@ -147,7 +152,7 @@
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
-            { "name": "video_id", "value": "={{ $node['Webhook Trigger'].json.body.video_id }}" }
+            { "name": "video_id", "value": "={{ $json.video_id }}" }
           ]
         },
         "options": {}
@@ -156,13 +161,76 @@
       "name": "Local: Start Chart Extraction",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 180],
+      "position": [2020, 180],
       "credentials": {
         "httpHeaderAuth": {
           "id": "LOCAL_API_KEY_CREDENTIAL_ID",
           "name": "Local API Key"
         }
       }
+    },
+    {
+      "parameters": { "amount": 30, "unit": "seconds" },
+      "id": "wait-charts",
+      "name": "Wait 30s (Charts)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2240, 180]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $vars.LOCAL_API_URL }}/status/{{ $node['Local: Start Chart Extraction'].json.job_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "poll-charts",
+      "name": "Poll Chart Extraction Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2460, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_API_KEY_CREDENTIAL_ID",
+          "name": "Local API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "id": "charts-complete",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "complete",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "if-charts-done",
+      "name": "Charts Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2680, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.LLM_PIPELINE_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"video_id\": {{ JSON.stringify($node['Store Transcript Data'].json.video_id) }},\n  \"transcript\": {{ JSON.stringify($node['Store Transcript Data'].json.transcript) }},\n  \"chart_urls\": {{ JSON.stringify($node['Poll Chart Extraction Status'].json.result ? $node['Poll Chart Extraction Status'].json.result.charts : []) }}\n}",
+        "options": {}
+      },
+      "id": "trigger-llm-local",
+      "name": "Trigger LLM Pipeline (Local Path)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2900, 180]
     },
     {
       "parameters": {
@@ -191,27 +259,23 @@
           "name": "OpenAI API Key"
         }
       },
-      "notes": "Cloud fallback: Sends audio to OpenAI Whisper API. You'll need to download the audio first using a yt-dlp Code node or an external service."
+      "notes": "Cloud fallback: Download audio with a Code node (yt-dlp) before this step, then attach as file upload. The audio file parameter needs to be configured for your setup."
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $vars.LLM_PIPELINE_WEBHOOK_URL }}",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "video_id", "value": "={{ $node['Webhook Trigger'].json.body.video_id }}" },
-            { "name": "transcript", "value": "={{ $json.result.full_text || $json.text }}" },
-            { "name": "chart_urls", "value": "={{ JSON.stringify($json.result?.charts || []) }}" }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"video_id\": {{ JSON.stringify($node['Webhook Trigger'].json.body.video_id) }},\n  \"transcript\": {{ JSON.stringify($json.text || '') }},\n  \"chart_urls\": []\n}",
         "options": {}
       },
-      "id": "trigger-llm-pipeline",
-      "name": "Trigger LLM Pipeline",
+      "id": "trigger-llm-cloud",
+      "name": "Trigger LLM Pipeline (Cloud Path)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2200, 300]
+      "position": [1140, 440],
+      "notes": "Cloud path sends empty chart_urls since chart extraction is not available in cloud fallback. Chart URLs would need a cloud function to be added here."
     }
   ],
   "connections": {
@@ -223,17 +287,26 @@
         [{ "node": "Cloud: OpenAI Whisper API", "type": "main", "index": 0 }]
       ]
     },
-    "Local: Start Transcription": { "main": [[{ "node": "Wait 30s", "type": "main", "index": 0 }]] },
-    "Wait 30s": { "main": [[{ "node": "Poll Transcription Status", "type": "main", "index": 0 }]] },
+    "Local: Start Transcription": { "main": [[{ "node": "Wait 30s (Transcription)", "type": "main", "index": 0 }]] },
+    "Wait 30s (Transcription)": { "main": [[{ "node": "Poll Transcription Status", "type": "main", "index": 0 }]] },
     "Poll Transcription Status": { "main": [[{ "node": "Transcription Done?", "type": "main", "index": 0 }]] },
     "Transcription Done?": {
       "main": [
-        [{ "node": "Local: Start Chart Extraction", "type": "main", "index": 0 }],
-        [{ "node": "Wait 30s", "type": "main", "index": 0 }]
+        [{ "node": "Store Transcript Data", "type": "main", "index": 0 }],
+        [{ "node": "Wait 30s (Transcription)", "type": "main", "index": 0 }]
       ]
     },
-    "Local: Start Chart Extraction": { "main": [[{ "node": "Trigger LLM Pipeline", "type": "main", "index": 0 }]] },
-    "Cloud: OpenAI Whisper API": { "main": [[{ "node": "Trigger LLM Pipeline", "type": "main", "index": 0 }]] }
+    "Store Transcript Data": { "main": [[{ "node": "Local: Start Chart Extraction", "type": "main", "index": 0 }]] },
+    "Local: Start Chart Extraction": { "main": [[{ "node": "Wait 30s (Charts)", "type": "main", "index": 0 }]] },
+    "Wait 30s (Charts)": { "main": [[{ "node": "Poll Chart Extraction Status", "type": "main", "index": 0 }]] },
+    "Poll Chart Extraction Status": { "main": [[{ "node": "Charts Done?", "type": "main", "index": 0 }]] },
+    "Charts Done?": {
+      "main": [
+        [{ "node": "Trigger LLM Pipeline (Local Path)", "type": "main", "index": 0 }],
+        [{ "node": "Wait 30s (Charts)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Cloud: OpenAI Whisper API": { "main": [[{ "node": "Trigger LLM Pipeline (Cloud Path)", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "tags": [{ "name": "TWS" }]
