@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { getPostBySlug } from "@/lib/posts";
 import { prisma } from "@/lib/prisma";
+import { ChartImage } from "@/components/ChartImage";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -27,7 +30,7 @@ export async function generateMetadata({
   if (!post) return {};
 
   return {
-    title: `${post.title} | TWS Trading Insights`,
+    title: `${post.title} | TWSGurukulX`,
     description: post.seoDesc,
     openGraph: {
       title: post.title,
@@ -55,7 +58,7 @@ export default async function PostPage({
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const sections = post.sections as Section[];
+  const sections = post.sections as unknown as Section[];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -65,7 +68,7 @@ export default async function PostPage({
     image: post.heroImage,
     datePublished: post.publishedAt.toISOString(),
     dateModified: post.updatedAt.toISOString(),
-    author: { "@type": "Organization", name: "TWS Wealth OS" },
+    author: { "@type": "Organization", name: "TWSGurukulX" },
     keywords: post.keywords.join(", "),
   };
 
@@ -75,25 +78,25 @@ export default async function PostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <article className="mx-auto max-w-3xl px-4 py-12">
+      <article className="mx-auto max-w-prose px-4 py-12">
         <header className="mb-8">
           <div className="mb-4 flex flex-wrap gap-2">
             {post.tags.map((tag) => (
-              <a
+              <Link
                 key={tag}
                 href={`/tags/${tag}`}
-                className="rounded-full bg-wealth-teal/10 px-3 py-1 text-xs font-medium text-wealth-teal hover:bg-wealth-teal/20"
+                className="rounded-full bg-wealth-teal/10 px-3 py-1 text-xs font-medium text-wealth-teal no-underline hover:bg-wealth-teal/20"
               >
                 {tag}
-              </a>
+              </Link>
             ))}
           </div>
-          <h1 className="text-3xl font-bold leading-tight text-deep-slate sm:text-4xl">
+          <h1 className="font-instrument text-3xl leading-tight text-deep-slate sm:text-4xl">
             {post.title}
           </h1>
           <p className="mt-3 text-lg text-burnt-amber">{post.hook}</p>
           <time
-            className="mt-2 block text-sm text-deep-slate/50"
+            className="mt-2 block text-sm text-deep-slate/40"
             dateTime={post.publishedAt.toISOString()}
           >
             {post.publishedAt.toLocaleDateString("en-US", {
@@ -114,32 +117,31 @@ export default async function PostPage({
           />
         </div>
 
-        <div className="prose prose-lg max-w-none">
-          <p className="text-lg leading-relaxed">{post.intro}</p>
+        <div className="space-y-8">
+          <p className="text-lg leading-relaxed text-deep-slate/80">{post.intro}</p>
 
           {sections.map((section, i) => (
-            <section key={i} className="mt-8">
-              <h2 className="text-2xl font-bold text-deep-slate">{section.heading}</h2>
+            <section key={i}>
+              <h2 className="font-instrument text-2xl text-deep-slate">{section.heading}</h2>
               <div className="mt-3 leading-relaxed text-deep-slate/80 whitespace-pre-line">
                 {section.body}
               </div>
               {section.chartRef && (
-                <figure className="mt-4">
-                  <Image
-                    src={section.chartRef}
-                    alt={`Chart: ${section.heading}`}
-                    width={800}
-                    height={450}
-                    className="rounded-lg border border-deep-slate/10"
-                  />
-                </figure>
+                <ChartImage
+                  src={section.chartRef}
+                  alt={`Chart: ${section.heading}`}
+                />
               )}
             </section>
           ))}
 
-          <section className="mt-8 border-t border-deep-slate/10 pt-8">
+          <section className="border-t border-deep-slate/10 pt-8">
             <p className="leading-relaxed text-deep-slate/80">{post.conclusion}</p>
           </section>
+        </div>
+
+        <div className="mt-12">
+          <WhatsAppCTA />
         </div>
       </article>
     </>
