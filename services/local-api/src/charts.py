@@ -1,8 +1,12 @@
+import logging
+
 import cv2
 import numpy as np
 from pathlib import Path
 from src.config import settings
 from src.storage import upload_to_r2
+
+logger = logging.getLogger(__name__)
 
 
 def extract_chart_frames(
@@ -56,23 +60,29 @@ def extract_chart_frames(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     cap = cv2.VideoCapture(video_path)
-    for change in top_changes:
-        cap.set(cv2.CAP_PROP_POS_MSEC, change["timestamp"] * 1000)
-        ret, frame = cap.read()
-        if not ret:
-            continue
+    try:
+        for change in top_changes:
+            cap.set(cv2.CAP_PROP_POS_MSEC, change["timestamp"] * 1000)
+            ret, frame = cap.read()
+            if not ret:
+                continue
 
-        filename = f"chart_{int(change['timestamp'])}s.jpg"
-        local_path = str(out_dir / filename)
-        cv2.imwrite(local_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
+            filename = f"chart_{int(change['timestamp'])}s.jpg"
+            local_path = str(out_dir / filename)
+            cv2.imwrite(local_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
 
-        r2_key = f"{video_id}/charts/{filename}"
-        url = upload_to_r2(local_path, r2_key)
-        results.append({
-            "timestamp": change["timestamp"],
-            "url": url,
-            "score": change["score"],
-        })
+            r2_key = f"{video_id}/charts/{filename}"
+            try:
+                url = upload_to_r2(local_path, r2_key)
+                results.append({
+                    "timestamp": change["timestamp"],
+                    "url": url,
+                    "score": change["score"],
+                })
+            except Exception:
+                logger.warning("Failed to upload %s, skipping frame", r2_key, exc_info=True)
+                continue
+    finally:
+        cap.release()
 
-    cap.release()
     return results

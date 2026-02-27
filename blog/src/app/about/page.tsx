@@ -8,36 +8,49 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="mx-auto max-w-prose px-4 py-12">
-      <h1 className="font-instrument text-3xl text-deep-slate sm:text-4xl">
-        About TWSGurukulX
-      </h1>
+      <div className="animate-reveal">
+        <h1 className="text-3xl font-bold tracking-tight text-deep-slate sm:text-4xl">
+          About <span className="font-instrument text-burnt-amber">TWSGurukulX</span>
+        </h1>
 
-      <div className="mt-6 space-y-4 leading-relaxed text-deep-slate/80">
-        <p>
-          Trading With Sidhant Team breaks down Nifty, BankNifty, and options
-          setups live — every trading day. This blog captures those sessions so
-          you can revisit the analysis, study the setups, and learn at your own
-          pace.
-        </p>
+        <div className="mt-6 space-y-4 leading-[1.75] text-deep-slate/70">
+          <p>
+            Trading With Sidhant Team breaks down Nifty, BankNifty, and options
+            setups live — every trading day. This blog captures those sessions so
+            you can revisit the analysis, study the setups, and learn at your own
+            pace.
+          </p>
+        </div>
       </div>
 
-      <section className="mt-10">
-        <h2 className="font-instrument text-2xl text-deep-slate">
+      <div className="accent-line mt-10 animate-reveal delay-1" />
+
+      <section className="mt-10 animate-reveal delay-2">
+        <h2 className="text-2xl font-bold text-deep-slate">
           What You&apos;ll Find Here
         </h2>
-        <ul className="mt-4 space-y-2 text-deep-slate/80">
-          <li>Live stream recaps with key levels and setups</li>
-          <li>Chart analysis with annotated screenshots</li>
-          <li>Market context and trading insights</li>
+        <ul className="mt-4 space-y-3 text-deep-slate/70">
+          <li className="flex items-start gap-3">
+            <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
+            <span>Live stream recaps with key levels and setups</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
+            <span>Chart analysis with annotated screenshots</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
+            <span>Market context and trading insights</span>
+          </li>
         </ul>
       </section>
 
-      <section className="mt-10">
-        <h2 className="font-instrument text-2xl text-deep-slate">Contact</h2>
-        <div className="mt-4 space-y-1 text-deep-slate/80">
-          <p>Trading With Sidhant LLP</p>
+      <section className="mt-10 animate-reveal delay-3">
+        <h2 className="text-2xl font-bold text-deep-slate">Contact</h2>
+        <div className="mt-4 space-y-1.5 text-deep-slate/70">
+          <p className="font-medium text-deep-slate/50">Trading With Sidhant LLP</p>
           <p>
-            <a href="tel:+918062963333" className="text-wealth-teal">
+            <a href="tel:+918062963333" className="text-wealth-teal no-underline hover:underline">
               +91-8062963333
             </a>
           </p>
@@ -46,7 +59,7 @@ export default function AboutPage() {
               href="https://twsgurukul.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-wealth-teal"
+              className="text-wealth-teal no-underline hover:underline"
             >
               twsgurukul.com
             </a>

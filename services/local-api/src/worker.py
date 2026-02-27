@@ -1,3 +1,6 @@
+import shutil
+from pathlib import Path
+
 from arq import create_pool
 from arq.connections import RedisSettings
 from src.config import settings
@@ -5,6 +8,13 @@ from src.youtube import download_audio, download_video
 from src.transcribe import transcribe_audio
 from src.charts import extract_chart_frames
 from src.jobs import update_job
+
+
+def _cleanup_downloads(video_id: str):
+    """Remove downloaded files for a video to prevent disk exhaustion."""
+    download_path = Path(settings.download_dir) / video_id
+    if download_path.exists():
+        shutil.rmtree(download_path, ignore_errors=True)
 
 
 async def transcribe_task(ctx, job_id: str, video_id: str):
@@ -19,6 +29,8 @@ async def transcribe_task(ctx, job_id: str, video_id: str):
         update_job(job_id, "complete", result=result)
     except Exception as e:
         update_job(job_id, "failed", error=str(e))
+    finally:
+        _cleanup_downloads(video_id)
 
 
 async def extract_charts_task(ctx, job_id: str, video_id: str):
@@ -33,6 +45,8 @@ async def extract_charts_task(ctx, job_id: str, video_id: str):
         update_job(job_id, "complete", result={"charts": charts})
     except Exception as e:
         update_job(job_id, "failed", error=str(e))
+    finally:
+        _cleanup_downloads(video_id)
 
 
 class WorkerSettings:

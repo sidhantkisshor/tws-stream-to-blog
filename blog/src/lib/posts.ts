@@ -37,7 +37,8 @@ export async function getPostsByTag(tag: string) {
 }
 
 export async function getAllTags(): Promise<string[]> {
-  const posts = await prisma.post.findMany({ select: { tags: true } });
-  const tagSet = new Set(posts.flatMap((p) => p.tags));
-  return Array.from(tagSet).sort();
+  const rows = await prisma.$queryRaw<{ tag: string }[]>`
+    SELECT DISTINCT unnest(tags) AS tag FROM "Post" ORDER BY tag
+  `;
+  return rows.map((r) => r.tag);
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 function slugify(text: string): string {
@@ -44,7 +45,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
   if (!validateBody(body)) {
     return NextResponse.json(
@@ -55,8 +61,9 @@ export async function POST(request: NextRequest) {
 
   const slug = slugify(body.title) + "-" + Date.now().toString(36);
 
-  const post = await prisma.post.create({
-    data: {
+  const post = await prisma.post.upsert({
+    where: { videoId: body.videoId },
+    create: {
       videoId: body.videoId,
       title: body.title,
       slug,
@@ -70,7 +77,21 @@ export async function POST(request: NextRequest) {
       keywords: body.keywords,
       publishedAt: new Date(),
     },
+    update: {
+      title: body.title,
+      hook: body.hook,
+      seoDesc: body.seoDesc,
+      heroImage: body.heroImage,
+      intro: body.intro,
+      sections: body.sections,
+      conclusion: body.conclusion,
+      tags: body.tags,
+      keywords: body.keywords,
+    },
   });
+
+  revalidatePath("/");
+  revalidatePath(`/posts/${post.slug}`);
 
   return NextResponse.json(
     { id: post.id, slug: post.slug, url: `/posts/${post.slug}` },

@@ -1,8 +1,11 @@
 import json
+import logging
 import uuid
 import redis
 
 from src.config import settings
+
+logger = logging.getLogger(__name__)
 
 _redis: redis.Redis | None = None
 
@@ -10,7 +13,13 @@ _redis: redis.Redis | None = None
 def get_redis() -> redis.Redis:
     global _redis
     if _redis is None:
-        _redis = redis.from_url(settings.redis_url, decode_responses=True)
+        _redis = redis.from_url(
+            settings.redis_url,
+            decode_responses=True,
+            socket_connect_timeout=5,
+            socket_timeout=5,
+            retry_on_timeout=True,
+        )
     return _redis
 
 
@@ -30,12 +39,15 @@ def create_job() -> str:
 
 
 def update_job(job_id: str, status: str, result: dict | None = None, error: str | None = None):
-    r = get_redis()
-    r.set(
-        _job_key(job_id),
-        json.dumps({"status": status, "result": result, "error": error}),
-        ex=86400,
-    )
+    try:
+        r = get_redis()
+        r.set(
+            _job_key(job_id),
+            json.dumps({"status": status, "result": result, "error": error}),
+            ex=86400,
+        )
+    except redis.exceptions.RedisError:
+        logger.error("Failed to update job %s to status %s", job_id, status, exc_info=True)
 
 
 def get_job(job_id: str) -> dict | None:

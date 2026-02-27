@@ -17,7 +17,8 @@ body {
 }
 
 h1, h2, h3 {
-  font-family: var(--font-instrument);
+  font-family: var(--font-satoshi);
+  font-weight: 700;
 }
 
 a {
@@ -28,7 +29,85 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Utility for Instrument Serif on non-heading elements */
+/* Utility for Instrument Serif on decorative elements */
 .font-instrument {
   font-family: var(--font-instrument);
+}
+
+/* Subtle noise grain overlay */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Staggered reveal animation */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-reveal {
+  animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* Smooth image reveal */
+@keyframes image-reveal {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-image-reveal {
+  animation: image-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+/* Subtle gradient accent line */
+.accent-line {
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-wealth-teal), var(--color-burnt-amber), transparent);
+}
+
+/* Tag pill hover lift */
+.tag-pill {
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tag-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(44, 53, 57, 0.08);
+}
+
+/* Post card hover */
+.post-row {
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.post-row:hover {
+  background-color: rgba(44, 53, 57, 0.02);
+  padding-left: 8px;
+  margin-left: -8px;
 }

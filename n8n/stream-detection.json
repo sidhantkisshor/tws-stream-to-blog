@@ -7,7 +7,7 @@
           "interval": [{ "field": "minutes", "minutesInterval": 5 }]
         }
       },
-      "id": "schedule-trigger",
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
       "name": "Every 5 Minutes",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -16,27 +16,55 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "https://www.googleapis.com/youtube/v3/videos",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpQueryAuth",
+        "url": "https://www.googleapis.com/youtube/v3/playlistItems",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            { "name": "part", "value": "snippet,liveStreamingDetails" },
-            { "name": "id", "value": "={{ $json.videoId || $vars.LIVE_VIDEO_ID }}" }
+            { "name": "part", "value": "snippet" },
+            { "name": "playlistId", "value": "UUyFDhiqKcVqoIGB3CmJJFUg" },
+            { "name": "maxResults", "value": "1" }
           ]
         },
         "options": {}
       },
-      "id": "youtube-check",
-      "name": "Check YouTube Video Status",
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Fetch Recent Videos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [460, 300],
       "credentials": {
-        "httpQueryAuth": {
-          "id": "YOUTUBE_API_CREDENTIAL_ID",
-          "name": "YouTube API Key"
+        "youTubeOAuth2Api": {
+          "id": "7AxGyZdFSBMi5pw1",
+          "name": "YouTube OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.googleapis.com/youtube/v3/videos",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "part", "value": "snippet,liveStreamingDetails" },
+            { "name": "id", "value": "={{ $json.items[0].snippet.resourceId.videoId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Check YouTube Video Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "7AxGyZdFSBMi5pw1",
+          "name": "YouTube OAuth2"
         }
       }
     },
@@ -54,24 +82,31 @@
           ]
         }
       },
-      "id": "if-stream-ended",
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
       "name": "Stream Ended?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [680, 300]
+      "position": [900, 300]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT video_id FROM pipeline_runs WHERE video_id = '{{ $json.items[0].id }}'",
-        "options": {}
+        "query": "SELECT video_id FROM pipeline_runs WHERE video_id = $1",
+        "additionalFields": {
+          "queryParams": "={{ JSON.stringify([$json.items[0].id]) }}"
+        }
       },
-      "id": "check-state-store",
+      "id": "a1b2c3d4-0005-0005-0005-000000000005",
       "name": "Check If Already Processed",
-      "type": "n8n-nodes-base.sqlite",
-      "typeVersion": 1,
-      "position": [900, 200],
-      "notes": "Connect to your SQLite database file at /path/to/tws-pipeline.db"
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1120, 200],
+      "credentials": {
+        "postgres": {
+          "id": "6bcm49YU2mxAoGUG",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
@@ -87,67 +122,95 @@
           ]
         }
       },
-      "id": "if-not-processed",
+      "id": "a1b2c3d4-0006-0006-0006-000000000006",
       "name": "Not Yet Processed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1120, 200]
+      "position": [1340, 200]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO pipeline_runs (video_id, channel_id, detected_at, status, updated_at) VALUES ('{{ $node[\"Check YouTube Video Status\"].json.items[0].id }}', '{{ $node[\"Check YouTube Video Status\"].json.items[0].snippet.channelId }}', datetime('now'), 'pending', datetime('now'))"
+        "query": "INSERT INTO pipeline_runs (video_id, channel_id, detected_at, status, updated_at) VALUES ($1, $2, NOW(), 'pending', NOW()) ON CONFLICT (video_id) DO NOTHING",
+        "additionalFields": {
+          "queryParams": "={{ JSON.stringify([$node['Check YouTube Video Status'].json.items[0].id, $node['Check YouTube Video Status'].json.items[0].snippet.channelId]) }}"
+        }
       },
-      "id": "insert-state",
+      "id": "a1b2c3d4-0007-0007-0007-000000000007",
       "name": "Record in State Store",
-      "type": "n8n-nodes-base.sqlite",
-      "typeVersion": 1,
-      "position": [1340, 200]
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1560, 200],
+      "credentials": {
+        "postgres": {
+          "id": "6bcm49YU2mxAoGUG",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
         "amount": 15,
         "unit": "minutes"
       },
-      "id": "wait-15min",
+      "id": "a1b2c3d4-0008-0008-0008-000000000008",
       "name": "Wait 15 Min (VOD Processing)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [1560, 200]
+      "position": [1780, 200],
+      "webhookId": "wait-vod-processing"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $vars.PROCESS_WEBHOOK_URL }}",
+        "url": "=https://n8n.srv1104529.hstgr.cloud/webhook/process-stream",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "video_id",
-              "value": "={{ $node[\"Check YouTube Video Status\"].json.items[0].id }}"
-            }
-          ]
-        },
-        "options": {}
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ video_id: $node['Check YouTube Video Status'].json.items[0].id }) }}",
+        "options": {
+          "timeout": 30000
+        }
       },
-      "id": "trigger-processing",
+      "id": "a1b2c3d4-0009-0009-0009-000000000009",
       "name": "Trigger Processing Workflow",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1780, 200]
+      "position": [2000, 200]
     }
   ],
   "connections": {
-    "Every 5 Minutes": { "main": [[{ "node": "Check YouTube Video Status", "type": "main", "index": 0 }]] },
-    "Check YouTube Video Status": { "main": [[{ "node": "Stream Ended?", "type": "main", "index": 0 }]] },
-    "Stream Ended?": { "main": [[{ "node": "Check If Already Processed", "type": "main", "index": 0 }], []] },
-    "Check If Already Processed": { "main": [[{ "node": "Not Yet Processed?", "type": "main", "index": 0 }]] },
-    "Not Yet Processed?": { "main": [[{ "node": "Record in State Store", "type": "main", "index": 0 }], []] },
-    "Record in State Store": { "main": [[{ "node": "Wait 15 Min (VOD Processing)", "type": "main", "index": 0 }]] },
-    "Wait 15 Min (VOD Processing)": { "main": [[{ "node": "Trigger Processing Workflow", "type": "main", "index": 0 }]] }
+    "Every 5 Minutes": {
+      "main": [[{ "node": "Fetch Recent Videos", "type": "main", "index": 0 }]]
+    },
+    "Fetch Recent Videos": {
+      "main": [[{ "node": "Check YouTube Video Status", "type": "main", "index": 0 }]]
+    },
+    "Check YouTube Video Status": {
+      "main": [[{ "node": "Stream Ended?", "type": "main", "index": 0 }]]
+    },
+    "Stream Ended?": {
+      "main": [
+        [{ "node": "Check If Already Processed", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Check If Already Processed": {
+      "main": [[{ "node": "Not Yet Processed?", "type": "main", "index": 0 }]]
+    },
+    "Not Yet Processed?": {
+      "main": [
+        [{ "node": "Record in State Store", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Record in State Store": {
+      "main": [[{ "node": "Wait 15 Min (VOD Processing)", "type": "main", "index": 0 }]]
+    },
+    "Wait 15 Min (VOD Processing)": {
+      "main": [[{ "node": "Trigger Processing Workflow", "type": "main", "index": 0 }]]
+    }
   },
   "settings": {
     "executionOrder": "v1"
-  },
-  "tags": [{ "name": "TWS" }]
+  }
 }

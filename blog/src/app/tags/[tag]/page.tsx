@@ -6,8 +6,12 @@ import type { Metadata } from "next";
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const tags = await getAllTags();
-  return tags.map((tag) => ({ tag }));
+  try {
+    const tags = await getAllTags();
+    return tags.map((tag) => ({ tag }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -15,7 +19,8 @@ export async function generateMetadata({
 }: {
   params: Promise<{ tag: string }>;
 }): Promise<Metadata> {
-  const { tag } = await params;
+  const { tag: rawTag } = await params;
+  const tag = decodeURIComponent(rawTag);
   return {
     title: `#${tag} | TWSGurukulX`,
     description: `Trading insights and analysis tagged with ${tag}`,
@@ -27,42 +32,46 @@ export default async function TagPage({
 }: {
   params: Promise<{ tag: string }>;
 }) {
-  const { tag } = await params;
+  const { tag: rawTag } = await params;
+  const tag = decodeURIComponent(rawTag);
   const posts = await getPostsByTag(tag);
 
   if (posts.length === 0) notFound();
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
-      <header className="mb-8">
+      <header className="animate-reveal mb-8">
         <Link href="/" className="text-sm text-wealth-teal no-underline hover:underline">
           &larr; All posts
         </Link>
-        <h1 className="mt-4 font-instrument text-3xl text-deep-slate">
-          Posts tagged <span className="text-burnt-amber">#{tag}</span>
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-deep-slate">
+          Posts tagged{" "}
+          <span className="font-instrument text-burnt-amber">#{tag}</span>
         </h1>
       </header>
 
-      <div className="divide-y divide-deep-slate/10">
+      <div className="accent-line mb-8 animate-reveal delay-1" />
+
+      <div className="animate-reveal delay-2 divide-y divide-deep-slate/8">
         {posts.map((post) => (
           <Link
             key={post.id}
             href={`/posts/${post.slug}`}
-            className="group block py-5 no-underline first:pt-0"
+            className="post-row group block rounded-lg py-5 no-underline first:pt-0"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <h3 className="font-instrument text-lg text-deep-slate group-hover:text-burnt-amber transition-colors">
+                <h3 className="text-lg font-bold text-deep-slate transition-colors duration-200 group-hover:text-burnt-amber">
                   {post.title}
                 </h3>
-                <p className="mt-1 text-sm text-deep-slate/60 line-clamp-1">
+                <p className="mt-1 text-sm leading-relaxed text-deep-slate/55 line-clamp-1">
                   {post.hook}
                 </p>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {post.tags.slice(0, 3).map((t) => (
                     <span
                       key={t}
-                      className="rounded-full bg-deep-slate/5 px-2 py-0.5 text-xs text-deep-slate/50"
+                      className="rounded-full bg-deep-slate/5 px-2.5 py-0.5 text-[11px] font-medium text-deep-slate/45"
                     >
                       {t}
                     </span>
@@ -70,7 +79,7 @@ export default async function TagPage({
                 </div>
               </div>
               <time
-                className="shrink-0 text-sm text-deep-slate/40"
+                className="shrink-0 text-sm tabular-nums text-deep-slate/35"
                 dateTime={post.publishedAt.toISOString()}
               >
                 {post.publishedAt.toLocaleDateString("en-US", {

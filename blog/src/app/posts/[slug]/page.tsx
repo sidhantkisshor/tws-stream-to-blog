@@ -16,8 +16,12 @@ interface Section {
 }
 
 export async function generateStaticParams() {
-  const posts = await prisma.post.findMany({ select: { slug: true } });
-  return posts.map((p) => ({ slug: p.slug }));
+  try {
+    const posts = await prisma.post.findMany({ select: { slug: true } });
+    return posts.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -58,7 +62,15 @@ export default async function PostPage({
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const sections = post.sections as unknown as Section[];
+  const sections: Section[] = Array.isArray(post.sections)
+    ? (post.sections as unknown[]).filter(
+        (s): s is Section =>
+          !!s &&
+          typeof s === "object" &&
+          typeof (s as Section).heading === "string" &&
+          typeof (s as Section).body === "string"
+      )
+    : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -76,27 +88,27 @@ export default async function PostPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <article className="mx-auto max-w-prose px-4 py-12">
-        <header className="mb-8">
+        <header className="animate-reveal mb-8">
           <div className="mb-4 flex flex-wrap gap-2">
             {post.tags.map((tag) => (
               <Link
                 key={tag}
-                href={`/tags/${tag}`}
-                className="rounded-full bg-wealth-teal/10 px-3 py-1 text-xs font-medium text-wealth-teal no-underline hover:bg-wealth-teal/20"
+                href={`/tags/${encodeURIComponent(tag)}`}
+                className="tag-pill rounded-full bg-wealth-teal/8 px-3 py-1 text-xs font-medium text-wealth-teal no-underline hover:bg-wealth-teal/15"
               >
                 {tag}
               </Link>
             ))}
           </div>
-          <h1 className="font-instrument text-3xl leading-tight text-deep-slate sm:text-4xl">
+          <h1 className="text-3xl font-bold leading-tight tracking-tight text-deep-slate sm:text-4xl">
             {post.title}
           </h1>
-          <p className="mt-3 text-lg text-burnt-amber">{post.hook}</p>
+          <p className="mt-3 font-instrument text-xl text-burnt-amber/80">{post.hook}</p>
           <time
-            className="mt-2 block text-sm text-deep-slate/40"
+            className="mt-3 block text-sm text-deep-slate/35"
             dateTime={post.publishedAt.toISOString()}
           >
             {post.publishedAt.toLocaleDateString("en-US", {
@@ -107,7 +119,7 @@ export default async function PostPage({
           </time>
         </header>
 
-        <div className="relative mb-8 aspect-video overflow-hidden rounded-lg">
+        <div className="animate-image-reveal relative mb-10 aspect-video overflow-hidden rounded-xl bg-deep-slate/5">
           <Image
             src={post.heroImage}
             alt={post.title}
@@ -117,13 +129,15 @@ export default async function PostPage({
           />
         </div>
 
-        <div className="space-y-8">
-          <p className="text-lg leading-relaxed text-deep-slate/80">{post.intro}</p>
+        <div className="animate-reveal delay-2 space-y-10">
+          <p className="text-lg leading-relaxed text-deep-slate/75">{post.intro}</p>
 
           {sections.map((section, i) => (
             <section key={i}>
-              <h2 className="font-instrument text-2xl text-deep-slate">{section.heading}</h2>
-              <div className="mt-3 leading-relaxed text-deep-slate/80 whitespace-pre-line">
+              <h2 className="text-2xl font-bold tracking-tight text-deep-slate">
+                {section.heading}
+              </h2>
+              <div className="mt-3 leading-[1.75] text-deep-slate/75 whitespace-pre-line">
                 {section.body}
               </div>
               {section.chartRef && (
@@ -135,12 +149,14 @@ export default async function PostPage({
             </section>
           ))}
 
-          <section className="border-t border-deep-slate/10 pt-8">
-            <p className="leading-relaxed text-deep-slate/80">{post.conclusion}</p>
+          <div className="accent-line" />
+
+          <section className="pt-2">
+            <p className="leading-[1.75] text-deep-slate/75">{post.conclusion}</p>
           </section>
         </div>
 
-        <div className="mt-12">
+        <div className="mt-14 animate-reveal delay-4">
           <WhatsAppCTA />
         </div>
       </article>

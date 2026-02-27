@@ -8,32 +8,57 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "webhook-trigger",
+      "id": "d4e5f6a7-0001-0001-0001-000000000001",
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300],
+      "position": [100, 300],
       "webhookId": "publish-blog"
     },
     {
       "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "blog-url",
+              "name": "BLOG_URL",
+              "value": "=https://REPLACE-WITH-VERCEL-URL",
+              "type": "string"
+            },
+            {
+              "id": "discord-webhook-url",
+              "name": "DISCORD_WEBHOOK_URL",
+              "value": "=https://REPLACE-WITH-DISCORD-WEBHOOK-URL",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "d4e5f6a7-0002-0002-0002-000000000002",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "={{ $vars.BLOG_URL }}/api/posts",
+        "url": "={{ $json.BLOG_URL }}/api/posts",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
+        "jsonBody": "={{ JSON.stringify($node['Webhook Trigger'].json.body) }}",
         "options": {}
       },
-      "id": "publish-post",
+      "id": "d4e5f6a7-0003-0003-0003-000000000003",
       "name": "Publish to Blog",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 300],
+      "position": [520, 300],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "BLOG_PUBLISH_KEY_CREDENTIAL_ID",
+          "id": "0tQCFipJNNOb5vyJ",
           "name": "Blog Publish API Key"
         }
       }
@@ -41,16 +66,22 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ $vars.BLOG_URL }}/posts/{{ $json.slug }}",
+        "url": "={{ $node['Config'].json.BLOG_URL }}/posts/{{ $json.slug }}",
         "options": {
-          "timeout": 15000
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
         }
       },
-      "id": "validate-published",
+      "id": "d4e5f6a7-0004-0004-0004-000000000004",
       "name": "Validate Published URL",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [720, 300]
+      "position": [760, 300],
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -66,78 +97,110 @@
           ]
         }
       },
-      "id": "if-valid",
+      "id": "d4e5f6a7-0005-0005-0005-000000000005",
       "name": "Published Successfully?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [960, 300]
+      "position": [1000, 300]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "=UPDATE pipeline_runs SET status='complete', blog_post_id='{{ $node['Publish to Blog'].json.id }}', published_url='{{ $vars.BLOG_URL }}/posts/{{ $node['Publish to Blog'].json.slug }}', updated_at=datetime('now') WHERE video_id='{{ $node['Webhook Trigger'].json.body.videoId }}'"
+        "query": "UPDATE pipeline_runs SET status = 'complete', blog_post_id = $1, published_url = $2, updated_at = NOW() WHERE video_id = $3",
+        "additionalFields": {
+          "queryParams": "={{ JSON.stringify([ String($node['Publish to Blog'].json.id || ''), ($node['Config'].json.BLOG_URL + '/posts/' + String($node['Publish to Blog'].json.slug || '')), String($node['Webhook Trigger'].json.body.videoId || '') ]) }}"
+        }
       },
-      "id": "update-state-complete",
+      "id": "d4e5f6a7-0006-0006-0006-000000000006",
       "name": "Update State: Complete",
-      "type": "n8n-nodes-base.sqlite",
-      "typeVersion": 1,
-      "position": [1200, 200]
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1240, 180],
+      "credentials": {
+        "postgres": {
+          "id": "6bcm49YU2mxAoGUG",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "=UPDATE pipeline_runs SET status='failed', error_message='Publish validation failed - page did not return 200', failed_step='validate', updated_at=datetime('now') WHERE video_id='{{ $node['Webhook Trigger'].json.body.videoId }}'"
+        "query": "UPDATE pipeline_runs SET status = 'failed', error_message = $1, failed_step = 'validate', updated_at = NOW() WHERE video_id = $2",
+        "additionalFields": {
+          "queryParams": "={{ JSON.stringify([ 'Publish validation failed - page did not return 200', String($node['Webhook Trigger'].json.body.videoId || '') ]) }}"
+        }
       },
-      "id": "update-state-failed",
+      "id": "d4e5f6a7-0007-0007-0007-000000000007",
       "name": "Update State: Failed",
-      "type": "n8n-nodes-base.sqlite",
-      "typeVersion": 1,
-      "position": [1200, 420]
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1240, 420],
+      "credentials": {
+        "postgres": {
+          "id": "6bcm49YU2mxAoGUG",
+          "name": "Postgres account"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $vars.DISCORD_WEBHOOK_URL }}",
+        "url": "={{ $node['Config'].json.DISCORD_WEBHOOK_URL }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"content\": \"❌ **TWS Blog Pipeline Failed**\\nVideo: {{ $node['Webhook Trigger'].json.body.videoId }}\\nStep: Publish Validation\\nError: Page did not return 200\"\n}",
+        "jsonBody": "={\n  \"content\": \"\\u2705 **New TWS Blog Post Published**\\nTitle: {{ $node['Publish to Blog'].json.title || 'N/A' }}\\nURL: {{ $node['Config'].json.BLOG_URL }}/posts/{{ $node['Publish to Blog'].json.slug }}\"\n}",
         "options": {}
       },
-      "id": "notify-failure",
-      "name": "Notify: Discord Alert",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1440, 420]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $vars.DISCORD_WEBHOOK_URL }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"content\": \"✅ **New TWS Blog Post Published**\\nTitle: {{ $node['Publish to Blog'].json.title || 'N/A' }}\\nURL: {{ $vars.BLOG_URL }}/posts/{{ $node['Publish to Blog'].json.slug }}\"\n}",
-        "options": {}
-      },
-      "id": "notify-success",
+      "id": "d4e5f6a7-0008-0008-0008-000000000008",
       "name": "Notify: Discord Success",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1440, 200]
+      "position": [1480, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $node['Config'].json.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"\\u274c **TWS Blog Pipeline Failed**\\nVideo: {{ $node['Webhook Trigger'].json.body.videoId }}\\nStep: Publish Validation\\nError: Page did not return 200\"\n}",
+        "options": {}
+      },
+      "id": "d4e5f6a7-0009-0009-0009-000000000009",
+      "name": "Notify: Discord Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1480, 420]
     }
   ],
   "connections": {
-    "Webhook Trigger": { "main": [[{ "node": "Publish to Blog", "type": "main", "index": 0 }]] },
-    "Publish to Blog": { "main": [[{ "node": "Validate Published URL", "type": "main", "index": 0 }]] },
-    "Validate Published URL": { "main": [[{ "node": "Published Successfully?", "type": "main", "index": 0 }]] },
+    "Webhook Trigger": {
+      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+    },
+    "Config": {
+      "main": [[{ "node": "Publish to Blog", "type": "main", "index": 0 }]]
+    },
+    "Publish to Blog": {
+      "main": [[{ "node": "Validate Published URL", "type": "main", "index": 0 }]]
+    },
+    "Validate Published URL": {
+      "main": [[{ "node": "Published Successfully?", "type": "main", "index": 0 }]]
+    },
     "Published Successfully?": {
       "main": [
         [{ "node": "Update State: Complete", "type": "main", "index": 0 }],
         [{ "node": "Update State: Failed", "type": "main", "index": 0 }]
       ]
     },
-    "Update State: Complete": { "main": [[{ "node": "Notify: Discord Success", "type": "main", "index": 0 }]] },
-    "Update State: Failed": { "main": [[{ "node": "Notify: Discord Alert", "type": "main", "index": 0 }]] }
+    "Update State: Complete": {
+      "main": [[{ "node": "Notify: Discord Success", "type": "main", "index": 0 }]]
+    },
+    "Update State: Failed": {
+      "main": [[{ "node": "Notify: Discord Alert", "type": "main", "index": 0 }]]
+    }
   },
-  "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "TWS" }]
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

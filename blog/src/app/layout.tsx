@@ -16,12 +16,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
         <link
           href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=instrument-serif@400&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className="grain min-h-screen antialiased">
         <Nav />
         <div className="min-h-[calc(100vh-160px)]">{children}</div>
         <Footer />

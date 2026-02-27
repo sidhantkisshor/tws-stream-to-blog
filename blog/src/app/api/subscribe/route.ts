@@ -10,13 +10,28 @@ const PHONE_PATTERNS: Record<string, RegExp> = {
 };
 const DEFAULT_PATTERN = /^\d{7,15}$/;
 
-// Simple in-memory rate limiter
+// In-memory rate limiter with periodic cleanup to prevent unbounded growth
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW = 60_000; // 1 minute
 const RATE_LIMIT_MAX = 5; // 5 requests per window
+const CLEANUP_INTERVAL = 5 * 60_000; // clean stale entries every 5 minutes
+const MAX_MAP_SIZE = 10_000; // hard cap on tracked IPs
+
+let lastCleanup = Date.now();
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
+
+  // Periodic cleanup of stale entries
+  if (now - lastCleanup > CLEANUP_INTERVAL || rateLimitMap.size > MAX_MAP_SIZE) {
+    for (const [key, timestamps] of rateLimitMap) {
+      const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW);
+      if (recent.length === 0) rateLimitMap.delete(key);
+      else rateLimitMap.set(key, recent);
+    }
+    lastCleanup = now;
+  }
+
   const timestamps = rateLimitMap.get(ip) || [];
   const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW);
   if (recent.length >= RATE_LIMIT_MAX) return true;

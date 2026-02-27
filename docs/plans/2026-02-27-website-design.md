@@ -13,7 +13,7 @@
 - **Vibe:** Minimal, content-first (Substack/Medium inspired)
 - **Background:** Warm White (#FAF8F5)
 - **Body font:** Satoshi (sans-serif)
-- **Heading font:** Instrument Serif
+- **Heading font:** Satoshi Bold + Instrument Serif (Different Color)
 - **Colors:**
   - Deep Slate #2C3539 — primary text
   - Burnt Amber #C87533 — headings, accents, CTAs
