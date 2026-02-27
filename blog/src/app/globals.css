@@ -27,3 +27,8 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+/* Utility for Instrument Serif on non-heading elements */
+.font-instrument {
+  font-family: var(--font-instrument);
+}
