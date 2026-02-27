@@ -1,0 +1,240 @@
+{
+  "name": "TWS Process Stream",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-stream",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "process-stream"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $vars.LOCAL_API_URL }}/health",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000,
+          "allowUnauthorizedCerts": false
+        }
+      },
+      "id": "health-check",
+      "name": "Health Check Local Machine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_API_KEY_CREDENTIAL_ID",
+          "name": "Local API Key"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "id": "local-online",
+              "leftValue": "={{ $json.statusCode || $json.status }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "exists" }
+            }
+          ]
+        }
+      },
+      "id": "if-local-online",
+      "name": "Local Machine Online?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "notes": "Check if health check returned successfully (status: ok)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.LOCAL_API_URL }}/transcribe",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "video_id", "value": "={{ $node['Webhook Trigger'].json.body.video_id }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "local-transcribe",
+      "name": "Local: Start Transcription",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_API_KEY_CREDENTIAL_ID",
+          "name": "Local API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait-transcribe",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1140, 180]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $vars.LOCAL_API_URL }}/status/{{ $node['Local: Start Transcription'].json.job_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "poll-transcribe",
+      "name": "Poll Transcription Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1360, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_API_KEY_CREDENTIAL_ID",
+          "name": "Local API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "id": "job-complete",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "complete",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "if-transcribe-done",
+      "name": "Transcription Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1580, 180],
+      "notes": "If not done, loop back to Wait 30s. If done, proceed to chart extraction."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.LOCAL_API_URL }}/extract-charts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "video_id", "value": "={{ $node['Webhook Trigger'].json.body.video_id }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "local-extract-charts",
+      "name": "Local: Start Chart Extraction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LOCAL_API_KEY_CREDENTIAL_ID",
+          "name": "Local API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "whisper-1" },
+            { "name": "response_format", "value": "verbose_json" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cloud-transcribe",
+      "name": "Cloud: OpenAI Whisper API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 440],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OPENAI_API_KEY_CREDENTIAL_ID",
+          "name": "OpenAI API Key"
+        }
+      },
+      "notes": "Cloud fallback: Sends audio to OpenAI Whisper API. You'll need to download the audio first using a yt-dlp Code node or an external service."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.LLM_PIPELINE_WEBHOOK_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "video_id", "value": "={{ $node['Webhook Trigger'].json.body.video_id }}" },
+            { "name": "transcript", "value": "={{ $json.result.full_text || $json.text }}" },
+            { "name": "chart_urls", "value": "={{ JSON.stringify($json.result?.charts || []) }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "trigger-llm-pipeline",
+      "name": "Trigger LLM Pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2200, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Health Check Local Machine", "type": "main", "index": 0 }]] },
+    "Health Check Local Machine": { "main": [[{ "node": "Local Machine Online?", "type": "main", "index": 0 }]] },
+    "Local Machine Online?": {
+      "main": [
+        [{ "node": "Local: Start Transcription", "type": "main", "index": 0 }],
+        [{ "node": "Cloud: OpenAI Whisper API", "type": "main", "index": 0 }]
+      ]
+    },
+    "Local: Start Transcription": { "main": [[{ "node": "Wait 30s", "type": "main", "index": 0 }]] },
+    "Wait 30s": { "main": [[{ "node": "Poll Transcription Status", "type": "main", "index": 0 }]] },
+    "Poll Transcription Status": { "main": [[{ "node": "Transcription Done?", "type": "main", "index": 0 }]] },
+    "Transcription Done?": {
+      "main": [
+        [{ "node": "Local: Start Chart Extraction", "type": "main", "index": 0 }],
+        [{ "node": "Wait 30s", "type": "main", "index": 0 }]
+      ]
+    },
+    "Local: Start Chart Extraction": { "main": [[{ "node": "Trigger LLM Pipeline", "type": "main", "index": 0 }]] },
+    "Cloud: OpenAI Whisper API": { "main": [[{ "node": "Trigger LLM Pipeline", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "TWS" }]
+}

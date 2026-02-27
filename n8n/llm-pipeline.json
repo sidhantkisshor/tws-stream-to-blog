@@ -1,0 +1,172 @@
+{
+  "name": "TWS LLM Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "llm-pipeline",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "llm-pipeline"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a trading stream analyst. Extract structured data from this live stream transcript. Return JSON with: tickers (string array of stock/index symbols mentioned), setups (array of {ticker, direction, entry, target, stop}), timestamps (array of {time, topic} for key discussion points), key_quotes (array of notable quotes from the streamer), summary (2-3 paragraph summary of the stream).\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.transcript) }}\n    }\n  ],\n  \"max_tokens\": 4000\n}",
+        "options": {}
+      },
+      "id": "step1-compress",
+      "name": "Step 1: Compress Transcript (GPT-4o-mini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OPENAI_API_KEY_CREDENTIAL_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-5.2\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an SEO expert and content strategist for TWS Wealth OS, a trading education brand. Generate blog metadata for a trading live stream recap. Return JSON with: title (compelling, SEO-optimized, under 60 chars), hook (one engaging sentence that makes traders want to read), seo_description (under 160 chars for meta description), keywords (array of 5-10 SEO keywords), image_prompt (descriptive prompt for generating a hero image that matches the trading content — describe the visual scene, mood, and key elements).\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($node['Step 1: Compress Transcript (GPT-4o-mini)'].json.choices[0].message.content) }}\n    }\n  ],\n  \"max_tokens\": 1000\n}",
+        "options": {}
+      },
+      "id": "step2-titles",
+      "name": "Step 2: Title & Hooks (GPT-5.2)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OPENAI_API_KEY_CREDENTIAL_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": {{ JSON.stringify(JSON.parse($node['Step 2: Title & Hooks (GPT-5.2)'].json.choices[0].message.content).keywords.join(' ')) }},\n  \"search_depth\": \"basic\",\n  \"max_results\": 5,\n  \"include_answer\": true\n}",
+        "options": {}
+      },
+      "id": "step3-research",
+      "name": "Step 3: Tavily Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TAVILY_API_KEY_CREDENTIAL_ID",
+          "name": "Tavily API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6-20250514\",\n  \"max_tokens\": 8000,\n  \"system\": \"You are a financial blog writer for TWS Wealth OS. Write an SEO-optimized blog post about today's trading live stream. Use the chart images provided by referencing their URLs in the appropriate sections. Return JSON with: intro (engaging opening paragraph), sections (array of {heading, body, chartRef} where chartRef is optional URL from provided charts), conclusion (closing paragraph with takeaways), tags (array of category tags).\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Stream Summary:\\n\" + {{ JSON.stringify($node['Step 1: Compress Transcript (GPT-4o-mini)'].json.choices[0].message.content) }} + \"\\n\\nTitle: \" + {{ JSON.stringify(JSON.parse($node['Step 2: Title & Hooks (GPT-5.2)'].json.choices[0].message.content).title) }} + \"\\n\\nResearch Context:\\n\" + {{ JSON.stringify($node['Step 3: Tavily Research'].json.answer || '') }} + \"\\n\\nChart URLs:\\n\" + {{ JSON.stringify($node['Webhook Trigger'].json.body.chart_urls || '[]') }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "step4-blog",
+      "name": "Step 4: Blog Body (Sonnet 4.6)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ANTHROPIC_API_KEY_CREDENTIAL_ID",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"instances\": [\n    {\n      \"prompt\": {{ JSON.stringify(JSON.parse($node['Step 2: Title & Hooks (GPT-5.2)'].json.choices[0].message.content).image_prompt) }}\n    }\n  ],\n  \"parameters\": {\n    \"sampleCount\": 1,\n    \"aspectRatio\": \"16:9\"\n  }\n}",
+        "options": {}
+      },
+      "id": "step5-image",
+      "name": "Step 5: Hero Image (Nano Banana 2)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 300],
+      "notes": "Update URL and auth to match the actual Nano Banana 2 / Imagen API endpoint. The image generation model API may differ. Upload result to R2 in the next step."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assemble all data for publishing\nconst titleData = JSON.parse($node['Step 2: Title & Hooks (GPT-5.2)'].json.choices[0].message.content);\nconst blogData = JSON.parse($node['Step 4: Blog Body (Sonnet 4.6)'].json.content[0].text);\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\n// TODO: Upload hero image to R2 and get URL\nconst heroImageUrl = 'HERO_IMAGE_R2_URL';\n\nreturn [{\n  json: {\n    videoId,\n    title: titleData.title,\n    hook: titleData.hook,\n    seoDesc: titleData.seo_description,\n    heroImage: heroImageUrl,\n    intro: blogData.intro,\n    sections: blogData.sections,\n    conclusion: blogData.conclusion,\n    tags: blogData.tags,\n    keywords: titleData.keywords\n  }\n}];"
+      },
+      "id": "assemble-payload",
+      "name": "Assemble Publish Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.PUBLISH_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "trigger-publish",
+      "name": "Trigger Publish Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1920, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Step 1: Compress Transcript (GPT-4o-mini)", "type": "main", "index": 0 }]] },
+    "Step 1: Compress Transcript (GPT-4o-mini)": { "main": [[{ "node": "Step 2: Title & Hooks (GPT-5.2)", "type": "main", "index": 0 }]] },
+    "Step 2: Title & Hooks (GPT-5.2)": { "main": [[{ "node": "Step 3: Tavily Research", "type": "main", "index": 0 }]] },
+    "Step 3: Tavily Research": { "main": [[{ "node": "Step 4: Blog Body (Sonnet 4.6)", "type": "main", "index": 0 }]] },
+    "Step 4: Blog Body (Sonnet 4.6)": { "main": [[{ "node": "Step 5: Hero Image (Nano Banana 2)", "type": "main", "index": 0 }]] },
+    "Step 5: Hero Image (Nano Banana 2)": { "main": [[{ "node": "Assemble Publish Payload", "type": "main", "index": 0 }]] },
+    "Assemble Publish Payload": { "main": [[{ "node": "Trigger Publish Workflow", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "TWS" }]
+}
