@@ -5,6 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "publish-blog",
+        "authentication": "headerAuth",
         "responseMode": "lastNode",
         "options": {}
       },
@@ -13,7 +14,13 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [100, 300],
-      "webhookId": "publish-blog"
+      "webhookId": "publish-blog",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IlRAwjG9guzimnOg",
+          "name": "N8N Webhook Auth"
+        }
+      }
     },
     {
       "parameters": {
@@ -22,13 +29,13 @@
             {
               "id": "blog-url",
               "name": "BLOG_URL",
-              "value": "=https://blog-75v06v954-disha-methis-projects.vercel.app",
+              "value": "={{ $env.BLOG_BASE_URL }}",
               "type": "string"
             },
             {
-              "id": "discord-webhook-url",
-              "name": "DISCORD_WEBHOOK_URL",
-              "value": "=https://REPLACE-WITH-DISCORD-WEBHOOK-URL",
+              "id": "tg-chat-id",
+              "name": "TG_CHAT_ID",
+              "value": "1003723441488",
               "type": "string"
             }
           ]
@@ -145,33 +152,45 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $node['Config'].json.DISCORD_WEBHOOK_URL }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"content\": \"\\u2705 **New TWS Blog Post Published**\\nTitle: {{ $node['Publish to Blog'].json.title || 'N/A' }}\\nURL: {{ $node['Config'].json.BLOG_URL }}/posts/{{ $node['Publish to Blog'].json.slug }}\"\n}",
-        "options": {}
+        "chatId": "={{ $node['Config'].json.TG_CHAT_ID }}",
+        "text": "=✅ *New TWS Blog Post Published*\nTitle: {{ $node['Publish to Blog'].json.title || 'N/A' }}\nURL: {{ $node['Config'].json.BLOG_URL }}/posts/{{ $node['Publish to Blog'].json.slug }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
       },
       "id": "d4e5f6a7-0008-0008-0008-000000000008",
-      "name": "Notify: Discord Success",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1480, 180]
+      "name": "Notify: TG Success",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1480, 180],
+      "credentials": {
+        "telegramApi": {
+          "id": "0V7hd11iSvVFEPaD",
+          "name": "TWSN8N_Bot"
+        }
+      }
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $node['Config'].json.DISCORD_WEBHOOK_URL }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"content\": \"\\u274c **TWS Blog Pipeline Failed**\\nVideo: {{ $node['Webhook Trigger'].json.body.videoId }}\\nStep: Publish Validation\\nError: Page did not return 200\"\n}",
-        "options": {}
+        "chatId": "={{ $node['Config'].json.TG_CHAT_ID }}",
+        "text": "=❌ *TWS Blog Pipeline Failed*\nVideo: {{ $node['Webhook Trigger'].json.body.videoId }}\nStep: Publish Validation\nError: Page did not return 200",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
       },
       "id": "d4e5f6a7-0009-0009-0009-000000000009",
-      "name": "Notify: Discord Alert",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1480, 420]
+      "name": "Notify: TG Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1480, 420],
+      "credentials": {
+        "telegramApi": {
+          "id": "0V7hd11iSvVFEPaD",
+          "name": "TWSN8N_Bot"
+        }
+      }
     }
   ],
   "connections": {
@@ -194,10 +213,10 @@
       ]
     },
     "Update State: Complete": {
-      "main": [[{ "node": "Notify: Discord Success", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Notify: TG Success", "type": "main", "index": 0 }]]
     },
     "Update State: Failed": {
-      "main": [[{ "node": "Notify: Discord Alert", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Notify: TG Alert", "type": "main", "index": 0 }]]
     }
   },
   "settings": {

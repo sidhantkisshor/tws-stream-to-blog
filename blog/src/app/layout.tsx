@@ -1,7 +1,26 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
+
+const satoshi = localFont({
+  src: [
+    { path: "./fonts/Satoshi-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/Satoshi-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Satoshi-Bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-satoshi-var",
+  display: "swap",
+});
+
+const instrumentSerif = localFont({
+  src: [
+    { path: "./fonts/InstrumentSerif-Regular.woff2", weight: "400", style: "normal" },
+  ],
+  variable: "--font-instrument-var",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "TWSGurukulX — Trading Insights",
@@ -14,14 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=instrument-serif@400&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${satoshi.variable} ${instrumentSerif.variable}`}>
       <body className="grain min-h-screen antialiased">
         <Nav />
         <div className="min-h-[calc(100vh-160px)]">{children}</div>

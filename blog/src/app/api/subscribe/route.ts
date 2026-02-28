@@ -10,7 +10,8 @@ const PHONE_PATTERNS: Record<string, RegExp> = {
 };
 const DEFAULT_PATTERN = /^\d{7,15}$/;
 
-// In-memory rate limiter with periodic cleanup to prevent unbounded growth
+// In-memory rate limiter — effective for long-running servers but resets on
+// serverless cold starts (Vercel). For production, swap to Vercel KV or Upstash Redis.
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW = 60_000; // 1 minute
 const RATE_LIMIT_MAX = 5; // 5 requests per window

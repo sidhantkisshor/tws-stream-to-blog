@@ -6,8 +6,8 @@
   --color-brushed-gold: #B8956A;
   --color-warm-white: #FAF8F5;
   --color-wealth-teal: #0A8D7A;
-  --font-satoshi: "Satoshi", sans-serif;
-  --font-instrument: "Instrument Serif", serif;
+  --font-satoshi: var(--font-satoshi-var), sans-serif;
+  --font-instrument: var(--font-instrument-var), serif;
 }
 
 body {
@@ -27,11 +27,6 @@ a {
 
 a:hover {
   text-decoration: underline;
-}
-
-/* Utility for Instrument Serif on decorative elements */
-.font-instrument {
-  font-family: var(--font-instrument);
 }
 
 /* Subtle noise grain overlay */

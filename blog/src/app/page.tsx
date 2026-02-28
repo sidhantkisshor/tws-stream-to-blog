@@ -25,17 +25,21 @@ export default async function HomePage() {
           {/* Featured latest post */}
           <Link href={`/posts/${featured.slug}`} className="group block no-underline">
             <article className="animate-reveal mb-14">
-              <div className="animate-image-reveal relative aspect-video overflow-hidden rounded-xl bg-deep-slate/5">
-                <Image
-                  src={featured.heroImage}
-                  alt={featured.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  priority
-                  sizes="(max-width: 896px) 100vw, 896px"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-deep-slate/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </div>
+              {featured.heroImage ? (
+                <div className="animate-image-reveal relative aspect-video overflow-hidden rounded-xl bg-deep-slate/5">
+                  <Image
+                    src={featured.heroImage}
+                    alt={featured.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    priority
+                    sizes="(max-width: 896px) 100vw, 896px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-deep-slate/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                </div>
+              ) : (
+                <div className="relative aspect-video overflow-hidden rounded-xl bg-deep-slate/5" />
+              )}
               <div className="mt-5">
                 <div className="mb-3 flex flex-wrap gap-2">
                   {featured.tags.slice(0, 3).map((tag) => (

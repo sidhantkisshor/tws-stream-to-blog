@@ -33,9 +33,18 @@ function validateBody(body: unknown): body is PublishBody {
     typeof b.heroImage === "string" &&
     typeof b.intro === "string" &&
     Array.isArray(b.sections) &&
+    b.sections.every(
+      (s: unknown) =>
+        !!s &&
+        typeof s === "object" &&
+        typeof (s as Record<string, unknown>).heading === "string" &&
+        typeof (s as Record<string, unknown>).body === "string"
+    ) &&
     typeof b.conclusion === "string" &&
     Array.isArray(b.tags) &&
-    Array.isArray(b.keywords)
+    b.tags.every((t: unknown) => typeof t === "string") &&
+    Array.isArray(b.keywords) &&
+    b.keywords.every((k: unknown) => typeof k === "string")
   );
 }
 
@@ -61,40 +70,48 @@ export async function POST(request: NextRequest) {
 
   const slug = slugify(body.title) + "-" + Date.now().toString(36);
 
-  const post = await prisma.post.upsert({
-    where: { videoId: body.videoId },
-    create: {
-      videoId: body.videoId,
-      title: body.title,
-      slug,
-      hook: body.hook,
-      seoDesc: body.seoDesc,
-      heroImage: body.heroImage,
-      intro: body.intro,
-      sections: body.sections,
-      conclusion: body.conclusion,
-      tags: body.tags,
-      keywords: body.keywords,
-      publishedAt: new Date(),
-    },
-    update: {
-      title: body.title,
-      hook: body.hook,
-      seoDesc: body.seoDesc,
-      heroImage: body.heroImage,
-      intro: body.intro,
-      sections: body.sections,
-      conclusion: body.conclusion,
-      tags: body.tags,
-      keywords: body.keywords,
-    },
-  });
+  try {
+    const post = await prisma.post.upsert({
+      where: { videoId: body.videoId },
+      create: {
+        videoId: body.videoId,
+        title: body.title,
+        slug,
+        hook: body.hook,
+        seoDesc: body.seoDesc,
+        heroImage: body.heroImage,
+        intro: body.intro,
+        sections: body.sections,
+        conclusion: body.conclusion,
+        tags: body.tags,
+        keywords: body.keywords,
+        publishedAt: new Date(),
+      },
+      update: {
+        title: body.title,
+        hook: body.hook,
+        seoDesc: body.seoDesc,
+        heroImage: body.heroImage,
+        intro: body.intro,
+        sections: body.sections,
+        conclusion: body.conclusion,
+        tags: body.tags,
+        keywords: body.keywords,
+      },
+    });
 
-  revalidatePath("/");
-  revalidatePath(`/posts/${post.slug}`);
+    revalidatePath("/");
+    revalidatePath(`/posts/${post.slug}`);
 
-  return NextResponse.json(
-    { id: post.id, slug: post.slug, url: `/posts/${post.slug}` },
-    { status: 201 }
-  );
+    return NextResponse.json(
+      { id: post.id, slug: post.slug, url: `/posts/${post.slug}` },
+      { status: 201 }
+    );
+  } catch (err) {
+    console.error("Failed to publish post:", err);
+    return NextResponse.json(
+      { error: "Failed to publish post" },
+      { status: 500 }
+    );
+  }
 }

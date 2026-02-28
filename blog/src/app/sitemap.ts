@@ -1,13 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import type { MetadataRoute } from "next";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await prisma.post.findMany({
     select: { slug: true, updatedAt: true },
     orderBy: { publishedAt: "desc" },
   });
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://twsgurukul.com/insights";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
 
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

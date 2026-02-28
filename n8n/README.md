@@ -17,9 +17,14 @@ Set these in **Settings > Variables** before activating any workflow:
 | Variable | Example Value | Description |
 |----------|---------------|-------------|
 | `N8N_BASE_URL` | `https://n8n.yourdomain.com` | Base URL of your n8n instance (no trailing slash). Used to call webhooks between workflows. |
-| `LOCAL_API_URL` | `https://abc123.trycloudflare.com` | Cloudflare Tunnel URL pointing to your local FastAPI service. |
-| `BLOG_URL` | `https://your-blog.vercel.app` | Deployed blog URL (no trailing slash). |
+| `LOCAL_API_TUNNEL_URL` | `https://abc123.trycloudflare.com` | Cloudflare Tunnel URL pointing to your local FastAPI service. |
+| `BLOG_BASE_URL` | `https://your-blog.vercel.app` | Deployed blog URL (no trailing slash). |
 | `DISCORD_WEBHOOK_URL` | `https://discord.com/api/webhooks/...` | Discord webhook for success/failure notifications. |
+| `R2_ACCOUNT_ID` | `your-cloudflare-account-id` | Cloudflare account ID for R2 uploads. |
+| `R2_ACCESS_KEY` | `your-r2-access-key` | R2 S3-compatible access key. |
+| `R2_SECRET_KEY` | `your-r2-secret-key` | R2 S3-compatible secret key. |
+| `R2_BUCKET` | `tws-blog-images` | R2 bucket name for hero images. |
+| `R2_PUBLIC_URL` | `https://pub-xxx.r2.dev` | Public URL of your R2 bucket (no trailing slash). |
 
 **Note on `N8N_BASE_URL`**: The workflows call each other via webhook HTTP requests using this variable. The `stream-detection` workflow calls `process-stream`, `process-stream` calls `llm-pipeline`, and `llm-pipeline` calls `publish-blog`. Setting this variable correctly is required for the pipeline to chain between workflows.
 
@@ -35,9 +40,12 @@ Create these in **Settings > Credentials**:
 | `Anthropic API Key` | HTTP Header Auth | Header: `x-api-key`, Value: `sk-ant-...` |
 | `Tavily API Key` | HTTP Header Auth | Header: `Authorization`, Value: `Bearer tvly-...` |
 | `Blog Publish API Key` | HTTP Header Auth | Header: `X-API-Key`, Value matching your blog `PUBLISH_API_KEY` env var |
+| `N8N Webhook Auth` | HTTP Header Auth | Header: `X-Webhook-Key`, Value: a strong random secret. Used to authenticate inter-workflow webhook calls. |
 | `Pipeline Postgres` | Postgres | Connection to your Postgres database (see State Store Setup below) |
 
-After creating each credential, open the relevant nodes in each workflow and update the credential ID references. Look for nodes that reference `REPLACE_POSTGRES_CRED_ID` — update these with the actual credential ID shown in n8n after you save the Postgres credential.
+After creating each credential, open the relevant nodes in each workflow and update the credential ID references:
+- Replace `REPLACE_POSTGRES_CRED_ID` with your Postgres credential ID.
+- Replace `REPLACE_WITH_WEBHOOK_AUTH_CREDENTIAL_ID` with your N8N Webhook Auth credential ID.
 
 ## State Store Setup (Postgres)
 

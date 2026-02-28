@@ -4,7 +4,8 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "process-stream",
+        "path": "fa4d519a-ac56-49ca-ad2c-2cfcf6ba3086",
+        "authentication": "headerAuth",
         "responseMode": "lastNode",
         "options": {}
       },
@@ -12,8 +13,17 @@
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [100, 300],
-      "webhookId": "process-stream"
+      "position": [
+        100,
+        300
+      ],
+      "webhookId": "fa4d519a-ac56-49ca-ad2c-2cfcf6ba3086",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IlRAwjG9guzimnOg",
+          "name": "N8N Webhook Auth"
+        }
+      }
     },
     {
       "parameters": {
@@ -22,7 +32,7 @@
             {
               "id": "local-api-url",
               "name": "LOCAL_API_URL",
-              "value": "=https://linked-match-dental-invitation.trycloudflare.com",
+              "value": "={{ $env.LOCAL_API_TUNNEL_URL }}",
               "type": "string"
             }
           ]
@@ -32,7 +42,10 @@
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [300, 300]
+      "position": [
+        300,
+        300
+      ]
     },
     {
       "parameters": {
@@ -48,7 +61,10 @@
       "name": "Health Check Local Machine",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [520, 300],
+      "position": [
+        520,
+        300
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "EZUz9pDRTChJqdRn",
@@ -66,7 +82,10 @@
               "id": "local-online",
               "leftValue": "={{ $json.status }}",
               "rightValue": "ok",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -75,7 +94,10 @@
       "name": "Local Machine Online?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [740, 300]
+      "position": [
+        740,
+        300
+      ]
     },
     {
       "parameters": {
@@ -92,7 +114,10 @@
       "name": "Local: Start Transcription",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [980, 160],
+      "position": [
+        980,
+        160
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "EZUz9pDRTChJqdRn",
@@ -109,7 +134,10 @@
       "name": "Wait 30s (Transcription)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [1200, 160],
+      "position": [
+        1200,
+        160
+      ],
       "webhookId": "wait-transcription"
     },
     {
@@ -124,7 +152,10 @@
       "name": "Poll Transcription Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1420, 160],
+      "position": [
+        1420,
+        160
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "EZUz9pDRTChJqdRn",
@@ -140,7 +171,10 @@
       "name": "Check Transcription Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1640, 160]
+      "position": [
+        1640,
+        160
+      ]
     },
     {
       "parameters": {
@@ -151,7 +185,10 @@
               "id": "is-complete",
               "leftValue": "={{ $json._result }}",
               "rightValue": "complete",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -160,7 +197,10 @@
       "name": "Transcription Done?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1860, 160]
+      "position": [
+        1860,
+        160
+      ]
     },
     {
       "parameters": {
@@ -171,7 +211,10 @@
               "id": "is-failed",
               "leftValue": "={{ $json._result }}",
               "rightValue": "failed",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -180,7 +223,10 @@
       "name": "Transcription Failed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1860, 360]
+      "position": [
+        1860,
+        360
+      ]
     },
     {
       "parameters": {
@@ -190,7 +236,10 @@
       "name": "Store Transcript Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2100, 160]
+      "position": [
+        2100,
+        160
+      ]
     },
     {
       "parameters": {
@@ -215,7 +264,10 @@
       "name": "Transcription Error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [2100, 460]
+      "position": [
+        2100,
+        460
+      ]
     },
     {
       "parameters": {
@@ -232,7 +284,10 @@
       "name": "Local: Start Chart Extraction",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2320, 160],
+      "position": [
+        2320,
+        160
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "EZUz9pDRTChJqdRn",
@@ -249,7 +304,10 @@
       "name": "Wait 30s (Charts)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [2540, 160],
+      "position": [
+        2540,
+        160
+      ],
       "webhookId": "wait-charts"
     },
     {
@@ -264,7 +322,10 @@
       "name": "Poll Chart Extraction Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2760, 160],
+      "position": [
+        2760,
+        160
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "EZUz9pDRTChJqdRn",
@@ -280,7 +341,10 @@
       "name": "Check Charts Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2980, 160]
+      "position": [
+        2980,
+        160
+      ]
     },
     {
       "parameters": {
@@ -291,7 +355,10 @@
               "id": "charts-complete",
               "leftValue": "={{ $json._result }}",
               "rightValue": "complete",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -300,7 +367,10 @@
       "name": "Charts Done?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [3200, 160]
+      "position": [
+        3200,
+        160
+      ]
     },
     {
       "parameters": {
@@ -311,7 +381,10 @@
               "id": "charts-failed",
               "leftValue": "={{ $json._result }}",
               "rightValue": "failed",
-              "operator": { "type": "string", "operation": "equals" }
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ]
         }
@@ -320,12 +393,17 @@
       "name": "Charts Failed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [3200, 360]
+      "position": [
+        3200,
+        360
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://n8n.srv1104529.hstgr.cloud/webhook/llm-pipeline",
+        "url": "={{ $env.N8N_BASE_URL }}/webhook/llm-pipeline",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ video_id: $node['Store Transcript Data'].json.video_id, transcript: $node['Store Transcript Data'].json.transcript, chart_urls: ($node['Poll Chart Extraction Status'].json.result && $node['Poll Chart Extraction Status'].json.result.charts) ? $node['Poll Chart Extraction Status'].json.result.charts : [] }) }}",
@@ -337,12 +415,23 @@
       "name": "Trigger LLM Pipeline (With Charts)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3440, 160]
+      "position": [
+        3440,
+        160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IlRAwjG9guzimnOg",
+          "name": "N8N Webhook Auth"
+        }
+      }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://n8n.srv1104529.hstgr.cloud/webhook/llm-pipeline",
+        "url": "={{ $env.N8N_BASE_URL }}/webhook/llm-pipeline",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ video_id: $node['Store Transcript Data'].json.video_id, transcript: $node['Store Transcript Data'].json.transcript, chart_urls: [] }) }}",
@@ -354,7 +443,16 @@
       "name": "Trigger LLM Pipeline (No Charts)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3440, 360]
+      "position": [
+        3440,
+        360
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IlRAwjG9guzimnOg",
+          "name": "N8N Webhook Auth"
+        }
+      }
     },
     {
       "parameters": {
@@ -364,7 +462,10 @@
       "name": "Cloud: Download Audio (yt-dlp)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [980, 480],
+      "position": [
+        980,
+        480
+      ],
       "notes": "Requires yt-dlp installed on the n8n server. Downloads audio-only MP3 for Whisper API."
     },
     {
@@ -377,9 +478,18 @@
         "contentType": "multipart-form-data",
         "bodyParameters": {
           "parameters": [
-            { "name": "model", "value": "whisper-1" },
-            { "name": "response_format", "value": "verbose_json" },
-            { "name": "language", "value": "en" }
+            {
+              "name": "model",
+              "value": "whisper-1"
+            },
+            {
+              "name": "response_format",
+              "value": "verbose_json"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            }
           ]
         },
         "options": {}
@@ -388,7 +498,10 @@
       "name": "Cloud: OpenAI Whisper API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1200, 480],
+      "position": [
+        1200,
+        480
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "ByciQx1HuxRbPxMl",
@@ -405,12 +518,17 @@
       "name": "Store Cloud Transcript",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1420, 480]
+      "position": [
+        1420,
+        480
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://n8n.srv1104529.hstgr.cloud/webhook/llm-pipeline",
+        "url": "={{ $env.N8N_BASE_URL }}/webhook/llm-pipeline",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ video_id: $json.video_id, transcript: $json.transcript, chart_urls: [] }) }}",
@@ -422,85 +540,274 @@
       "name": "Trigger LLM Pipeline (Cloud Path)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1640, 480],
+      "position": [
+        1640,
+        480
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IlRAwjG9guzimnOg",
+          "name": "N8N Webhook Auth"
+        }
+      },
       "notes": "Cloud path has no charts — local machine is offline so chart extraction is unavailable."
     }
   ],
   "connections": {
     "Webhook Trigger": {
-      "main": [[{ "node": "Config", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Config": {
-      "main": [[{ "node": "Health Check Local Machine", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Health Check Local Machine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Health Check Local Machine": {
-      "main": [[{ "node": "Local Machine Online?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Local Machine Online?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Local Machine Online?": {
       "main": [
-        [{ "node": "Local: Start Transcription", "type": "main", "index": 0 }],
-        [{ "node": "Cloud: Download Audio (yt-dlp)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Local: Start Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cloud: Download Audio (yt-dlp)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Local: Start Transcription": {
-      "main": [[{ "node": "Wait 30s (Transcription)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait 30s (Transcription)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Wait 30s (Transcription)": {
-      "main": [[{ "node": "Poll Transcription Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Poll Transcription Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Poll Transcription Status": {
-      "main": [[{ "node": "Check Transcription Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Check Transcription Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check Transcription Status": {
-      "main": [[{ "node": "Transcription Done?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Transcription Done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Transcription Done?": {
       "main": [
-        [{ "node": "Store Transcript Data", "type": "main", "index": 0 }],
-        [{ "node": "Transcription Failed?", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Store Transcript Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Transcription Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Transcription Failed?": {
       "main": [
-        [{ "node": "Transcription Error", "type": "main", "index": 0 }],
-        [{ "node": "Wait 30s (Transcription)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Transcription Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30s (Transcription)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Store Transcript Data": {
-      "main": [[{ "node": "Local: Start Chart Extraction", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Local: Start Chart Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Local: Start Chart Extraction": {
-      "main": [[{ "node": "Wait 30s (Charts)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Wait 30s (Charts)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Wait 30s (Charts)": {
-      "main": [[{ "node": "Poll Chart Extraction Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Poll Chart Extraction Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Poll Chart Extraction Status": {
-      "main": [[{ "node": "Check Charts Status", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Check Charts Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check Charts Status": {
-      "main": [[{ "node": "Charts Done?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Charts Done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Charts Done?": {
       "main": [
-        [{ "node": "Trigger LLM Pipeline (With Charts)", "type": "main", "index": 0 }],
-        [{ "node": "Charts Failed?", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Trigger LLM Pipeline (With Charts)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Charts Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Charts Failed?": {
       "main": [
-        [{ "node": "Trigger LLM Pipeline (No Charts)", "type": "main", "index": 0 }],
-        [{ "node": "Wait 30s (Charts)", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Trigger LLM Pipeline (No Charts)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30s (Charts)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Cloud: Download Audio (yt-dlp)": {
-      "main": [[{ "node": "Cloud: OpenAI Whisper API", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Cloud: OpenAI Whisper API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Cloud: OpenAI Whisper API": {
-      "main": [[{ "node": "Store Cloud Transcript", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Store Cloud Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Store Cloud Transcript": {
-      "main": [[{ "node": "Trigger LLM Pipeline (Cloud Path)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Trigger LLM Pipeline (Cloud Path)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {

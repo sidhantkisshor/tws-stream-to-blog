@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getPostBySlug } from "@/lib/posts";
 import { prisma } from "@/lib/prisma";
 import { ChartImage } from "@/components/ChartImage";
+import { MarkdownBody } from "@/components/MarkdownBody";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 import type { Metadata } from "next";
 
@@ -39,7 +40,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.seoDesc,
-      images: [post.heroImage],
+      ...(post.heroImage ? { images: [post.heroImage] } : {}),
       type: "article",
       publishedTime: post.publishedAt.toISOString(),
       tags: post.tags,
@@ -48,7 +49,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.seoDesc,
-      images: [post.heroImage],
+      ...(post.heroImage ? { images: [post.heroImage] } : {}),
     },
   };
 }
@@ -77,7 +78,7 @@ export default async function PostPage({
     "@type": "Article",
     headline: post.title,
     description: post.seoDesc,
-    image: post.heroImage,
+    ...(post.heroImage ? { image: post.heroImage } : {}),
     datePublished: post.publishedAt.toISOString(),
     dateModified: post.updatedAt.toISOString(),
     author: { "@type": "Organization", name: "TWSGurukulX" },
@@ -119,26 +120,31 @@ export default async function PostPage({
           </time>
         </header>
 
-        <div className="animate-image-reveal relative mb-10 aspect-video overflow-hidden rounded-xl bg-deep-slate/5">
-          <Image
-            src={post.heroImage}
-            alt={post.title}
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
+        {post.heroImage && (
+          <div className="animate-image-reveal relative mb-10 aspect-video overflow-hidden rounded-xl bg-deep-slate/5">
+            <Image
+              src={post.heroImage}
+              alt={post.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 65ch"
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
 
         <div className="animate-reveal delay-2 space-y-10">
-          <p className="text-lg leading-relaxed text-deep-slate/75">{post.intro}</p>
+          <div className="text-lg leading-relaxed text-deep-slate/75">
+            <MarkdownBody>{post.intro}</MarkdownBody>
+          </div>
 
           {sections.map((section, i) => (
             <section key={i}>
               <h2 className="text-2xl font-bold tracking-tight text-deep-slate">
                 {section.heading}
               </h2>
-              <div className="mt-3 leading-[1.75] text-deep-slate/75 whitespace-pre-line">
-                {section.body}
+              <div className="mt-3">
+                <MarkdownBody>{section.body}</MarkdownBody>
               </div>
               {section.chartRef && (
                 <ChartImage
@@ -152,7 +158,7 @@ export default async function PostPage({
           <div className="accent-line" />
 
           <section className="pt-2">
-            <p className="leading-[1.75] text-deep-slate/75">{post.conclusion}</p>
+            <MarkdownBody>{post.conclusion}</MarkdownBody>
           </section>
         </div>
 
