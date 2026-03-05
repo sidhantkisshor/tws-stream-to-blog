@@ -69,7 +69,7 @@ export function Nav() {
             href="https://t.me/tradingwsidhant"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-wealth-teal/20 bg-wealth-teal/5 px-4 py-1.5 text-sm font-medium text-wealth-teal no-underline transition-all hover:border-wealth-teal/40 hover:bg-wealth-teal/10 hover:shadow-[0_2px_8px_rgba(10,141,122,0.12)]"
+            className="rounded-full border border-wealth-teal/20 bg-wealth-teal/5 px-4 py-1.5 text-sm font-medium text-wealth-teal no-underline transition-all hover:border-wealth-teal/40 hover:bg-wealth-teal/10 hover:text-wealth-teal hover:no-underline hover:shadow-[0_2px_8px_rgba(10,141,122,0.12)]"
           >
             Join Telegram
           </a>

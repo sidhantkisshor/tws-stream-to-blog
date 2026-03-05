@@ -16,7 +16,7 @@ export function TelegramCTA() {
             href="https://t.me/tradingwsidhant"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-wealth-teal px-6 py-2.5 text-sm font-bold text-white no-underline shadow-[0_2px_8px_rgba(10,141,122,0.25)] transition-all hover:bg-wealth-teal/90 hover:shadow-[0_4px_12px_rgba(10,141,122,0.3)]"
+            className="rounded-lg bg-wealth-teal px-6 py-2.5 text-sm font-bold text-white no-underline shadow-[0_2px_8px_rgba(10,141,122,0.25)] transition-all hover:bg-wealth-teal/90 hover:text-white hover:no-underline hover:shadow-[0_4px_12px_rgba(10,141,122,0.3)]"
           >
             Join Telegram
           </a>

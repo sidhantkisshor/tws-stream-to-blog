@@ -38,7 +38,7 @@ export function ProgramCTA({ variant }: ProgramCTAProps) {
             href="https://twsgurukul.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-brushed-gold px-6 py-2.5 text-sm font-bold text-white no-underline shadow-[0_2px_8px_rgba(184,149,106,0.25)] transition-all hover:bg-brushed-gold/90 hover:shadow-[0_4px_12px_rgba(184,149,106,0.3)]"
+            className="rounded-lg bg-brushed-gold px-6 py-2.5 text-sm font-bold text-white no-underline shadow-[0_2px_8px_rgba(184,149,106,0.25)] transition-all hover:bg-brushed-gold/90 hover:text-white hover:no-underline hover:shadow-[0_4px_12px_rgba(184,149,106,0.3)]"
           >
             Explore Programs
           </a>

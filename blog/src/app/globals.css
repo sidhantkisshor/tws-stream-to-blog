@@ -22,11 +22,11 @@ h1, h2, h3 {
 }
 
 @layer base {
-  a {
+  :where(a) {
     color: var(--color-wealth-teal);
   }
 
-  a:hover {
+  :where(a):hover {
     text-decoration: underline;
   }
 }
