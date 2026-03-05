@@ -5,7 +5,7 @@ import { getPostBySlug } from "@/lib/posts";
 import { prisma } from "@/lib/prisma";
 import { ChartImage } from "@/components/ChartImage";
 import { MarkdownBody } from "@/components/MarkdownBody";
-import { WhatsAppCTA } from "@/components/WhatsAppCTA";
+import { TelegramCTA } from "@/components/TelegramCTA";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -188,7 +188,7 @@ export default async function PostPage({
         </div>
 
         <div className="mt-14 animate-reveal delay-4">
-          <WhatsAppCTA />
+          <TelegramCTA />
         </div>
       </article>
     </>
