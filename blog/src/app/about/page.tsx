@@ -64,6 +64,54 @@ export default function AboutPage() {
               twsgurukul.com
             </a>
           </p>
+          <p>
+            <a
+              href="https://tradingwithsidhant.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-wealth-teal no-underline hover:underline"
+            >
+              tradingwithsidhant.com
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <section className="mt-10 animate-reveal delay-4">
+        <h2 className="text-2xl font-bold text-deep-slate">Follow Us</h2>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a
+            href="https://youtube.com/@tradingwithsidhant"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
+          >
+            YouTube
+          </a>
+          <a
+            href="https://instagram.com/tradingwithsidhant"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
+          >
+            Instagram
+          </a>
+          <a
+            href="https://x.com/tradingwsidhant"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
+          >
+            X (Twitter)
+          </a>
+          <a
+            href="https://t.me/tradingwsidhant"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
+          >
+            Telegram
+          </a>
         </div>
       </section>
     </main>

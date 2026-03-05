@@ -456,7 +456,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Download audio from YouTube using yt-dlp\n// Requires yt-dlp installed on the n8n server: pip install yt-dlp\nconst { execSync } = require('child_process');\nconst fs = require('fs');\nconst path = require('path');\n\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\nconst sanitizedId = videoId.replace(/[^A-Za-z0-9_-]/g, '');\nconst outputDir = '/tmp/tws-audio';\nconst outputPath = path.join(outputDir, `${sanitizedId}.mp3`);\n\n// Create output directory if it doesn't exist\nif (!fs.existsSync(outputDir)) {\n  fs.mkdirSync(outputDir, { recursive: true });\n}\n\ntry {\n  // Download audio-only, convert to mp3\n  execSync(\n    `yt-dlp -x --audio-format mp3 --audio-quality 5 -o \"${outputPath}\" \"https://www.youtube.com/watch?v=${sanitizedId}\"`,\n    { timeout: 600000, maxBuffer: 50 * 1024 * 1024 }\n  );\n\n  // Read the file as binary buffer for Whisper API upload\n  const audioBuffer = fs.readFileSync(outputPath);\n  const base64Audio = audioBuffer.toString('base64');\n\n  // Clean up the file\n  fs.unlinkSync(outputPath);\n\n  return [{\n    json: {\n      video_id: sanitizedId,\n      audio_base64: base64Audio,\n      audio_filename: `${sanitizedId}.mp3`\n    }\n  }];\n} catch (error) {\n  // Clean up on failure\n  try { fs.unlinkSync(outputPath); } catch (e) {}\n  throw new Error(`yt-dlp audio download failed: ${error.message}`);\n}"
+        "jsCode": "// Download audio from YouTube using yt-dlp\n// Requires yt-dlp installed on the n8n server: pip install yt-dlp\nconst { execSync } = require('child_process');\nconst fs = require('fs');\nconst path = require('path');\n\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\nconst sanitizedId = videoId.replace(/[^A-Za-z0-9_-]/g, '');\nconst outputDir = '/tmp/tws-audio';\nconst outputPath = path.join(outputDir, `${sanitizedId}.mp3`);\n\nif (!fs.existsSync(outputDir)) {\n  fs.mkdirSync(outputDir, { recursive: true });\n}\n\ntry {\n  execSync(\n    `yt-dlp -x --audio-format mp3 --audio-quality 5 -o \"${outputPath}\" \"https://www.youtube.com/watch?v=${sanitizedId}\"`,\n    { timeout: 600000, maxBuffer: 50 * 1024 * 1024 }\n  );\n\n  const audioBuffer = fs.readFileSync(outputPath);\n  fs.unlinkSync(outputPath);\n\n  // Output as n8n binary data so the native OpenAI transcribe node can read it directly\n  return [{\n    json: { video_id: sanitizedId },\n    binary: {\n      data: {\n        data: audioBuffer.toString('base64'),\n        mimeType: 'audio/mpeg',\n        fileName: `${sanitizedId}.mp3`\n      }\n    }\n  }];\n} catch (error) {\n  try { fs.unlinkSync(outputPath); } catch (e) {}\n  throw new Error(`yt-dlp audio download failed: ${error.message}`);\n}"
       },
       "id": "b2c3d4e5-0021-0021-0021-000000000021",
       "name": "Cloud: Download Audio (yt-dlp)",
@@ -466,49 +466,31 @@
         980,
         480
       ],
-      "notes": "Requires yt-dlp installed on the n8n server. Downloads audio-only MP3 for Whisper API."
+      "notes": "Requires yt-dlp installed on the n8n server. Outputs n8n binary data (not base64 JSON) so the native OpenAI transcribe node can attach it as a file directly."
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/audio/transcriptions",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "model",
-              "value": "whisper-1"
-            },
-            {
-              "name": "response_format",
-              "value": "verbose_json"
-            },
-            {
-              "name": "language",
-              "value": "en"
-            }
-          ]
-        },
-        "options": {}
+        "resource": "audio",
+        "operation": "transcribe",
+        "binaryPropertyName": "data",
+        "options": {
+          "language": "en"
+        }
       },
       "id": "b2c3d4e5-0022-0022-0022-000000000022",
       "name": "Cloud: OpenAI Whisper API",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
       "position": [
         1200,
         480
       ],
       "credentials": {
-        "httpHeaderAuth": {
+        "openAiApi": {
           "id": "ByciQx1HuxRbPxMl",
           "name": "OpenAI API Key"
         }
-      },
-      "notes": "The audio file from the Code node needs to be attached as the 'file' field in the multipart body. Configure the file upload field with the binary data from Cloud: Download Audio (yt-dlp)."
+      }
     },
     {
       "parameters": {

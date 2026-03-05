@@ -24,22 +24,38 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a trading stream analyst. Extract structured data from this live stream transcript. Return JSON with: tickers (string array of stock/index symbols mentioned), setups (array of {ticker, direction, entry, target, stop}), timestamps (array of {time, topic} for key discussion points), key_quotes (array of notable quotes from the streamer), summary (2-3 paragraph summary of the stream).\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.body.transcript) }}\n    }\n  ],\n  \"max_tokens\": 4000\n}",
-        "options": {}
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a trading stream analyst. Extract structured data from this live stream transcript. Return JSON with: tickers (string array of stock/index symbols mentioned), setups (array of {ticker, direction, entry, target, stop}), timestamps (array of {time, topic} for key discussion points), key_quotes (array of notable quotes from the streamer), summary (2-3 paragraph summary of the stream)."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.body.transcript }}"
+            }
+          ]
+        },
+        "options": {
+          "responseFormat": "json_object",
+          "maxTokens": 4000
+        }
       },
       "id": "c3d4e5f6-0002-0002-0002-000000000002",
       "name": "Step 1: Compress Transcript (GPT-4o-mini)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
       "position": [480, 300],
       "credentials": {
-        "httpHeaderAuth": {
+        "openAiApi": {
           "id": "ByciQx1HuxRbPxMl",
           "name": "OpenAI API Key"
         }
@@ -47,22 +63,38 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an SEO expert and content strategist for TWS Wealth OS, a trading education brand. Generate blog metadata for a trading live stream recap. Return JSON with: title (compelling, SEO-optimized, under 60 chars), hook (one engaging sentence that makes traders want to read), seo_description (under 160 chars for meta description), keywords (array of 5-10 SEO keywords), image_prompt (descriptive prompt for generating a hero image that matches the trading content — describe the visual scene, mood, and key elements).\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.choices[0].message.content) }}\n    }\n  ],\n  \"max_tokens\": 1000\n}",
-        "options": {}
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an SEO expert and content strategist for TWS Wealth OS, a trading education brand. Generate blog metadata for a trading live stream recap. Return JSON with: title (compelling, SEO-optimized, under 60 chars), hook (one engaging sentence that makes traders want to read), seo_description (under 160 chars for meta description), keywords (array of 5-10 SEO keywords), image_prompt (descriptive prompt for generating a hero image that matches the trading content — describe the visual scene, mood, and key elements)."
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.choices[0].message.content }}"
+            }
+          ]
+        },
+        "options": {
+          "responseFormat": "json_object",
+          "maxTokens": 1000
+        }
       },
       "id": "c3d4e5f6-0003-0003-0003-000000000003",
       "name": "Step 2: Title & Hooks (GPT-4o)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
       "position": [720, 300],
       "credentials": {
-        "httpHeaderAuth": {
+        "openAiApi": {
           "id": "ByciQx1HuxRbPxMl",
           "name": "OpenAI API Key"
         }
@@ -142,13 +174,70 @@
     },
     {
       "parameters": {
-        "jsCode": "// Assemble all data for publishing\nconst titleData = JSON.parse($node['Step 2: Title & Hooks (GPT-4o)'].json.choices[0].message.content);\nconst blogData = JSON.parse($node['Step 4: Blog Body (Sonnet 4.6)'].json.content[0].text);\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\n// Extract hero image and upload to R2 via local API\nconst imagenResponse = $node['Step 5: Hero Image (Imagen 3)'].json;\nlet heroImageUrl = '';\ntry {\n  if (imagenResponse.predictions && imagenResponse.predictions[0] && imagenResponse.predictions[0].bytesBase64Encoded) {\n    const imageKey = `hero/${videoId}-${Date.now()}.png`;\n    const localApiUrl = $env.LOCAL_API_TUNNEL_URL;\n    const localApiKey = $env.LOCAL_API_KEY;\n\n    if (localApiUrl && localApiKey) {\n      const response = await fetch(`${localApiUrl}/upload-image`, {\n        method: 'POST',\n        headers: {\n          'Content-Type': 'application/json',\n          'X-API-Key': localApiKey,\n        },\n        body: JSON.stringify({\n          image_base64: imagenResponse.predictions[0].bytesBase64Encoded,\n          key: imageKey,\n          content_type: 'image/png',\n        }),\n      });\n      if (response.ok) {\n        const result = await response.json();\n        heroImageUrl = result.url;\n      }\n    }\n  } else if (imagenResponse.images && imagenResponse.images[0]) {\n    heroImageUrl = imagenResponse.images[0];\n  }\n} catch (e) {\n  // If hero image processing failed, use empty string — blog will handle gracefully\n  heroImageUrl = '';\n}\n\nreturn [{\n  json: {\n    videoId,\n    title: titleData.title,\n    hook: titleData.hook,\n    seoDesc: titleData.seo_description,\n    heroImage: heroImageUrl,\n    intro: blogData.intro,\n    sections: blogData.sections,\n    conclusion: blogData.conclusion,\n    tags: blogData.tags,\n    keywords: titleData.keywords\n  }\n}];"
+        "jsCode": "// Extract base64 image from Imagen response and prepare upload payload\nconst imagenResponse = $json;\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\nlet imageBase64 = '';\nlet imageKey = '';\n\ntry {\n  if (imagenResponse.predictions && imagenResponse.predictions[0] && imagenResponse.predictions[0].bytesBase64Encoded) {\n    imageBase64 = imagenResponse.predictions[0].bytesBase64Encoded;\n    imageKey = 'hero/' + videoId + '-' + Date.now() + '.png';\n  }\n} catch (e) {\n  // Imagen failed (continueOnFail) — no image to upload\n}\n\nreturn [{ json: { imageBase64, imageKey, hasImage: imageBase64.length > 0 } }];"
+      },
+      "id": "c3d4e5f6-0006-a001-a001-000000000001",
+      "name": "Extract Image Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1620, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {},
+          "conditions": [
+            {
+              "id": "has-image",
+              "leftValue": "={{ $json.hasImage }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "c3d4e5f6-0006-a002-a002-000000000002",
+      "name": "Has Image?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LOCAL_API_TUNNEL_URL }}/upload-image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ image_base64: $json.imageBase64, key: $json.imageKey, content_type: 'image/png' }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "c3d4e5f6-0006-a003-a003-000000000003",
+      "name": "Upload Hero Image to R2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2020, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EZUz9pDRTChJqdRn",
+          "name": "Local API Key"
+        }
+      },
+      "continueOnFail": true,
+      "notes": "Uploads hero image to R2 via local FastAPI /upload-image endpoint. continueOnFail=true so pipeline continues even if local machine is offline."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assemble all data for publishing\nconst titleData = JSON.parse($node['Step 2: Title & Hooks (GPT-4o)'].json.choices[0].message.content);\nconst blogData = JSON.parse($node['Step 4: Blog Body (Sonnet 4.6)'].json.content[0].text);\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\n// Get hero image URL from upload result (if available)\nlet heroImageUrl = '';\ntry {\n  const uploadResult = $node['Upload Hero Image to R2'].json;\n  if (uploadResult && uploadResult.url) {\n    heroImageUrl = uploadResult.url;\n  }\n} catch (e) {\n  // Upload node didn't run or failed — no hero image\n}\n\nreturn [{\n  json: {\n    videoId,\n    title: titleData.title,\n    hook: titleData.hook,\n    seoDesc: titleData.seo_description,\n    heroImage: heroImageUrl,\n    intro: blogData.intro,\n    sections: blogData.sections,\n    conclusion: blogData.conclusion,\n    tags: blogData.tags,\n    keywords: titleData.keywords\n  }\n}];"
       },
       "id": "c3d4e5f6-0007-0007-0007-000000000007",
       "name": "Assemble Publish Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1680, 300]
+      "position": [2240, 300]
     },
     {
       "parameters": {
@@ -167,7 +256,7 @@
       "name": "Trigger Publish Workflow",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1920, 300],
+      "position": [2460, 300],
       "credentials": {
         "httpHeaderAuth": {
           "id": "IlRAwjG9guzimnOg",
@@ -193,6 +282,18 @@
       "main": [[{ "node": "Step 5: Hero Image (Imagen 3)", "type": "main", "index": 0 }]]
     },
     "Step 5: Hero Image (Imagen 3)": {
+      "main": [[{ "node": "Extract Image Data", "type": "main", "index": 0 }]]
+    },
+    "Extract Image Data": {
+      "main": [[{ "node": "Has Image?", "type": "main", "index": 0 }]]
+    },
+    "Has Image?": {
+      "main": [
+        [{ "node": "Upload Hero Image to R2", "type": "main", "index": 0 }],
+        [{ "node": "Assemble Publish Payload", "type": "main", "index": 0 }]
+      ]
+    },
+    "Upload Hero Image to R2": {
       "main": [[{ "node": "Assemble Publish Payload", "type": "main", "index": 0 }]]
     },
     "Assemble Publish Payload": {

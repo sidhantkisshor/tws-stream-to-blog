@@ -23,77 +23,51 @@
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://www.googleapis.com/youtube/v3/playlistItems",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "youTubeOAuth2Api",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "part",
-              "value": "snippet"
-            },
-            {
-              "name": "playlistId",
-              "value": "UUyFDhiqKcVqoIGB3CmJJFUg"
-            },
-            {
-              "name": "maxResults",
-              "value": "1"
-            }
-          ]
+        "resource": "video",
+        "limit": 1,
+        "filters": {
+          "channelId": "UCyFDhiqKcVqoIGB3CmJJFUg"
         },
         "options": {}
       },
       "id": "a1b2c3d4-0002-0002-0002-000000000002",
       "name": "Fetch Recent Videos",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
       "position": [
         460,
         300
       ],
       "credentials": {
         "youTubeOAuth2Api": {
-          "id": "7AxGyZdFSBMi5pw1",
-          "name": "YouTube OAuth2"
+          "id": "GeS5yhmbB2KzoWDK",
+          "name": "TWS YT Acc"
         }
       }
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://www.googleapis.com/youtube/v3/videos",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "youTubeOAuth2Api",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "part",
-              "value": "snippet,liveStreamingDetails"
-            },
-            {
-              "name": "id",
-              "value": "={{ $json.items[0].snippet.resourceId.videoId }}"
-            }
-          ]
-        },
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $json.id }}",
+        "part": [
+          "snippet",
+          "liveStreamingDetails"
+        ],
         "options": {}
       },
       "id": "a1b2c3d4-0003-0003-0003-000000000003",
       "name": "Check YouTube Video Status",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
       "position": [
         680,
         300
       ],
       "credentials": {
         "youTubeOAuth2Api": {
-          "id": "7AxGyZdFSBMi5pw1",
-          "name": "YouTube OAuth2"
+          "id": "GeS5yhmbB2KzoWDK",
+          "name": "TWS YT Acc"
         }
       }
     },
@@ -108,7 +82,7 @@
           "conditions": [
             {
               "id": "stream-ended",
-              "leftValue": "={{ $json.items[0].snippet.liveBroadcastContent }}",
+              "leftValue": "={{ $json.snippet.liveBroadcastContent }}",
               "rightValue": "none",
               "operator": {
                 "type": "string",
@@ -132,7 +106,7 @@
         "operation": "executeQuery",
         "query": "SELECT video_id FROM pipeline_runs WHERE video_id = $1",
         "additionalFields": {
-          "queryParams": "={{ JSON.stringify([$json.items[0].id]) }}"
+          "queryParams": "={{ JSON.stringify([$json.id]) }}"
         }
       },
       "id": "a1b2c3d4-0005-0005-0005-000000000005",
@@ -181,7 +155,7 @@
         "operation": "executeQuery",
         "query": "INSERT INTO pipeline_runs (video_id, channel_id, detected_at, status, updated_at) VALUES ($1, $2, NOW(), 'pending', NOW()) ON CONFLICT (video_id) DO NOTHING",
         "additionalFields": {
-          "queryParams": "={{ JSON.stringify([$node['Check YouTube Video Status'].json.items[0].id, $node['Check YouTube Video Status'].json.items[0].snippet.channelId]) }}"
+          "queryParams": "={{ JSON.stringify([$node['Check YouTube Video Status'].json.id, $node['Check YouTube Video Status'].json.snippet.channelId]) }}"
         }
       },
       "id": "a1b2c3d4-0007-0007-0007-000000000007",
@@ -222,7 +196,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ video_id: $node['Check YouTube Video Status'].json.items[0].id }) }}",
+        "jsonBody": "={{ JSON.stringify({ video_id: $node['Check YouTube Video Status'].json.id }) }}",
         "options": {
           "timeout": 30000
         }
@@ -336,6 +310,8 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   }
 }

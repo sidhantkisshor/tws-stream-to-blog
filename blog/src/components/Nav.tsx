@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Nav() {
   const [open, setOpen] = useState(false);
@@ -32,13 +33,22 @@ export function Nav() {
       <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
         <Link
           href="/"
-          className="group flex items-baseline gap-1 no-underline hover:no-underline"
+          className="group flex items-center gap-2 no-underline hover:no-underline"
         >
-          <span className="text-xl font-bold tracking-tight text-deep-slate transition-colors group-hover:text-burnt-amber">
-            TWS
-          </span>
-          <span className="font-instrument text-xl text-burnt-amber transition-colors group-hover:text-deep-slate">
-            GurukulX
+          <Image
+            src="/logo-icon.png"
+            alt="TWSGurukulX"
+            width={32}
+            height={32}
+            className="rounded-md"
+          />
+          <span className="flex items-baseline gap-0.5">
+            <span className="text-xl font-bold tracking-tight text-deep-slate transition-colors group-hover:text-burnt-amber">
+              TWS
+            </span>
+            <span className="font-instrument text-xl text-burnt-amber transition-colors group-hover:text-deep-slate">
+              GurukulX
+            </span>
           </span>
         </Link>
 

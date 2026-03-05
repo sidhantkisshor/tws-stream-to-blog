@@ -8,7 +8,7 @@
    - `stream-detection.json` — polls YouTube every 5 minutes, detects ended streams
    - `process-stream.json` — dispatches transcription (local GPU or cloud Whisper fallback)
    - `llm-pipeline.json` — multi-model blog generation chain
-   - `publish.json` — publishes to blog, validates, updates state, notifies Discord
+   - `publish.json` — publishes to blog, validates, updates state, notifies Telegram
 
 ## Required n8n Variables
 
@@ -36,7 +36,7 @@ Create these in **Settings > Credentials**:
 |-----------------|------|---------------|
 | `YouTube OAuth2` | YouTube OAuth2 API | OAuth2 credentials for YouTube Data API v3 |
 | `Local API Key` | HTTP Header Auth | Header: `X-API-Key`, Value: your FastAPI service key |
-| `OpenAI API Key` | HTTP Header Auth | Header: `Authorization`, Value: `Bearer sk-...` |
+| `OpenAI API Key` | OpenAI API | API Key: `sk-...` (used by the native OpenAI nodes in `llm-pipeline`) |
 | `Anthropic API Key` | HTTP Header Auth | Header: `x-api-key`, Value: `sk-ant-...` |
 | `Tavily API Key` | HTTP Header Auth | Header: `Authorization`, Value: `Bearer tvly-...` |
 | `Blog Publish API Key` | HTTP Header Auth | Header: `X-API-Key`, Value matching your blog `PUBLISH_API_KEY` env var |
@@ -131,15 +131,15 @@ publish
   - GET blog URL /posts/{slug} (validate 200 response)
   - IF 200:
     - Postgres: UPDATE pipeline_runs SET status='complete'
-    - POST Discord: success notification
+    - Telegram: success notification
   - ELSE:
     - Postgres: UPDATE pipeline_runs SET status='failed'
-    - POST Discord: failure notification
+    - Telegram: failure notification
 ```
 
 ## Customization Notes
 
-- The LLM system prompts in `llm-pipeline.json` are tuned for trading/finance content. Edit them in the `jsonBody` fields of the HTTP Request nodes.
+- The LLM system prompts in `llm-pipeline.json` are tuned for trading/finance content. Edit them directly in the **Messages** fields of the OpenAI nodes (Step 1 and Step 2), and in the `jsonBody` field of the Anthropic HTTP Request node (Step 4).
 - Polling interval is 5 minutes. Change it in the Schedule Trigger node of `stream-detection.json`.
 - The 15-minute VOD processing wait can be adjusted in the Wait node of `stream-detection.json`.
 - Transcription polling: 60 retries x 30s = up to 30 minutes. Adjust `MAX_RETRIES` in the Code node.
