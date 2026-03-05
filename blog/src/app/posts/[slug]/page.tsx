@@ -35,12 +35,15 @@ export async function generateMetadata({
   if (!post) return {};
 
   return {
-    title: `${post.title} | TWSGurukulX`,
+    title: post.title,
     description: post.seoDesc,
+    alternates: { canonical: `/posts/${slug}` },
     openGraph: {
       title: post.title,
       description: post.seoDesc,
-      ...(post.heroImage ? { images: [post.heroImage] } : {}),
+      ...(post.heroImage
+        ? { images: [{ url: post.heroImage, width: 1200, height: 675, alt: post.title }] }
+        : {}),
       type: "article",
       publishedTime: post.publishedAt.toISOString(),
       tags: post.tags,
@@ -49,7 +52,9 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.seoDesc,
-      ...(post.heroImage ? { images: [post.heroImage] } : {}),
+      ...(post.heroImage
+        ? { images: [{ url: post.heroImage, width: 1200, height: 675, alt: post.title }] }
+        : {}),
     },
   };
 }
@@ -73,17 +78,37 @@ export default async function PostPage({
       )
     : [];
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.seoDesc,
-    ...(post.heroImage ? { image: post.heroImage } : {}),
-    datePublished: post.publishedAt.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
-    author: { "@type": "Organization", name: "TWSGurukulX" },
-    keywords: post.keywords.join(", "),
-  };
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: post.title,
+      description: post.seoDesc,
+      ...(post.heroImage ? { image: post.heroImage } : {}),
+      datePublished: post.publishedAt.toISOString(),
+      dateModified: post.updatedAt.toISOString(),
+      author: { "@type": "Organization", name: "TWSGurukulX", url: baseUrl },
+      publisher: {
+        "@type": "Organization",
+        name: "TWSGurukulX",
+        url: baseUrl,
+        logo: { "@type": "ImageObject", url: `${baseUrl}/logo-icon.png` },
+      },
+      mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}/posts/${slug}` },
+      url: `${baseUrl}/posts/${slug}`,
+      keywords: post.keywords.join(", "),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
+        { "@type": "ListItem", position: 2, name: post.title, item: `${baseUrl}/posts/${slug}` },
+      ],
+    },
+  ];
 
   return (
     <>

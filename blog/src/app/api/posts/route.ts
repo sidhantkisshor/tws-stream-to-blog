@@ -103,6 +103,24 @@ export async function POST(request: NextRequest) {
     revalidatePath("/");
     revalidatePath(`/posts/${post.slug}`);
 
+    // Ping IndexNow for instant Bing/Yandex indexing (fire-and-forget)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+    const indexNowKey = process.env.INDEXNOW_KEY;
+    if (indexNowKey) {
+      fetch("https://api.indexnow.org/indexnow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          host: new URL(siteUrl).host,
+          key: indexNowKey,
+          urlList: [
+            `${siteUrl}/posts/${post.slug}`,
+            siteUrl,
+          ],
+        }),
+      }).catch(() => {});
+    }
+
     return NextResponse.json(
       { id: post.id, slug: post.slug, url: `/posts/${post.slug}` },
       { status: 201 }

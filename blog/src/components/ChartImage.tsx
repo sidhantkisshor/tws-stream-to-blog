@@ -77,14 +77,18 @@ export function ChartImage({ src, alt }: ChartImageProps) {
           >
             &times;
           </button>
-          <Image
-            src={src}
-            alt={alt}
-            width={1200}
-            height={675}
-            className="max-h-[90vh] max-w-full rounded-lg object-contain"
+          <div
+            className="relative h-[90vh] w-[90vw] max-w-5xl"
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <Image
+              src={src}
+              alt={alt}
+              fill
+              sizes="90vw"
+              className="rounded-lg object-contain"
+            />
+          </div>
         </div>
       )}
     </>

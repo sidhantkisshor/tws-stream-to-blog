@@ -23,9 +23,16 @@ const instrumentSerif = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://twsgurukulx.vercel.app"),
-  title: "TWSGurukulX — Trading Insights",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com"),
+  title: {
+    default: "TWSGurukulX — Trading Insights",
+    template: "%s | TWSGurukulX",
+  },
   description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": "/feed.xml" },
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
@@ -41,6 +48,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@tradingwsidhant",
     images: ["/og-banner.png"],
+  },
+  other: {
+    "llms.txt": "/llms.txt",
   },
 };
 

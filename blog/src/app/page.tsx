@@ -9,7 +9,35 @@ export default async function HomePage() {
   const posts = await getRecentPosts(20);
   const [featured, ...rest] = posts;
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "TWSGurukulX",
+      url: baseUrl,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "TWSGurukulX — Trading Insights",
+      description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
+      url: baseUrl,
+      publisher: {
+        "@type": "Organization",
+        name: "TWSGurukulX",
+        url: baseUrl,
+        logo: { "@type": "ImageObject", url: `${baseUrl}/logo-icon.png` },
+      },
+    },
+  ];
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
     <main className="mx-auto max-w-4xl px-4 py-12">
       {!featured ? (
         <div className="animate-reveal py-20 text-center">
@@ -127,5 +155,6 @@ export default async function HomePage() {
         </>
       )}
     </main>
+    </>
   );
 }

@@ -27,6 +27,12 @@ n8n/data/
 # Claude Code
 .claude/
 
+# Playwright MCP
+.playwright-mcp/
+
+# Brand assets (source files — processed copies live in blog/public/)
+TWS GurukulX/
+
 # OS
 .DS_Store
 Thumbs.db

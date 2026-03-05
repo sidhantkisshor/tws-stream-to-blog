@@ -50,23 +50,27 @@ YouTube stream ends
 - App Router only. Pages: `/`, `/posts/[slug]`, `/tags/[tag]`, `/about`
 - API routes: `POST /api/posts` (publish, X-API-Key auth), `POST /api/subscribe` (WhatsApp opt-in, rate-limited)
 - Prisma client output: `src/generated/prisma/` (non-standard). Import from `@/lib/prisma` (singleton).
-- Data access helpers in `@/lib/posts.ts`. ISR with `revalidate = 60`.
+- Data access helpers in `@/lib/posts.ts` (`getRecentPosts`, `getPostBySlug`, `getPostsByTag`, `getAllTags`). ISR with `revalidate = 60`.
 - Design tokens in `globals.css` `@theme inline`: deep-slate, burnt-amber, brushed-gold, warm-white, wealth-teal. Fonts: `font-satoshi` (body), `font-instrument` (accent).
+- Local fonts loaded in `layout.tsx` via `next/font/local` (Satoshi, Instrument Serif) — woff2 files in `src/app/fonts/`.
 - Database: Neon Postgres. Models: `Post` (videoId unique, slug unique, sections as JSON), `Subscriber` (phone unique).
 
 ### services/local-api/ — Python 3.11+, FastAPI, ARQ, Redis
 
-- Endpoints: `GET /health`, `POST /transcribe`, `POST /extract-charts`, `GET /status/{job_id}` — all require X-API-Key
+- Endpoints: `GET /health`, `POST /transcribe`, `POST /extract-charts`, `POST /upload-image`, `GET /status/{job_id}` — all require X-API-Key
 - Heavy work goes through ARQ jobs (max 2 concurrent, 1hr timeout). Never do heavy work in request handlers.
 - Whisper model loaded lazily (`_model = None` pattern). Downloads cleaned up in `finally` blocks.
-- Job state in Redis: key `tws:job:{uuid}`, 24h TTL.
-- Chart extraction: OpenCV scene detection → R2 upload via boto3.
+- Job state in Redis: key `tws:job:{uuid}`, 24h TTL. Module: `src/jobs.py` (create/update/get).
+- Worker tasks in `src/worker.py`: `transcribe_task` and `extract_charts_task`.
+- Chart extraction: OpenCV scene detection → R2 upload via boto3 (`src/storage.py`).
+- Config via pydantic-settings (`src/config.py`), reads from `.env`.
 
 ### n8n/ — Four workflow JSON files
 
 - Activate in order: `publish` → `llm-pipeline` → `process-stream` → `stream-detection`
 - Credential IDs are placeholders — re-link after import to n8n
 - Inter-workflow calls use `$env.N8N_BASE_URL` + webhook auth header
+- See `n8n/README.md` for full credential setup, state store SQL, and customization notes
 
 ## Key Environment Variables
 
@@ -74,10 +78,10 @@ YouTube stream ends
 `DATABASE_URL` (Neon Postgres), `PUBLISH_API_KEY`, `NEXT_PUBLIC_SITE_URL`
 
 ### services/local-api/.env
-`API_KEY`, `R2_ENDPOINT`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`, `REDIS_URL`, `WHISPER_MODEL` (default: large-v3), `WHISPER_DEVICE` (cuda/cpu)
+`API_KEY`, `YOUTUBE_CHANNEL_ID`, `R2_ENDPOINT`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`, `REDIS_URL`, `WHISPER_MODEL` (default: large-v3), `WHISPER_DEVICE` (cuda/cpu), `DOWNLOAD_DIR` (default: ./downloads)
 
 ### n8n Variables
-`N8N_BASE_URL`, `LOCAL_API_TUNNEL_URL`, `BLOG_BASE_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`
+`N8N_BASE_URL`, `LOCAL_API_TUNNEL_URL`, `BLOG_BASE_URL`, `DISCORD_WEBHOOK_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`
 
 ## Conventions
 
@@ -99,4 +103,7 @@ curl -X POST https://your-blog.vercel.app/api/posts \
 
 # Check pipeline state
 psql -c "SELECT video_id, status, error_message FROM pipeline_runs ORDER BY detected_at DESC LIMIT 20;"
+
+# Deploy blog to Vercel
+cd blog && vercel --prod
 ```

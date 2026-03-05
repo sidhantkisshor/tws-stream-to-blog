@@ -22,8 +22,14 @@ export async function generateMetadata({
   const { tag: rawTag } = await params;
   const tag = decodeURIComponent(rawTag);
   return {
-    title: `#${tag} | TWSGurukulX`,
+    title: `#${tag}`,
     description: `Trading insights and analysis tagged with ${tag}`,
+    alternates: { canonical: `/tags/${encodeURIComponent(tag)}` },
+    openGraph: {
+      title: `#${tag} — TWSGurukulX`,
+      description: `Trading insights and analysis tagged with ${tag}`,
+      images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+    },
   };
 }
 

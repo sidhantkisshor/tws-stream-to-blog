@@ -1,12 +1,44 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About | TWSGurukulX",
+  title: "About",
   description: "About TWSGurukulX — live stream trading analysis from Trading With Sidhant Team",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "About TWSGurukulX",
+    description: "About TWSGurukulX — live stream trading analysis from Trading With Sidhant Team",
+    images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+  },
 };
 
 export default function AboutPage() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TWSGurukulX",
+    legalName: "Trading With Sidhant LLP",
+    url: baseUrl,
+    logo: `${baseUrl}/logo-icon.png`,
+    sameAs: [
+      "https://youtube.com/@tradingwithsidhant",
+      "https://instagram.com/tradingwithsidhant",
+      "https://x.com/tradingwsidhant",
+      "https://t.me/tradingwsidhant",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: "+91-8062963333",
+      contactType: "customer service",
+    },
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
     <main className="mx-auto max-w-prose px-4 py-12">
       <div className="animate-reveal">
         <h1 className="text-3xl font-bold tracking-tight text-deep-slate sm:text-4xl">
@@ -115,5 +147,6 @@ export default function AboutPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }
