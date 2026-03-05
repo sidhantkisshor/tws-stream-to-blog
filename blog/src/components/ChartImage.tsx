@@ -17,6 +17,7 @@ export function ChartImage({ src, alt }: ChartImageProps) {
 
   useEffect(() => {
     if (!open) return;
+    const trigger = triggerRef.current;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") close();
     }
@@ -26,7 +27,7 @@ export function ChartImage({ src, alt }: ChartImageProps) {
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
-      triggerRef.current?.focus();
+      trigger?.focus();
     };
   }, [open, close]);
 

@@ -11,7 +11,8 @@ export function Nav() {
   const pathname = usePathname();
 
   useEffect(() => {
-    setOpen(false);
+    const onRouteChange = () => setOpen(false);
+    onRouteChange();
   }, [pathname]);
 
   useEffect(() => {
@@ -65,12 +66,12 @@ export function Nav() {
             About
           </Link>
           <a
-            href="https://wa.me/918062963333"
+            href="https://t.me/tradingwsidhant"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-wealth-teal/20 bg-wealth-teal/5 px-4 py-1.5 text-sm font-medium text-wealth-teal no-underline transition-all hover:border-wealth-teal/40 hover:bg-wealth-teal/10 hover:shadow-[0_2px_8px_rgba(10,141,122,0.12)]"
           >
-            Join WhatsApp
+            Join Telegram
           </a>
         </div>
 
@@ -114,12 +115,12 @@ export function Nav() {
             About
           </Link>
           <a
-            href="https://wa.me/918062963333"
+            href="https://t.me/tradingwsidhant"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-wealth-teal no-underline"
           >
-            Join WhatsApp
+            Join Telegram
           </a>
         </div>
       </div>

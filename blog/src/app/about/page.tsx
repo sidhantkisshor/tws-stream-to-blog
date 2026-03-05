@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TelegramCTA } from "@/components/TelegramCTA";
 
 export const metadata: Metadata = {
   title: "About",
@@ -25,6 +26,7 @@ export default function AboutPage() {
       "https://instagram.com/tradingwithsidhant",
       "https://x.com/tradingwsidhant",
       "https://t.me/tradingwsidhant",
+      "https://wa.me/918062963333",
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -144,7 +146,19 @@ export default function AboutPage() {
           >
             Telegram
           </a>
+          <a
+            href="https://wa.me/918062963333"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
+          >
+            WhatsApp (Support)
+          </a>
         </div>
+      </section>
+
+      <section className="mt-14 animate-reveal delay-5">
+        <TelegramCTA />
       </section>
     </main>
     </>

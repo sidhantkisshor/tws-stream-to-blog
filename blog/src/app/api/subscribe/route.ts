@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
   }
 
-  let body: { phone?: string; countryCode?: string };
+  let body: { phone?: string; countryCode?: string; tag?: string };
   try {
     body = await request.json();
   } catch {
@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
 
   const phone = body.phone?.trim();
   const countryCode = body.countryCode?.trim() || "+91";
+  const tag = body.tag?.trim() || "blogs";
 
   if (!phone) {
     return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     await prisma.subscriber.create({
-      data: { phone: fullNumber, countryCode },
+      data: { phone: fullNumber, countryCode, tag },
     });
 
     return NextResponse.json({ ok: true }, { status: 201 });

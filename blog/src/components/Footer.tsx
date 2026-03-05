@@ -55,6 +55,14 @@ export async function Footer() {
             Telegram
           </a>
           <a
+            href="https://wa.me/918062963333"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
+          >
+            WhatsApp
+          </a>
+          <a
             href="https://twsgurukul.com"
             target="_blank"
             rel="noopener noreferrer"

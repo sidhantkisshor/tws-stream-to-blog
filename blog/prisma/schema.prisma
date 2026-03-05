@@ -32,6 +32,7 @@ model Subscriber {
   id          String   @id @default(cuid())
   phone       String   @unique
   countryCode String   @default("+91")
+  tag         String   @default("blogs")
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
 }
