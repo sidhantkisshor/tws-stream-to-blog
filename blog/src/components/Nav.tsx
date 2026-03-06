@@ -90,6 +90,16 @@ export function Nav() {
             </button>
           )}
           <Link
+            href="/posts"
+            className={`text-sm no-underline transition-colors ${
+              pathname === "/posts"
+                ? "font-medium text-deep-slate"
+                : "text-deep-slate/60 hover:text-deep-slate"
+            }`}
+          >
+            Posts
+          </Link>
+          <Link
             href="/about"
             className={`text-sm no-underline transition-colors ${
               pathname === "/about"
@@ -141,6 +151,13 @@ export function Nav() {
         }`}
       >
         <div className="flex flex-col gap-4 px-4 py-4">
+          <Link
+            href="/posts"
+            onClick={() => setOpen(false)}
+            className="text-sm text-deep-slate/70 no-underline"
+          >
+            Posts
+          </Link>
           <Link
             href="/about"
             onClick={() => setOpen(false)}

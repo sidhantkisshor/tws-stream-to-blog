@@ -92,6 +92,11 @@ export default async function PostPage({
 
   const midpoint = Math.floor(sections.length / 2);
 
+  const wordCount = [post.intro, ...sections.map((s) => s.body), post.conclusion]
+    .join(" ")
+    .split(/\s+/).length;
+  const readingTime = Math.max(1, Math.round(wordCount / 200));
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
 
   const jsonLd = [
@@ -161,16 +166,17 @@ export default async function PostPage({
               {post.title}
             </h1>
             <p className="mt-3 font-instrument text-xl text-burnt-amber/80">{post.hook}</p>
-            <time
-              className="mt-3 block text-sm text-deep-slate/35"
-              dateTime={post.publishedAt.toISOString()}
-            >
-              {post.publishedAt.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </time>
+            <div className="mt-3 flex items-center gap-2 text-sm text-deep-slate/35">
+              <time dateTime={post.publishedAt.toISOString()}>
+                {post.publishedAt.toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </time>
+              <span aria-hidden="true">&middot;</span>
+              <span>{readingTime} min read</span>
+            </div>
           </header>
 
           {post.heroImage && (

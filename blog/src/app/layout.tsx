@@ -3,6 +3,7 @@ import Script from "next/script";
 import localFont from "next/font/local";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
 const GTM_ID = "GTM-TMQ589CP";
@@ -79,6 +80,12 @@ export default function RootLayout({
         `}</Script>
       </head>
       <body className="grain min-h-screen antialiased">
+        <a
+          href="#main-content"
+          className="fixed left-2 top-2 z-50 -translate-y-16 rounded-md bg-wealth-teal px-4 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
+        >
+          Skip to content
+        </a>
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
@@ -88,8 +95,9 @@ export default function RootLayout({
           />
         </noscript>
         <Nav />
-        <div className="min-h-[calc(100vh-160px)]">{children}</div>
+        <div id="main-content" className="min-h-[calc(100vh-160px)]">{children}</div>
         <Footer />
+        <CookieConsent />
       </body>
     </html>
   );

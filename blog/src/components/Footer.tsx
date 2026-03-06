@@ -79,6 +79,26 @@ export async function Footer() {
             tradingwithsidhant.com
           </a>
         </div>
+        <div className="mb-6 flex flex-wrap items-center gap-4">
+          <Link
+            href="/posts"
+            className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
+          >
+            All Posts
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/terms"
+            className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
+          >
+            Terms of Service
+          </Link>
+        </div>
         <div className="flex items-center justify-between">
           <p className="text-sm text-deep-slate/30">
             &copy; 2026 Trading With Sidhant LLP
