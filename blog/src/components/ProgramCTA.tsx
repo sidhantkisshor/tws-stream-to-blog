@@ -22,7 +22,7 @@ export function ProgramCTA({ variant }: ProgramCTAProps) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-deep-slate/8 bg-white px-6 py-7 shadow-[0_1px_12px_rgba(44,53,57,0.04)]">
+    <div className="relative overflow-hidden rounded-xl border border-deep-slate/8 bg-surface px-6 py-7 shadow-[0_1px_12px_rgba(44,53,57,0.04)]">
       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brushed-gold/3" />
       <div className="absolute -bottom-4 -left-4 h-20 w-20 rounded-full bg-brushed-gold/3" />
 

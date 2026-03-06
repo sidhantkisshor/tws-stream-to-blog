@@ -63,8 +63,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${satoshi.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${satoshi.variable} ${instrumentSerif.variable}`}>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();` }} />
         <Script id="gtm-init" strategy="afterInteractive">{`
           window.dataLayer=window.dataLayer||[];
           window.loadGTM=function(){if(window.__gtmLoaded)return;window.__gtmLoaded=true;

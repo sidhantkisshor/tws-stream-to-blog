@@ -92,7 +92,7 @@ export function TableOfContents({ sections }: TOCProps) {
       <div className="lg:hidden mb-6">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex w-full items-center justify-between rounded-lg border border-deep-slate/10 bg-white px-4 py-3 text-sm font-medium text-deep-slate/70"
+          className="flex w-full items-center justify-between rounded-lg border border-deep-slate/10 bg-surface px-4 py-3 text-sm font-medium text-deep-slate/70"
           aria-expanded={mobileOpen}
         >
           <span>Table of Contents</span>
@@ -113,7 +113,7 @@ export function TableOfContents({ sections }: TOCProps) {
             mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <ul className="mt-2 space-y-0.5 rounded-lg border border-deep-slate/10 bg-white p-3">
+          <ul className="mt-2 space-y-0.5 rounded-lg border border-deep-slate/10 bg-surface p-3">
             {sections.map((section, i) => {
               const id = ids[i];
               const isActive = activeId === id;

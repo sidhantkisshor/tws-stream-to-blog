@@ -6,7 +6,7 @@ export async function Footer() {
   const tags = await getAllTags();
 
   return (
-    <footer className="mt-20 border-t border-deep-slate/8 bg-gradient-to-b from-warm-white to-[#F3F0EB]">
+    <footer className="mt-20 border-t border-deep-slate/8 bg-gradient-to-b from-warm-white to-deep-slate/5">
       <div className="mx-auto max-w-4xl px-4 py-10">
         {tags.length > 0 && (
           <div className="mb-8 flex flex-wrap gap-2">

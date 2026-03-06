@@ -43,7 +43,7 @@ export function SearchBar({ query, onChange }: SearchBarProps) {
         value={local}
         onChange={(e) => update(e.target.value)}
         placeholder="Search posts..."
-        className="w-full rounded-lg border border-deep-slate/10 bg-white px-4 py-2.5 pl-10 text-sm text-deep-slate outline-none transition-colors placeholder:text-deep-slate/30 focus:border-burnt-amber/40 focus:ring-1 focus:ring-burnt-amber/20"
+        className="w-full rounded-lg border border-deep-slate/10 bg-surface px-4 py-2.5 pl-10 text-sm text-deep-slate outline-none transition-colors placeholder:text-deep-slate/30 focus:border-burnt-amber/40 focus:ring-1 focus:ring-burnt-amber/20"
       />
       {local && (
         <button

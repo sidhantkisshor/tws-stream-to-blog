@@ -6,8 +6,18 @@
   --color-brushed-gold: #B8956A;
   --color-warm-white: #FAF8F5;
   --color-wealth-teal: #0A8D7A;
+  --color-surface: #FFFFFF;
   --font-satoshi: var(--font-satoshi-var), sans-serif;
   --font-instrument: var(--font-instrument-var), serif;
+}
+
+.dark {
+  --color-deep-slate: #EDE6D8;
+  --color-burnt-amber: #D4894A;
+  --color-brushed-gold: #C9A87C;
+  --color-warm-white: #0B1221;
+  --color-wealth-teal: #0A8D7A;
+  --color-surface: #111A2E;
 }
 
 body {
@@ -29,6 +39,10 @@ h1, h2, h3 {
   :where(a):hover {
     text-decoration: underline;
   }
+}
+
+.dark .grain::before {
+  opacity: 0.015;
 }
 
 /* Subtle noise grain overlay */
@@ -95,7 +109,7 @@ h1, h2, h3 {
 
 .tag-pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(44, 53, 57, 0.08);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-deep-slate) 8%, transparent);
 }
 
 /* Post card hover */
@@ -104,7 +118,7 @@ h1, h2, h3 {
 }
 
 .post-row:hover {
-  background-color: rgba(44, 53, 57, 0.02);
+  background-color: color-mix(in srgb, var(--color-deep-slate) 2%, transparent);
   padding-left: 8px;
   margin-left: -8px;
 }
