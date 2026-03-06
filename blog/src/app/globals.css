@@ -1,23 +1,32 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-deep-slate: #2C3539;
-  --color-burnt-amber: #C87533;
-  --color-brushed-gold: #B8956A;
-  --color-warm-white: #FAF8F5;
-  --color-wealth-teal: #0A8D7A;
-  --color-surface: #FFFFFF;
-  --font-satoshi: var(--font-satoshi-var), sans-serif;
-  --font-instrument: var(--font-instrument-var), serif;
+:root {
+  --tw-deep-slate: #2C3539;
+  --tw-burnt-amber: #C87533;
+  --tw-brushed-gold: #B8956A;
+  --tw-warm-white: #FAF8F5;
+  --tw-wealth-teal: #0A8D7A;
+  --tw-surface: #FFFFFF;
 }
 
 .dark {
-  --color-deep-slate: #EDE6D8;
-  --color-burnt-amber: #D4894A;
-  --color-brushed-gold: #C9A87C;
-  --color-warm-white: #0B1221;
-  --color-wealth-teal: #0A8D7A;
-  --color-surface: #111A2E;
+  --tw-deep-slate: #F5F0E8;
+  --tw-burnt-amber: #D4894A;
+  --tw-brushed-gold: #C9A87C;
+  --tw-warm-white: #0B1221;
+  --tw-wealth-teal: #0A8D7A;
+  --tw-surface: #111A2E;
+}
+
+@theme inline {
+  --color-deep-slate: var(--tw-deep-slate);
+  --color-burnt-amber: var(--tw-burnt-amber);
+  --color-brushed-gold: var(--tw-brushed-gold);
+  --color-warm-white: var(--tw-warm-white);
+  --color-wealth-teal: var(--tw-wealth-teal);
+  --color-surface: var(--tw-surface);
+  --font-satoshi: var(--font-satoshi-var), sans-serif;
+  --font-instrument: var(--font-instrument-var), serif;
 }
 
 body {
