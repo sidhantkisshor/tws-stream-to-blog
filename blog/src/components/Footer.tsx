@@ -105,21 +105,22 @@ export async function Footer() {
           </p>
           <Link
             href="/"
-            className="group flex items-center gap-1.5 text-sm no-underline hover:no-underline"
+            className="group flex items-center no-underline hover:no-underline"
           >
             <Image
-              src="/logo-icon.png"
+              src="/wordmark-dark.png"
               alt="TWSGurukulX"
-              width={20}
-              height={20}
-              className="rounded-sm opacity-30 transition-opacity group-hover:opacity-50"
+              width={80}
+              height={16}
+              className="block h-4 w-auto opacity-30 transition-opacity group-hover:opacity-50 dark:hidden"
             />
-            <span className="font-bold text-deep-slate/30 transition-colors group-hover:text-deep-slate/50">
-              TWS
-            </span>
-            <span className="font-instrument text-deep-slate/20 transition-colors group-hover:text-burnt-amber/50">
-              GurukulX
-            </span>
+            <Image
+              src="/wordmark-light.png"
+              alt="TWSGurukulX"
+              width={80}
+              height={16}
+              className="hidden h-4 w-auto opacity-30 transition-opacity group-hover:opacity-50 dark:block"
+            />
           </Link>
         </div>
       </div>

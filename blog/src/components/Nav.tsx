@@ -41,33 +41,34 @@ export function Nav() {
   }, [dark]);
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-deep-slate/10 bg-warm-white/90 shadow-[0_1px_12px_rgba(44,53,57,0.04)] backdrop-blur-md"
-          : "bg-warm-white/80 backdrop-blur-sm"
-      }`}
-    >
-      <nav className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+    <header className="sticky top-0 z-50 px-4 pt-3">
+      <nav
+        className={`mx-auto flex max-w-4xl items-center justify-between rounded-full px-5 py-2.5 transition-all duration-300 ${
+          scrolled
+            ? "border border-deep-slate/8 bg-warm-white/70 shadow-[0_2px_16px_rgba(44,53,57,0.06)] backdrop-blur-xl"
+            : "bg-warm-white/60 backdrop-blur-md"
+        }`}
+      >
         <Link
           href="/"
-          className="group flex items-center gap-2 no-underline hover:no-underline"
+          className="group flex items-center no-underline hover:no-underline"
         >
           <Image
-            src="/logo-icon.png"
+            src="/wordmark-dark.png"
             alt="TWSGurukulX"
-            width={32}
-            height={32}
-            className="rounded-md"
+            width={120}
+            height={24}
+            className="block h-6 w-auto dark:hidden"
+            priority
           />
-          <span className="flex items-baseline gap-0.5">
-            <span className="text-xl font-bold tracking-tight text-deep-slate transition-colors group-hover:text-burnt-amber">
-              TWS
-            </span>
-            <span className="font-instrument text-xl text-burnt-amber transition-colors group-hover:text-deep-slate">
-              GurukulX
-            </span>
-          </span>
+          <Image
+            src="/wordmark-light.png"
+            alt="TWSGurukulX"
+            width={120}
+            height={24}
+            className="hidden h-6 w-auto dark:block"
+            priority
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -146,8 +147,8 @@ export function Nav() {
 
       {/* Mobile drawer */}
       <div
-        className={`overflow-hidden border-t border-deep-slate/10 bg-warm-white transition-all duration-300 sm:hidden ${
-          open ? "max-h-40 opacity-100" : "max-h-0 border-t-0 opacity-0"
+        className={`mx-auto mt-2 max-w-4xl overflow-hidden rounded-2xl transition-all duration-300 sm:hidden ${
+          open ? "max-h-48 border border-deep-slate/8 bg-warm-white/70 opacity-100 backdrop-blur-xl" : "max-h-0 opacity-0"
         }`}
       >
         <div className="flex flex-col gap-4 px-4 py-4">

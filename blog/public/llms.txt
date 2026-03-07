@@ -1,0 +1,24 @@
+# TWSGurukulX — Trading Insights Blog
+> Live stream trading analysis and market insights from Trading With Sidhant Team
+
+## Important Pages
+
+- https://blogs.twsgurukul.com/ : Homepage with latest trading session recaps and market analysis
+- https://blogs.twsgurukul.com/about : About TWSGurukulX, who we are, what we cover, and contact info
+- https://blogs.twsgurukul.com/feed.xml : RSS feed with all posts in chronological order
+- https://blogs.twsgurukul.com/sitemap.xml : Full sitemap with all posts and tag archives
+
+## Content Structure
+
+Posts are auto-generated recaps of live trading streams on YouTube by Trading With Sidhant Team. Each post covers:
+- Nifty, BankNifty, and options analysis
+- Key levels, setups, and chart annotations
+- Market context and trading insights
+
+## Tag Archives
+
+Tag pages at /tags/{tag} group posts by topic. Common tags include market analysis, options trading, Nifty, BankNifty, and specific trading strategies.
+
+## API
+
+The /api/ path is private and not intended for crawling.

@@ -13,6 +13,7 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { ProgramCTA } from "@/components/ProgramCTA";
 import { RelatedPosts } from "@/components/RelatedPosts";
 import { SessionNav } from "@/components/SessionNav";
+import { NewsletterCTA } from "@/components/NewsletterCTA";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -21,6 +22,11 @@ interface Section {
   heading: string;
   body: string;
   chartRef?: string;
+}
+
+interface FaqItem {
+  question: string;
+  answer: string;
 }
 
 export async function generateStaticParams() {
@@ -90,6 +96,26 @@ export default async function PostPage({
     getAdjacentPosts(post.publishedAt),
   ]);
 
+  const faqItems: FaqItem[] = Array.isArray(post.faq)
+    ? (post.faq as unknown[]).filter(
+        (f): f is FaqItem =>
+          !!f &&
+          typeof f === "object" &&
+          typeof (f as FaqItem).question === "string" &&
+          typeof (f as FaqItem).answer === "string"
+      )
+    : sections
+        .filter((s) => s.heading && s.body)
+        .slice(0, 5)
+        .map((s) => ({
+          question: s.heading,
+          answer: s.body
+            .replace(/[#*_`~\[\]()>!|-]/g, "")
+            .replace(/\n+/g, " ")
+            .trim()
+            .slice(0, 300),
+        }));
+
   const midpoint = Math.floor(sections.length / 2);
 
   const wordCount = [post.intro, ...sections.map((s) => s.body), post.conclusion]
@@ -118,6 +144,8 @@ export default async function PostPage({
       mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}/posts/${slug}` },
       url: `${baseUrl}/posts/${slug}`,
       keywords: post.keywords.join(", "),
+      wordCount,
+      inLanguage: "en",
     },
     {
       "@context": "https://schema.org",
@@ -127,6 +155,23 @@ export default async function PostPage({
         { "@type": "ListItem", position: 2, name: post.title, item: `${baseUrl}/posts/${slug}` },
       ],
     },
+    ...(faqItems.length > 0
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqItems.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+            inLanguage: "en",
+          },
+        ]
+      : []),
   ];
 
   function slugify(text: string): string {
@@ -143,7 +188,7 @@ export default async function PostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      <div className="mx-auto flex max-w-5xl gap-8 px-4 py-12">
+      <div className="mx-auto flex max-w-5xl justify-center gap-8 px-4 py-12 lg:justify-start">
         {/* Desktop TOC sidebar */}
         <div className="hidden lg:block">
           <TableOfContents sections={sections} />
@@ -165,7 +210,7 @@ export default async function PostPage({
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-deep-slate sm:text-4xl">
               {post.title}
             </h1>
-            <p className="mt-3 font-instrument text-xl text-burnt-amber/80">{post.hook}</p>
+            <p className="mt-3 font-instrument text-xl text-burnt-amber/80">{post.hook.replace(/\s*—\s*/g, ", ")}</p>
             <div className="mt-3 flex items-center gap-2 text-sm text-deep-slate/35">
               <time dateTime={post.publishedAt.toISOString()}>
                 {post.publishedAt.toLocaleDateString("en-US", {
@@ -233,6 +278,22 @@ export default async function PostPage({
             <section className="pt-2">
               <MarkdownBody>{post.conclusion}</MarkdownBody>
             </section>
+
+            {faqItems.length > 0 && (
+              <section className="mt-10 rounded-xl border border-deep-slate/8 bg-surface px-6 py-6">
+                <h2 className="text-xl font-bold text-deep-slate">Frequently Asked Questions</h2>
+                <dl className="mt-4 space-y-5">
+                  {faqItems.map((faq, i) => (
+                    <div key={i}>
+                      <dt className="font-bold text-deep-slate/85">{faq.question}</dt>
+                      <dd className="mt-1 text-[0.95rem] leading-relaxed text-deep-slate/60">
+                        {faq.answer}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
           </div>
 
           <div className="mt-10 space-y-10">
@@ -246,7 +307,8 @@ export default async function PostPage({
             <SessionNav previous={previous} next={next} />
           </div>
 
-          <div className="mt-14 animate-reveal delay-4">
+          <div className="mt-14 animate-reveal delay-4 space-y-6">
+            <NewsletterCTA />
             <TelegramCTA />
           </div>
         </article>

@@ -33,6 +33,7 @@ export default function AboutPage() {
       telephone: "+91-8062963333",
       contactType: "customer service",
     },
+    inLanguage: "en",
   };
 
   return (

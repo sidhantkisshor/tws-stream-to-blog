@@ -27,6 +27,7 @@ export default function TermsPage() {
       url: baseUrl,
     },
     dateModified: "2026-03-06",
+    inLanguage: "en",
   };
 
   return (

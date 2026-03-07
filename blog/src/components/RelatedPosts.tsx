@@ -5,6 +5,7 @@ interface RelatedPost {
   title: string;
   slug: string;
   heroImage: string;
+  hook: string;
   publishedAt: Date;
 }
 
@@ -43,6 +44,11 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
             <p className="mt-2 text-sm font-bold text-deep-slate transition-colors group-hover:text-burnt-amber">
               {post.title}
             </p>
+            {post.hook && (
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-deep-slate/45">
+                {post.hook.replace(/\s*—\s*/g, ", ")}
+              </p>
+            )}
             <time
               className="mt-0.5 block text-xs text-deep-slate/35"
               dateTime={post.publishedAt.toISOString()}

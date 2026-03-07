@@ -27,6 +27,7 @@ export default function PrivacyPage() {
       url: baseUrl,
     },
     dateModified: "2026-03-06",
+    inLanguage: "en",
   };
 
   return (
@@ -107,8 +108,10 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <p>
-              We do not collect email addresses, do not offer user accounts, and
-              do not have a comments system.
+              If you opt in to receive email alerts about new blog posts, we
+              collect your email address through our newsletter subscription
+              form. We do not offer user accounts and do not have a comments
+              system.
             </p>
           </div>
         </section>
@@ -126,8 +129,17 @@ export default function PrivacyPage() {
                   WhatsApp notifications
                 </strong>{" "}
                 — Your phone number is used solely to send you updates when a
-                new blog post is published. We do not use it for marketing,
-                share it with third parties, or sell it.
+                new blog post is published.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
+              <span>
+                <strong className="text-deep-slate/90">
+                  Email alerts
+                </strong>{" "}
+                — Your email address is used solely to notify you when a new
+                blog post is published.
               </span>
             </li>
             <li className="flex items-start gap-3">
@@ -141,6 +153,10 @@ export default function PrivacyPage() {
               </span>
             </li>
           </ul>
+          <p className="mt-4 leading-[1.75] text-deep-slate/70">
+            We do not use your data for marketing, share it with third parties,
+            or sell it.
+          </p>
         </section>
 
         {/* Lawful Basis (DPDP Act) */}

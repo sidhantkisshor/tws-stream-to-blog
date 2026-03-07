@@ -46,7 +46,29 @@ export default async function TagPage({
 
   if (posts.length === 0) notFound();
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Posts tagged #${tag}`,
+    description: `Trading insights and analysis tagged with ${tag}`,
+    url: `${baseUrl}/tags/${encodeURIComponent(tag)}`,
+    numberOfItems: posts.length,
+    inLanguage: "en",
+    itemListElement: posts.map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${baseUrl}/posts/${post.slug}`,
+      name: post.title,
+    })),
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
     <main className="mx-auto max-w-4xl px-4 py-12">
       <header className="animate-reveal mb-8">
         <Link href="/" className="text-sm text-wealth-teal no-underline hover:underline">
@@ -116,5 +138,6 @@ export default async function TagPage({
         <TelegramCTA />
       </section>
     </main>
+    </>
   );
 }

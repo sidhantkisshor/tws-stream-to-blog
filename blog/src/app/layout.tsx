@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CookieConsent } from "@/components/CookieConsent";
+import { BackToTop } from "@/components/BackToTop";
 import "./globals.css";
 
 const GTM_ID = "GTM-TMQ589CP";
@@ -21,6 +22,7 @@ const satoshi = localFont({
 const instrumentSerif = localFont({
   src: [
     { path: "./fonts/InstrumentSerif-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/InstrumentSerif-Italic.woff2", weight: "400", style: "italic" },
   ],
   variable: "--font-instrument-var",
   display: "swap",
@@ -97,6 +99,7 @@ export default function RootLayout({
         <Nav />
         <div id="main-content" className="min-h-[calc(100vh-160px)]">{children}</div>
         <Footer />
+        <BackToTop />
         <CookieConsent />
       </body>
     </html>

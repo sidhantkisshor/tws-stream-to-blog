@@ -20,6 +20,7 @@ interface PublishBody {
   conclusion: string;
   tags: string[];
   keywords: string[];
+  faq?: { question: string; answer: string }[];
 }
 
 function validateBody(body: unknown): body is PublishBody {
@@ -44,7 +45,16 @@ function validateBody(body: unknown): body is PublishBody {
     Array.isArray(b.tags) &&
     b.tags.every((t: unknown) => typeof t === "string") &&
     Array.isArray(b.keywords) &&
-    b.keywords.every((k: unknown) => typeof k === "string")
+    b.keywords.every((k: unknown) => typeof k === "string") &&
+    (b.faq === undefined ||
+      (Array.isArray(b.faq) &&
+        b.faq.every(
+          (f: unknown) =>
+            !!f &&
+            typeof f === "object" &&
+            typeof (f as Record<string, unknown>).question === "string" &&
+            typeof (f as Record<string, unknown>).answer === "string"
+        )))
   );
 }
 
@@ -85,6 +95,7 @@ export async function POST(request: NextRequest) {
         conclusion: body.conclusion,
         tags: body.tags,
         keywords: body.keywords,
+        faq: body.faq ?? undefined,
         publishedAt: new Date(),
       },
       update: {
@@ -97,6 +108,7 @@ export async function POST(request: NextRequest) {
         conclusion: body.conclusion,
         tags: body.tags,
         keywords: body.keywords,
+        faq: body.faq ?? undefined,
       },
     });
 

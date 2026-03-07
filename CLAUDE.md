@@ -47,13 +47,17 @@ YouTube stream ends
 
 ### blog/ — Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma v7
 
-- App Router only. Pages: `/`, `/posts/[slug]`, `/tags/[tag]`, `/about`
-- API routes: `POST /api/posts` (publish, X-API-Key auth), `POST /api/subscribe` (WhatsApp opt-in, rate-limited)
+- App Router only. Pages: `/`, `/posts`, `/posts/[slug]`, `/tags/[tag]`, `/about`, `/privacy`, `/terms`
+- API routes: `POST /api/posts` (publish, X-API-Key auth), `POST /api/subscribe` (WhatsApp opt-in, rate-limited), `POST /api/subscribe-email` (email newsletter, rate-limited)
+- Route handlers for SEO: `/feed.xml`, `/sitemap.xml`, `/robots.txt`, `/llms.txt` (AI crawler discovery), `/llms-full.txt`
 - Prisma client output: `src/generated/prisma/` (non-standard). Import from `@/lib/prisma` (singleton).
-- Data access helpers in `@/lib/posts.ts` (`getRecentPosts`, `getPostBySlug`, `getPostsByTag`, `getAllTags`). ISR with `revalidate = 60`.
+- Data access helpers in `@/lib/posts.ts` (`getRecentPosts`, `getPostBySlug`, `getPostsByTag`, `getAllTags`, `getRelatedPosts`, `getAdjacentPosts`). ISR with `revalidate = 60`.
 - Design tokens in `globals.css` `@theme inline`: deep-slate, burnt-amber, brushed-gold, warm-white, wealth-teal. Fonts: `font-satoshi` (body), `font-instrument` (accent).
 - Local fonts loaded in `layout.tsx` via `next/font/local` (Satoshi, Instrument Serif) — woff2 files in `src/app/fonts/`.
-- Database: Neon Postgres. Models: `Post` (videoId unique, slug unique, sections as JSON), `Subscriber` (phone unique).
+- Database: Neon Postgres. Models: `Post` (videoId unique, slug unique, sections as JSON, faq as JSON), `Subscriber` (phone unique), `EmailSubscriber` (email unique).
+- JSON-LD structured data on all pages: Article + FAQPage + BreadcrumbList on posts, ItemList on tag pages, WebSite + Blog on homepage, Organization on about page, WebPage on legal pages. All include `inLanguage: "en"`.
+- Dark mode: CSS variable indirection in `globals.css` `@theme inline` block. Toggle in Nav persists to localStorage. Inline script in layout prevents FOUC.
+- Markdown rendering: `react-markdown` with custom components in `MarkdownBody.tsx`. Callout blockquotes (Key Takeaway, Pro Tip, etc.) get teal styling via AST text inspection.
 
 ### services/local-api/ — Python 3.11+, FastAPI, ARQ, Redis
 
@@ -90,7 +94,9 @@ YouTube stream ends
 - Slug format: `slugify(title) + "-" + Date.now().toString(36)`, idempotent via upsert on `videoId`
 - Path alias: `@/` → `src/`
 - Python tests: `httpx.AsyncClient` with `ASGITransport` + `monkeypatch.setenv`
+- Rate limiting: in-memory Map per IP, cleanup on interval + size threshold (see `api/subscribe/route.ts` pattern)
 - n8n state store: separate `pipeline_runs` Postgres table (not in Prisma schema). Reset failed runs: `DELETE FROM pipeline_runs WHERE video_id = '...'`
+- AI crawler access: robots.txt explicitly allows GPTBot, ClaudeBot, PerplexityBot, GoogleOther, Bytespider, CCBot. `/llms.txt` serves structured site description for AI crawlers.
 
 ## Useful Operations
 
@@ -99,7 +105,7 @@ YouTube stream ends
 curl -X POST https://your-blog.vercel.app/api/posts \
   -H "Content-Type: application/json" \
   -H "X-API-Key: <key>" \
-  -d '{"videoId":"test","title":"Test","hook":"hook","seoDesc":"desc","heroImage":"","intro":"intro","sections":[{"heading":"H","body":"B"}],"conclusion":"end","tags":["t"],"keywords":["k"]}'
+  -d '{"videoId":"test","title":"Test","hook":"hook","seoDesc":"desc","heroImage":"","intro":"intro","sections":[{"heading":"H","body":"B"}],"conclusion":"end","tags":["t"],"keywords":["k"],"faq":[{"question":"Q?","answer":"A."}]}'
 
 # Check pipeline state
 psql -c "SELECT video_id, status, error_message FROM pipeline_runs ORDER BY detected_at DESC LIMIT 20;"

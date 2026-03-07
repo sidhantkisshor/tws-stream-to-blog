@@ -15,6 +15,7 @@ export default async function HomePage() {
       "@type": "WebSite",
       name: "TWSGurukulX",
       url: baseUrl,
+      inLanguage: "en",
     },
     {
       "@context": "https://schema.org",
@@ -22,6 +23,7 @@ export default async function HomePage() {
       name: "TWSGurukulX — Trading Insights",
       description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
       url: baseUrl,
+      inLanguage: "en",
       publisher: {
         "@type": "Organization",
         name: "TWSGurukulX",

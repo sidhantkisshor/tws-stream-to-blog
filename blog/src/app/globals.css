@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --tw-deep-slate: #2C3539;
   --tw-burnt-amber: #C87533;
@@ -38,6 +40,10 @@ body {
 h1, h2, h3 {
   font-family: var(--font-satoshi);
   font-weight: 700;
+}
+
+.font-instrument {
+  font-style: italic;
 }
 
 @layer base {

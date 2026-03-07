@@ -20,12 +20,21 @@ model Post {
   conclusion  String   @db.Text
   tags        String[]
   keywords    String[]
+  faq         Json?
   publishedAt DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([publishedAt(sort: Desc)])
   @@index([tags])
+}
+
+model EmailSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  tag       String   @default("blogs")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
 }
 
 model Subscriber {

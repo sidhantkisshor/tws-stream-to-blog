@@ -43,7 +43,7 @@ function PostRow({ post }: { post: SerializedPost }) {
             {post.title}
           </h3>
           <p className="mt-1 text-sm leading-relaxed text-deep-slate/55 line-clamp-1">
-            {post.hook}
+            {post.hook.replace(/\s*—\s*/g, ", ")}
           </p>
           <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
             {post.tags.slice(0, 3).map((tag) => (
@@ -142,7 +142,7 @@ export function PostsDisplay({ posts }: { posts: SerializedPost[] }) {
                   <h2 className="text-3xl font-bold tracking-tight text-deep-slate transition-colors duration-300 group-hover:text-burnt-amber sm:text-4xl">
                     {featured.title}
                   </h2>
-                  <p className="mt-2 text-lg text-deep-slate/60">{featured.hook}</p>
+                  <p className="mt-2 text-lg text-deep-slate/60">{featured.hook.replace(/\s*—\s*/g, ", ")}</p>
                   <time
                     className="mt-3 block text-sm text-deep-slate/35"
                     dateTime={new Date(featured.publishedAt).toISOString()}

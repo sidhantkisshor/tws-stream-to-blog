@@ -46,6 +46,7 @@ export async function getRelatedPosts(excludeId: string, tags: string[], limit =
       title: true,
       slug: true,
       heroImage: true,
+      hook: true,
       tags: true,
       publishedAt: true,
     },
