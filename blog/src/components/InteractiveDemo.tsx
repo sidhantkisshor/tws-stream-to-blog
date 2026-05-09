@@ -38,7 +38,7 @@ export function InteractiveDemo({ src, title }: InteractiveDemoProps) {
             title={title}
             loading="lazy"
             sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-            className="block h-[1340px] w-full bg-[#0B1221] sm:h-[1180px]"
+            className="block h-[1860px] w-full bg-[#0B1221] sm:h-[1920px]"
           />
         </div>
       </div>
