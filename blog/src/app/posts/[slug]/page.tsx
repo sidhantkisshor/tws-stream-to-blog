@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getPostBySlug, getRelatedPosts, getAdjacentPosts } from "@/lib/posts";
 import { prisma } from "@/lib/prisma";
 import { ChartImage } from "@/components/ChartImage";
+import { InteractiveDemo } from "@/components/InteractiveDemo";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ReadingProgress } from "@/components/ReadingProgress";
@@ -259,10 +260,17 @@ export default async function PostPage({
                     <MarkdownBody>{section.body}</MarkdownBody>
                   </div>
                   {section.chartRef && (
-                    <ChartImage
-                      src={section.chartRef}
-                      alt={`Chart: ${section.heading}`}
-                    />
+                    section.chartRef.endsWith(".html") ? (
+                      <InteractiveDemo
+                        src={section.chartRef}
+                        title={`${section.heading} (interactive)`}
+                      />
+                    ) : (
+                      <ChartImage
+                        src={section.chartRef}
+                        alt={`Chart: ${section.heading}`}
+                      />
+                    )
                   )}
                 </section>
                 {i === midpoint && sections.length >= 3 && (

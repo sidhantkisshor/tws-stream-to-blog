@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orderflow Console — Trading With Sidhant</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0C;
+    --surface: #16161A;
+    --surface-2: #1F1F24;
+    --surface-3: #2A2A30;
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #E8E5DD;
+    --text-muted: rgba(232, 229, 221, 0.6);
+    --text-faint: rgba(232, 229, 221, 0.35);
+    --buy: #4FB849;
+    --buy-bg: rgba(79, 184, 73, 0.12);
+    --buy-bg-strong: rgba(79, 184, 73, 0.55);
+    --buy-text: #97DD92;
+    --sell: #E14B4B;
+    --sell-bg: rgba(225, 75, 75, 0.12);
+    --sell-bg-strong: rgba(225, 75, 75, 0.55);
+    --sell-text: #F09595;
+    --amber: #F2A623;
+    --amber-bg: rgba(242, 166, 35, 0.14);
+    --amber-text: #F2C97A;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .console {
+    width: 100%;
+    max-width: 1280px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* Brand strip */
+  .brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .brand-logo {
+    color: var(--text);
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  /* Caption bar */
+  .cap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 28px;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+  .cap.buy { color: var(--buy-text); background: var(--buy-bg); border-color: rgba(79, 184, 73, 0.3); }
+  .cap.sell { color: var(--sell-text); background: var(--sell-bg); border-color: rgba(225, 75, 75, 0.3); }
+  .cap.alert { color: var(--amber-text); background: var(--amber-bg); border-color: rgba(242, 166, 35, 0.3); }
+
+  /* Main board */
+  .board { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .panel-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* Order book row */
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 36px;
+    padding: 0 18px;
+    border-radius: 6px;
+    font-family: "SF Mono", "JetBrains Mono", "Menlo", monospace;
+    font-size: 16px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .row-ask { background: rgba(225, 75, 75, 0.12); color: var(--sell-text); }
+  .row-bid { background: rgba(79, 184, 73, 0.12); color: var(--buy-text); }
+  .row-flash-ask { animation: flashAskRow 0.7s ease-out; }
+  .row-flash-bid { animation: flashBidRow 0.7s ease-out; }
+  @keyframes flashAskRow {
+    0%, 25% { background: var(--sell-bg-strong); transform: translateX(-6px); color: #FFFFFF; }
+    100% { background: rgba(225, 75, 75, 0.12); transform: translateX(0); color: var(--sell-text); }
+  }
+  @keyframes flashBidRow {
+    0%, 25% { background: var(--buy-bg-strong); transform: translateX(-6px); color: #FFFFFF; }
+    100% { background: rgba(79, 184, 73, 0.12); transform: translateX(0); color: var(--buy-text); }
+  }
+
+  .spread-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 28px;
+    padding: 0 18px;
+    font-size: 12px;
+    color: var(--text-faint);
+    border-top: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--border);
+    margin: 6px 0;
+    font-family: "SF Mono", monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .spread-blank { height: 28px; margin: 6px 0; }
+
+  /* Footprint row */
+  .fp-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 6px;
+    height: 36px;
+    margin-bottom: 4px;
+  }
+  .fp-cell {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--text-faint);
+    font-family: "SF Mono", monospace;
+    font-size: 16px;
+  }
+  .fp-cell-bid { justify-content: flex-end; }
+  .fp-cell-ask { justify-content: flex-start; }
+  .fp-cell.has-bid { background: rgba(225, 75, 75, 0.22); color: var(--sell-text); font-weight: 600; }
+  .fp-cell.has-ask { background: rgba(79, 184, 73, 0.22); color: var(--buy-text); font-weight: 600; }
+  .fp-cell.flash-ask { animation: flashFpAsk 0.8s ease-out; }
+  .fp-cell.flash-bid { animation: flashFpBid 0.8s ease-out; }
+  @keyframes flashFpAsk {
+    0%, 25% { background: var(--buy-bg-strong); transform: scale(1.08); color: #FFFFFF; }
+    100% { background: rgba(79, 184, 73, 0.22); transform: scale(1); color: var(--buy-text); }
+  }
+  @keyframes flashFpBid {
+    0%, 25% { background: var(--sell-bg-strong); transform: scale(1.08); color: #FFFFFF; }
+    100% { background: rgba(225, 75, 75, 0.22); transform: scale(1); color: var(--sell-text); }
+  }
+  .fp-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "SF Mono", monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+  }
+  .metric-l {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+  .metric-v {
+    font-size: 38px;
+    font-weight: 600;
+    font-family: "SF Mono", monospace;
+    transition: color 0.3s ease;
+    letter-spacing: -1px;
+  }
+
+  /* Controls */
+  .controls { display: flex; flex-direction: column; gap: 10px; }
+  .controls-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ctrl-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 70px;
+    font-weight: 500;
+  }
+
+  button {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+    transition: all 0.15s ease;
+  }
+  button:hover { background: var(--surface-3); border-color: rgba(255, 255, 255, 0.18); }
+  button:active { transform: scale(0.97); }
+
+  .btn-buy {
+    background: rgba(79, 184, 73, 0.14);
+    border-color: rgba(79, 184, 73, 0.4);
+    color: var(--buy-text);
+  }
+  .btn-buy:hover {
+    background: rgba(79, 184, 73, 0.24);
+    border-color: rgba(79, 184, 73, 0.6);
+  }
+
+  .btn-sell {
+    background: rgba(225, 75, 75, 0.14);
+    border-color: rgba(225, 75, 75, 0.4);
+    color: var(--sell-text);
+  }
+  .btn-sell:hover {
+    background: rgba(225, 75, 75, 0.24);
+    border-color: rgba(225, 75, 75, 0.6);
+  }
+
+  .btn-spec {
+    background: rgba(242, 166, 35, 0.12);
+    border-color: rgba(242, 166, 35, 0.4);
+    color: var(--amber-text);
+  }
+  .btn-spec:hover {
+    background: rgba(242, 166, 35, 0.22);
+    border-color: rgba(242, 166, 35, 0.6);
+  }
+
+  /* Hide brand strip when fullscreen for cleaner recording */
+  @media (max-width: 900px) {
+    .board { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .metric-v { font-size: 30px; }
+    body { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="console">
+
+  <div class="brand">
+    <span class="brand-logo">TWS · ORDERFLOW LAB</span>
+    <span>The Architect's Console</span>
+  </div>
+
+  <div class="cap" id="cap">Click any button to begin — manual trades or scripted demos</div>
+
+  <div class="board">
+    <div class="panel">
+      <div class="panel-h"><span>Order book</span><span>resting limits</span></div>
+      <div id="book"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><span>Footprint</span><span>executed volume</span></div>
+      <div id="fp"></div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-l">Buy volume</div>
+      <div class="metric-v" id="buyvol" style="color: var(--buy-text)">0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-l">Sell volume</div>
+      <div class="metric-v" id="sellvol" style="color: var(--sell-text)">0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-l">Bar delta</div>
+      <div class="metric-v" id="delta">0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-l">Cumulative delta</div>
+      <div class="metric-v" id="cvd">0</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="controls-row">
+      <span class="ctrl-label">Buys</span>
+      <button class="btn-buy" onclick="ofBuy(3)">+3</button>
+      <button class="btn-buy" onclick="ofBuy(10)">+10</button>
+      <button class="btn-buy" onclick="ofBuy(25)">+25 aggressive</button>
+    </div>
+    <div class="controls-row">
+      <span class="ctrl-label">Sells</span>
+      <button class="btn-sell" onclick="ofSell(3)">+3</button>
+      <button class="btn-sell" onclick="ofSell(10)">+10</button>
+      <button class="btn-sell" onclick="ofSell(25)">+25 aggressive</button>
+    </div>
+    <div class="controls-row">
+      <span class="ctrl-label">Demos</span>
+      <button class="btn-spec" onclick="ofDemoTrend()">Trend bar</button>
+      <button class="btn-spec" onclick="ofDemoAbsorption()">Absorption</button>
+      <button class="btn-spec" onclick="ofDemoChop()">Chop bar</button>
+      <button onclick="ofReset()">Reset</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const MID = 50000;
+  const LEVELS = 5;
+  let book, footprint, buyVol, sellVol, cvd, busy = false;
+  let demoTimers = [];
+
+  function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function init() {
+    book = { asks: [], bids: [] };
+    footprint = {};
+    for (let i = 1; i <= LEVELS; i++) book.asks.push({ price: MID + i, size: rand(7, 15) });
+    for (let i = 0; i < LEVELS; i++) book.bids.push({ price: MID - i, size: rand(7, 15) });
+    for (let p = MID - LEVELS + 1; p <= MID + LEVELS; p++) footprint[p] = { bid: 0, ask: 0 };
+    buyVol = 0; sellVol = 0; cvd = 0;
+  }
+
+  function refillBook() {
+    while (book.asks.length < LEVELS) {
+      const top = book.asks.length ? Math.max(...book.asks.map(a => a.price)) : MID + 1;
+      const newPrice = top + 1;
+      book.asks.push({ price: newPrice, size: rand(7, 15) });
+      if (footprint[newPrice] === undefined) footprint[newPrice] = { bid: 0, ask: 0 };
+    }
+    while (book.bids.length < LEVELS) {
+      const bot = book.bids.length ? Math.min(...book.bids.map(b => b.price)) : MID;
+      const newPrice = bot - 1;
+      book.bids.push({ price: newPrice, size: rand(7, 15) });
+      if (footprint[newPrice] === undefined) footprint[newPrice] = { bid: 0, ask: 0 };
+    }
+  }
+
+  function setCap(text, type) {
+    const el = document.getElementById('cap');
+    el.textContent = text;
+    el.className = 'cap' + (type ? ' ' + type : '');
+  }
+
+  function execute(side, qty) {
+    let remaining = qty;
+    const flashed = [];
+    if (side === 'buy') {
+      book.asks.sort((a, b) => a.price - b.price);
+      while (remaining > 0 && book.asks.length > 0) {
+        const lvl = book.asks[0];
+        const taken = Math.min(remaining, lvl.size);
+        lvl.size -= taken; remaining -= taken;
+        if (!footprint[lvl.price]) footprint[lvl.price] = { bid: 0, ask: 0 };
+        footprint[lvl.price].ask += taken;
+        buyVol += taken; cvd += taken;
+        flashed.push({ side: 'ask', price: lvl.price });
+        if (lvl.size === 0) book.asks.shift();
+      }
+    } else {
+      book.bids.sort((a, b) => b.price - a.price);
+      while (remaining > 0 && book.bids.length > 0) {
+        const lvl = book.bids[0];
+        const taken = Math.min(remaining, lvl.size);
+        lvl.size -= taken; remaining -= taken;
+        if (!footprint[lvl.price]) footprint[lvl.price] = { bid: 0, ask: 0 };
+        footprint[lvl.price].bid += taken;
+        sellVol += taken; cvd -= taken;
+        flashed.push({ side: 'bid', price: lvl.price });
+        if (lvl.size === 0) book.bids.shift();
+      }
+    }
+    refillBook();
+    render(flashed);
+  }
+
+  function ofBuy(qty) {
+    if (busy) return;
+    let cap;
+    if (qty >= 20) cap = 'Aggressive buyer takes ' + qty + ' — walking the ask';
+    else if (qty >= 8) cap = 'Buyer takes ' + qty + ' at market';
+    else cap = 'Small buyer takes ' + qty;
+    setCap(cap, 'buy');
+    execute('buy', qty);
+  }
+
+  function ofSell(qty) {
+    if (busy) return;
+    let cap;
+    if (qty >= 20) cap = 'Aggressive seller dumps ' + qty + ' — walking the bid';
+    else if (qty >= 8) cap = 'Seller dumps ' + qty + ' at market';
+    else cap = 'Small seller dumps ' + qty;
+    setCap(cap, 'sell');
+    execute('sell', qty);
+  }
+
+  function ofReset() {
+    demoTimers.forEach(t => clearTimeout(t)); demoTimers = []; busy = false;
+    init();
+    setCap('Reset — fresh order book, empty footprint');
+    render([]);
+  }
+
+  function runSequence(steps) {
+    busy = true;
+    let total = 0;
+    steps.forEach(s => { total += s.delay; demoTimers.push(setTimeout(s.action, total)); });
+    demoTimers.push(setTimeout(() => { busy = false; }, total + 100));
+  }
+
+  function ofDemoTrend() {
+    if (busy) return;
+    init();
+    setCap('Demo: trend bar — buyers chasing higher prices', 'alert');
+    render([]);
+    runSequence([
+      { delay: 1500, action: function() { setCap('Buyer takes 6', 'buy'); execute('buy', 6); }},
+      { delay: 1100, action: function() { setCap('Bigger buyer — 10', 'buy'); execute('buy', 10); }},
+      { delay: 1100, action: function() { setCap('Stronger — 14', 'buy'); execute('buy', 14); }},
+      { delay: 1100, action: function() { setCap('Aggressive — 20 lots', 'buy'); execute('buy', 20); }},
+      { delay: 1500, action: function() { setCap('Trend confirmed — delta crushing positive, price ratcheting up', 'alert'); }}
+    ]);
+  }
+
+  function ofDemoAbsorption() {
+    if (busy) return;
+    init();
+    book.asks.sort((a, b) => a.price - b.price);
+    book.asks[0].size = 50;
+    setCap('Demo: 50 lots resting at best ask. Watch the price...', 'alert');
+    render([]);
+    const refillBest = function() {
+      book.asks.sort((a, b) => a.price - b.price);
+      if (book.asks[0] && book.asks[0].price === MID + 1) book.asks[0].size = 50;
+      else book.asks.unshift({ price: MID + 1, size: 50 });
+      render([]);
+    };
+    runSequence([
+      { delay: 1800, action: function() { setCap('Aggressive buyer #1 — 15 lots', 'buy'); execute('buy', 15); }},
+      { delay: 1400, action: function() { setCap('Sellers refill instantly. Price unchanged.', 'alert'); refillBest(); }},
+      { delay: 1300, action: function() { setCap('Buyer #2 — another 15', 'buy'); execute('buy', 15); }},
+      { delay: 1400, action: function() { setCap('Refilled again. Where is the price going?', 'alert'); refillBest(); }},
+      { delay: 1300, action: function() { setCap('Buyer #3 — 15 more', 'buy'); execute('buy', 15); }},
+      { delay: 1400, action: function() { setCap('Refilled. Sellers crushing every buyer.', 'alert'); refillBest(); }},
+      { delay: 1300, action: function() { setCap('Buyer #4 — final 15', 'buy'); execute('buy', 15); }},
+      { delay: 2000, action: function() { setCap('ABSORPTION — 60 lots aggressively bought, price unchanged. Passive sellers won.', 'alert'); }}
+    ]);
+  }
+
+  function ofDemoChop() {
+    if (busy) return;
+    init();
+    setCap('Demo: chop bar — both sides aggressive', 'alert');
+    render([]);
+    runSequence([
+      { delay: 1300, action: function() { setCap('Buyer 8', 'buy'); execute('buy', 8); }},
+      { delay: 1100, action: function() { setCap('Seller 8', 'sell'); execute('sell', 8); }},
+      { delay: 1100, action: function() { setCap('Buyer 12', 'buy'); execute('buy', 12); }},
+      { delay: 1100, action: function() { setCap('Seller 11', 'sell'); execute('sell', 11); }},
+      { delay: 1100, action: function() { setCap('Buyer 9', 'buy'); execute('buy', 9); }},
+      { delay: 1100, action: function() { setCap('Seller 10', 'sell'); execute('sell', 10); }},
+      { delay: 1500, action: function() { setCap('Chop — high volume both sides, delta near zero. No conviction.', 'alert'); }}
+    ]);
+  }
+
+  function render(flashed) {
+    book.asks.sort((a, b) => b.price - a.price);
+    book.bids.sort((a, b) => b.price - a.price);
+    const visAsks = book.asks.slice(0, LEVELS);
+    const visBids = book.bids.slice(0, LEVELS);
+
+    let bookHTML = '';
+    visAsks.forEach(function(lvl) {
+      const flash = flashed.some(function(f) { return f.side === 'ask' && f.price === lvl.price; });
+      bookHTML += '<div class="row row-ask' + (flash ? ' row-flash-ask' : '') + '"><span>' + lvl.price.toLocaleString() + '</span><span>' + lvl.size + '</span></div>';
+    });
+    const bestAsk = visAsks.length ? Math.min.apply(null, visAsks.map(function(a) { return a.price; })) : null;
+    const bestBid = visBids.length ? Math.max.apply(null, visBids.map(function(b) { return b.price; })) : null;
+    bookHTML += '<div class="spread-row"><span>spread</span><span>' + (bestAsk && bestBid ? bestAsk - bestBid : 0) + '</span></div>';
+    visBids.forEach(function(lvl) {
+      const flash = flashed.some(function(f) { return f.side === 'bid' && f.price === lvl.price; });
+      bookHTML += '<div class="row row-bid' + (flash ? ' row-flash-bid' : '') + '"><span>' + lvl.price.toLocaleString() + '</span><span>' + lvl.size + '</span></div>';
+    });
+    document.getElementById('book').innerHTML = bookHTML;
+
+    const allPrices = [].concat(visAsks.map(function(a) { return a.price; }), visBids.map(function(b) { return b.price; }));
+    let fpHTML = '';
+    allPrices.forEach(function(p, idx) {
+      const f = footprint[p] || { bid: 0, ask: 0 };
+      const flashAsk = flashed.some(function(fl) { return fl.side === 'ask' && fl.price === p; });
+      const flashBid = flashed.some(function(fl) { return fl.side === 'bid' && fl.price === p; });
+      const bidCls = 'fp-cell fp-cell-bid' + (f.bid > 0 ? ' has-bid' : '') + (flashBid ? ' flash-bid' : '');
+      const askCls = 'fp-cell fp-cell-ask' + (f.ask > 0 ? ' has-ask' : '') + (flashAsk ? ' flash-ask' : '');
+      fpHTML += '<div class="fp-row"><div class="' + bidCls + '">' + (f.bid || '·') + '</div><div class="fp-price">' + p.toLocaleString() + '</div><div class="' + askCls + '">' + (f.ask || '·') + '</div></div>';
+      if (idx === LEVELS - 1) fpHTML += '<div class="spread-blank"></div>';
+    });
+    document.getElementById('fp').innerHTML = fpHTML;
+
+    document.getElementById('buyvol').textContent = buyVol;
+    document.getElementById('sellvol').textContent = sellVol;
+    const delta = buyVol - sellVol;
+    const dEl = document.getElementById('delta');
+    dEl.textContent = (delta > 0 ? '+' : '') + delta;
+    dEl.style.color = delta > 0 ? 'var(--buy-text)' : (delta < 0 ? 'var(--sell-text)' : 'var(--text)');
+    const cEl = document.getElementById('cvd');
+    cEl.textContent = (cvd > 0 ? '+' : '') + cvd;
+    cEl.style.color = cvd > 0 ? 'var(--buy-text)' : (cvd < 0 ? 'var(--sell-text)' : 'var(--text)');
+  }
+
+  window.ofBuy = ofBuy;
+  window.ofSell = ofSell;
+  window.ofReset = ofReset;
+  window.ofDemoTrend = ofDemoTrend;
+  window.ofDemoAbsorption = ofDemoAbsorption;
+  window.ofDemoChop = ofDemoChop;
+
+  init();
+  render([]);
+})();
+</script>
+
+</body>
+</html>
+
