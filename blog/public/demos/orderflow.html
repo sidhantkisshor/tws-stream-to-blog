@@ -8,44 +8,209 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0A0A0C;
-    --surface: #16161A;
-    --surface-2: #1F1F24;
-    --surface-3: #2A2A30;
-    --border: rgba(255, 255, 255, 0.08);
-    --text: #E8E5DD;
-    --text-muted: rgba(232, 229, 221, 0.6);
-    --text-faint: rgba(232, 229, 221, 0.35);
-    --buy: #4FB849;
-    --buy-bg: rgba(79, 184, 73, 0.12);
-    --buy-bg-strong: rgba(79, 184, 73, 0.55);
-    --buy-text: #97DD92;
-    --sell: #E14B4B;
-    --sell-bg: rgba(225, 75, 75, 0.12);
-    --sell-bg-strong: rgba(225, 75, 75, 0.55);
-    --sell-text: #F09595;
-    --amber: #F2A623;
-    --amber-bg: rgba(242, 166, 35, 0.14);
-    --amber-text: #F2C97A;
+    /* Aligned to TWSGurukulX brand palette (deep-slate/wealth-teal/burnt-amber/warm-white) */
+    --bg: #0B1221;              /* warm-white dark variant */
+    --surface: #14203A;         /* lifted navy card */
+    --surface-2: #1C2A4A;
+    --surface-3: #243660;
+    --border: rgba(245, 240, 232, 0.09);
+    --text: #F5F0E8;            /* deep-slate dark = warm cream */
+    --text-muted: rgba(245, 240, 232, 0.62);
+    --text-faint: rgba(245, 240, 232, 0.32);
+    --buy: #0A8D7A;             /* wealth-teal */
+    --buy-bg: rgba(10, 141, 122, 0.14);
+    --buy-bg-strong: rgba(10, 141, 122, 0.55);
+    --buy-text: #3FBFA9;
+    --sell: #C44545;            /* brand-coherent crimson */
+    --sell-bg: rgba(196, 69, 69, 0.13);
+    --sell-bg-strong: rgba(196, 69, 69, 0.55);
+    --sell-text: #E88C8C;
+    --amber: #D4894A;           /* burnt-amber */
+    --amber-bg: rgba(212, 137, 74, 0.14);
+    --amber-text: #E5B07F;
+    --gold: #C9A87C;            /* brushed-gold */
   }
 
   body {
-    background: var(--bg);
+    background:
+      radial-gradient(1200px 600px at 20% -10%, rgba(10, 141, 122, 0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, rgba(212, 137, 74, 0.08), transparent 60%),
+      var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", system-ui, sans-serif;
     min-height: 100vh;
-    padding: 24px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
   }
 
+  a { color: inherit; text-decoration: none; }
+
+  /* Site header — mirrors the blog Nav (pill in dark variant) */
+  .site-header { padding: 16px 24px 0; position: sticky; top: 0; z-index: 5; }
+  .site-nav {
+    margin: 0 auto;
+    max-width: 1280px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--border);
+    background: rgba(11, 18, 33, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 9999px;
+    padding: 9px 18px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+  }
+  .site-nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    font-size: 12px;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+  .site-nav-brand img { height: 22px; width: auto; display: block; }
+  .site-nav-links {
+    display: inline-flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .site-nav-links a.nav-link {
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+  }
+  .site-nav-links a.nav-link:hover { color: var(--text); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 9999px;
+    border: 1px solid rgba(10, 141, 122, 0.32);
+    background: rgba(10, 141, 122, 0.10);
+    color: var(--buy-text);
+    transition: all 0.2s ease;
+  }
+  .nav-cta:hover {
+    background: rgba(10, 141, 122, 0.20);
+    border-color: rgba(10, 141, 122, 0.55);
+    box-shadow: 0 2px 10px rgba(10, 141, 122, 0.22);
+  }
+  .nav-cta svg { width: 12px; height: 12px; }
+  @media (max-width: 720px) {
+    .site-nav-links { display: none; }
+    .site-nav { padding: 8px 14px; }
+  }
+
+  /* Console */
   .console {
     width: 100%;
     max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 18px;
+    flex: 1;
+  }
+
+  /* Site footer — mirrors the blog Footer */
+  .site-footer {
+    margin-top: 32px;
+    border-top: 1px solid var(--border);
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.18));
+  }
+  .site-footer-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .footer-cta-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 1px solid rgba(10, 141, 122, 0.28);
+    background: linear-gradient(135deg, rgba(10, 141, 122, 0.10), rgba(212, 137, 74, 0.06));
+    border-radius: 14px;
+  }
+  .footer-cta-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .footer-cta-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .footer-cta-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .footer-watch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 9999px;
+    background: var(--buy);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid rgba(10, 141, 122, 0.6);
+    box-shadow: 0 4px 14px rgba(10, 141, 122, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+  }
+  .footer-watch-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(10, 141, 122, 0.42);
+  }
+  .footer-watch-btn svg { width: 14px; height: 14px; }
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .footer-links a {
+    font-size: 11px;
+    color: var(--text-faint);
+    transition: color 0.2s ease;
+  }
+  .footer-links a:hover { color: var(--text-muted); }
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-faint);
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+  .footer-bottom .brand-mark {
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+  }
+  @media (max-width: 720px) {
+    .footer-cta-card { flex-direction: column; align-items: flex-start; }
+    .footer-watch-btn { width: 100%; justify-content: center; }
   }
 
   /* Brand strip */
@@ -53,16 +218,32 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
     color: var(--text-muted);
-    font-size: 12px;
-    letter-spacing: 1.5px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
     text-transform: uppercase;
   }
   .brand-logo {
     color: var(--text);
-    font-weight: 600;
-    letter-spacing: 2px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-logo::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--buy);
+    box-shadow: 0 0 0 3px rgba(10, 141, 122, 0.18);
+  }
+  .brand-tag {
+    color: var(--gold);
+    font-weight: 500;
   }
 
   /* Caption bar */
@@ -79,9 +260,9 @@
     display: flex;
     align-items: center;
   }
-  .cap.buy { color: var(--buy-text); background: var(--buy-bg); border-color: rgba(79, 184, 73, 0.3); }
-  .cap.sell { color: var(--sell-text); background: var(--sell-bg); border-color: rgba(225, 75, 75, 0.3); }
-  .cap.alert { color: var(--amber-text); background: var(--amber-bg); border-color: rgba(242, 166, 35, 0.3); }
+  .cap.buy { color: var(--buy-text); background: var(--buy-bg); border-color: rgba(10, 141, 122, 0.32); }
+  .cap.sell { color: var(--sell-text); background: var(--sell-bg); border-color: rgba(196, 69, 69, 0.32); }
+  .cap.alert { color: var(--amber-text); background: var(--amber-bg); border-color: rgba(212, 137, 74, 0.32); }
 
   /* Main board */
   .board { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -117,17 +298,17 @@
     margin-bottom: 4px;
     font-weight: 500;
   }
-  .row-ask { background: rgba(225, 75, 75, 0.12); color: var(--sell-text); }
-  .row-bid { background: rgba(79, 184, 73, 0.12); color: var(--buy-text); }
+  .row-ask { background: var(--sell-bg); color: var(--sell-text); }
+  .row-bid { background: var(--buy-bg); color: var(--buy-text); }
   .row-flash-ask { animation: flashAskRow 0.7s ease-out; }
   .row-flash-bid { animation: flashBidRow 0.7s ease-out; }
   @keyframes flashAskRow {
     0%, 25% { background: var(--sell-bg-strong); transform: translateX(-6px); color: #FFFFFF; }
-    100% { background: rgba(225, 75, 75, 0.12); transform: translateX(0); color: var(--sell-text); }
+    100% { background: var(--sell-bg); transform: translateX(0); color: var(--sell-text); }
   }
   @keyframes flashBidRow {
     0%, 25% { background: var(--buy-bg-strong); transform: translateX(-6px); color: #FFFFFF; }
-    100% { background: rgba(79, 184, 73, 0.12); transform: translateX(0); color: var(--buy-text); }
+    100% { background: var(--buy-bg); transform: translateX(0); color: var(--buy-text); }
   }
 
   .spread-row {
@@ -167,17 +348,17 @@
   }
   .fp-cell-bid { justify-content: flex-end; }
   .fp-cell-ask { justify-content: flex-start; }
-  .fp-cell.has-bid { background: rgba(225, 75, 75, 0.22); color: var(--sell-text); font-weight: 600; }
-  .fp-cell.has-ask { background: rgba(79, 184, 73, 0.22); color: var(--buy-text); font-weight: 600; }
+  .fp-cell.has-bid { background: rgba(196, 69, 69, 0.22); color: var(--sell-text); font-weight: 600; }
+  .fp-cell.has-ask { background: rgba(10, 141, 122, 0.22); color: var(--buy-text); font-weight: 600; }
   .fp-cell.flash-ask { animation: flashFpAsk 0.8s ease-out; }
   .fp-cell.flash-bid { animation: flashFpBid 0.8s ease-out; }
   @keyframes flashFpAsk {
     0%, 25% { background: var(--buy-bg-strong); transform: scale(1.08); color: #FFFFFF; }
-    100% { background: rgba(79, 184, 73, 0.22); transform: scale(1); color: var(--buy-text); }
+    100% { background: rgba(10, 141, 122, 0.22); transform: scale(1); color: var(--buy-text); }
   }
   @keyframes flashFpBid {
     0%, 25% { background: var(--sell-bg-strong); transform: scale(1.08); color: #FFFFFF; }
-    100% { background: rgba(225, 75, 75, 0.22); transform: scale(1); color: var(--sell-text); }
+    100% { background: rgba(196, 69, 69, 0.22); transform: scale(1); color: var(--sell-text); }
   }
   .fp-price {
     display: flex;
@@ -237,37 +418,37 @@
     letter-spacing: 0.3px;
     transition: all 0.15s ease;
   }
-  button:hover { background: var(--surface-3); border-color: rgba(255, 255, 255, 0.18); }
+  button:hover { background: var(--surface-3); border-color: rgba(245, 240, 232, 0.20); }
   button:active { transform: scale(0.97); }
 
   .btn-buy {
-    background: rgba(79, 184, 73, 0.14);
-    border-color: rgba(79, 184, 73, 0.4);
+    background: rgba(10, 141, 122, 0.16);
+    border-color: rgba(10, 141, 122, 0.42);
     color: var(--buy-text);
   }
   .btn-buy:hover {
-    background: rgba(79, 184, 73, 0.24);
-    border-color: rgba(79, 184, 73, 0.6);
+    background: rgba(10, 141, 122, 0.26);
+    border-color: rgba(10, 141, 122, 0.62);
   }
 
   .btn-sell {
-    background: rgba(225, 75, 75, 0.14);
-    border-color: rgba(225, 75, 75, 0.4);
+    background: rgba(196, 69, 69, 0.15);
+    border-color: rgba(196, 69, 69, 0.42);
     color: var(--sell-text);
   }
   .btn-sell:hover {
-    background: rgba(225, 75, 75, 0.24);
-    border-color: rgba(225, 75, 75, 0.6);
+    background: rgba(196, 69, 69, 0.25);
+    border-color: rgba(196, 69, 69, 0.62);
   }
 
   .btn-spec {
-    background: rgba(242, 166, 35, 0.12);
-    border-color: rgba(242, 166, 35, 0.4);
+    background: rgba(212, 137, 74, 0.13);
+    border-color: rgba(212, 137, 74, 0.42);
     color: var(--amber-text);
   }
   .btn-spec:hover {
-    background: rgba(242, 166, 35, 0.22);
-    border-color: rgba(242, 166, 35, 0.6);
+    background: rgba(212, 137, 74, 0.24);
+    border-color: rgba(212, 137, 74, 0.62);
   }
 
   /* Hide brand strip when fullscreen for cleaner recording */
@@ -281,11 +462,27 @@
 </head>
 <body>
 
-<div class="console">
+<header class="site-header">
+  <nav class="site-nav" aria-label="Site">
+    <a href="https://blogs.twsgurukulx.com" target="_top" class="site-nav-brand" aria-label="TWSGurukulX home">
+      <img src="/wordmark-light.png" alt="TWSGurukulX" />
+    </a>
+    <div class="site-nav-links">
+      <a class="nav-link" href="https://blogs.twsgurukulx.com" target="_top">Home</a>
+      <a class="nav-link" href="https://blogs.twsgurukulx.com/posts" target="_top">Posts</a>
+      <a class="nav-cta" href="https://www.youtube.com/watch?v=RGdCgiqVdsA" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7L8 5z"/></svg>
+        Watch the video
+      </a>
+    </div>
+  </nav>
+</header>
+
+<main class="console">
 
   <div class="brand">
     <span class="brand-logo">TWS · ORDERFLOW LAB</span>
-    <span>The Architect's Console</span>
+    <span class="brand-tag">The Architect's Console</span>
   </div>
 
   <div class="cap" id="cap">Click any button to begin — manual trades or scripted demos</div>
@@ -342,7 +539,36 @@
     </div>
   </div>
 
-</div>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-cta-card">
+      <div class="footer-cta-text">
+        <span class="footer-cta-eyebrow">Companion to the YouTube video</span>
+        <span class="footer-cta-title">Master Footprint Trading: The Order Flow Edge Behind Every Candle</span>
+      </div>
+      <a class="footer-watch-btn" href="https://www.youtube.com/watch?v=RGdCgiqVdsA" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7L8 5z"/></svg>
+        Watch on YouTube
+      </a>
+    </div>
+    <div class="footer-links">
+      <a href="https://www.youtube.com/watch?v=RGdCgiqVdsA" target="_blank" rel="noopener">Watch this video</a>
+      <a href="https://youtube.com/@tradingwithsidhant" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://instagram.com/tradingwithsidhant" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://x.com/tradingwsidhant" target="_blank" rel="noopener">X</a>
+      <a href="https://t.me/tradingwsidhant" target="_blank" rel="noopener">Telegram</a>
+      <a href="https://wa.me/918062963333" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="https://twsgurukulx.com" target="_blank" rel="noopener">twsgurukulx.com</a>
+      <a href="https://blogs.twsgurukulx.com/posts" target="_top">All posts</a>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Trading With Sidhant LLP</span>
+      <span class="brand-mark">TWS · ORDERFLOW LAB</span>
+    </div>
+  </div>
+</footer>
 
 <script>
 (function () {
