@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 export const revalidate = 60;
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
 
   const posts = await prisma.post.findMany({
     orderBy: { publishedAt: "desc" },

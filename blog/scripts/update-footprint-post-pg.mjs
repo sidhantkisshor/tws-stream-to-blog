@@ -1,12 +1,8 @@
-// One-off: re-key, re-slug, re-hero, and inject demoUrl + YouTube link into the footprint post.
-// Run from blog/: node scripts/update-footprint-post.mjs
+// Direct PG update — bypasses Prisma TS client.
+// Run from blog/: node scripts/update-footprint-post-pg.mjs
 
-import { PrismaClient } from "../src/generated/prisma/client.js";
-import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 import "dotenv/config";
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
 
 const OLD_VIDEO_ID = "footprint-deep-dive-2026-05-09";
 const NEW_VIDEO_ID = "RGdCgiqVdsA";
@@ -221,69 +217,66 @@ const NEW_KEYWORDS = [
 ];
 
 const NEW_FAQ = [
-  {
-    question: "What is the difference between a footprint chart and a candlestick chart?",
-    answer:
-      "A candlestick chart shows you only price action: open, high, low, close. A footprint chart keeps the candle but adds the volume of aggressive buyers and aggressive sellers at every single price level inside it, plus delta and value area. You see who actually drove the move, not just where it ended.",
-  },
-  {
-    question: "What is absorption in order flow trading?",
-    answer:
-      "Absorption is when aggressive market orders on one side get eaten by large resting limit orders on the other side without moving price. For example, 60 lots of aggressive buying that hit a 50-lot wall and price stays flat. It signals that the passive side is much stronger than the aggressive side, and a reversal usually follows.",
-  },
-  {
-    question: "How do I read delta on a footprint chart?",
-    answer:
-      "Delta is total aggressive buy volume minus total aggressive sell volume for the candle. Positive delta with price moving up confirms a real trend. Positive delta with no price progress signals absorption and a likely reversal. Negative delta with a green candle close is one of the strongest reversal signatures.",
-  },
-  {
-    question: "Can I use footprint charts on Indian markets like Bank Nifty and Nifty?",
-    answer:
-      "Yes. Footprint works on any liquid market that has tick-by-tick order flow data, including Bank Nifty, Nifty, gold, silver, crypto pairs, and US indices like NASDAQ. TradingView volume footprint and MMT both support Indian markets.",
-  },
-  {
-    question: "Do I need a paid TradingView plan for footprint charts?",
-    answer:
-      "TradingView volume footprint is a paid feature on higher tiers. The free alternative is MMT (Multi Market Trader), which offers a similar volume footprint view at no cost. The mechanics, delta, value area, and aggressive volume per price are identical across both platforms.",
-  },
-  {
-    question: "What is a buyer trap and how does footprint identify it?",
-    answer:
-      "A buyer trap is when aggressive buyers commit at the top of a move, but the candle closes below the level where they entered, with delta turning negative. Footprint shows it as heavy right-side numbers near the high, then a close that betrays them. Their losing positions become fuel for the next leg down.",
-  },
+  { question: "What is the difference between a footprint chart and a candlestick chart?", answer: "A candlestick chart shows you only price action: open, high, low, close. A footprint chart keeps the candle but adds the volume of aggressive buyers and aggressive sellers at every single price level inside it, plus delta and value area. You see who actually drove the move, not just where it ended." },
+  { question: "What is absorption in order flow trading?", answer: "Absorption is when aggressive market orders on one side get eaten by large resting limit orders on the other side without moving price. For example, 60 lots of aggressive buying that hit a 50-lot wall and price stays flat. It signals that the passive side is much stronger than the aggressive side, and a reversal usually follows." },
+  { question: "How do I read delta on a footprint chart?", answer: "Delta is total aggressive buy volume minus total aggressive sell volume for the candle. Positive delta with price moving up confirms a real trend. Positive delta with no price progress signals absorption and a likely reversal. Negative delta with a green candle close is one of the strongest reversal signatures." },
+  { question: "Can I use footprint charts on Indian markets like Bank Nifty and Nifty?", answer: "Yes. Footprint works on any liquid market that has tick-by-tick order flow data, including Bank Nifty, Nifty, gold, silver, crypto pairs, and US indices like NASDAQ. TradingView volume footprint and MMT both support Indian markets." },
+  { question: "Do I need a paid TradingView plan for footprint charts?", answer: "TradingView volume footprint is a paid feature on higher tiers. The free alternative is MMT (Multi Market Trader), which offers a similar volume footprint view at no cost. The mechanics, delta, value area, and aggressive volume per price are identical across both platforms." },
+  { question: "What is a buyer trap and how does footprint identify it?", answer: "A buyer trap is when aggressive buyers commit at the top of a move, but the candle closes below the level where they entered, with delta turning negative. Footprint shows it as heavy right-side numbers near the high, then a close that betrays them. Their losing positions become fuel for the next leg down." },
 ];
 
+const { Client } = pg;
+const client = new Client({ connectionString: process.env.DATABASE_URL });
+
 async function main() {
-  const existing = await prisma.post.findUnique({ where: { videoId: OLD_VIDEO_ID } });
-  if (!existing) {
-    console.error("Old post not found by videoId:", OLD_VIDEO_ID);
+  await client.connect();
+  const found = await client.query(`SELECT id, slug FROM "Post" WHERE "videoId" = $1`, [OLD_VIDEO_ID]);
+  if (found.rows.length === 0) {
+    console.error("Old post not found:", OLD_VIDEO_ID);
     process.exit(1);
   }
-  console.log("Found old post:", existing.id, existing.slug);
+  const id = found.rows[0].id;
+  console.log("Found post id:", id, "old slug:", found.rows[0].slug);
 
-  const updated = await prisma.post.update({
-    where: { id: existing.id },
-    data: {
-      videoId: NEW_VIDEO_ID,
-      slug: NEW_SLUG,
-      title: NEW_TITLE,
-      hook: NEW_HOOK,
-      seoDesc: NEW_SEO_DESC,
-      heroImage: NEW_HERO,
-      intro: NEW_INTRO,
-      sections: NEW_SECTIONS,
-      conclusion: NEW_CONCLUSION,
-      tags: NEW_TAGS,
-      keywords: NEW_KEYWORDS,
-      faq: NEW_FAQ,
-    },
-  });
-  console.log("Updated:", updated.id, updated.slug, updated.heroImage);
+  const result = await client.query(
+    `UPDATE "Post"
+       SET "videoId"   = $1,
+           "slug"      = $2,
+           "title"     = $3,
+           "hook"      = $4,
+           "seoDesc"   = $5,
+           "heroImage" = $6,
+           "intro"     = $7,
+           "sections"  = $8::jsonb,
+           "conclusion"= $9,
+           "tags"      = $10,
+           "keywords"  = $11,
+           "faq"       = $12::jsonb,
+           "updatedAt" = NOW()
+     WHERE "id" = $13
+     RETURNING id, slug, "videoId", "heroImage"`,
+    [
+      NEW_VIDEO_ID,
+      NEW_SLUG,
+      NEW_TITLE,
+      NEW_HOOK,
+      NEW_SEO_DESC,
+      NEW_HERO,
+      NEW_INTRO,
+      JSON.stringify(NEW_SECTIONS),
+      NEW_CONCLUSION,
+      NEW_TAGS,
+      NEW_KEYWORDS,
+      JSON.stringify(NEW_FAQ),
+      id,
+    ]
+  );
+  console.log("Updated:", result.rows[0]);
+  await client.end();
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+main().catch(async (e) => {
+  console.error(e);
+  await client.end().catch(() => {});
+  process.exit(1);
+});

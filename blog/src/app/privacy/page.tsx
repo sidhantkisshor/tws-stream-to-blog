@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Privacy policy for TWSGurukulX (blogs.twsgurukul.com) — how we collect, use, and protect your data.",
+    "Privacy policy for TWSGurukulX (blogs.twsgurukulx.com) — how we collect, use, and protect your data.",
   alternates: { canonical: "/privacy" },
   openGraph: {
     title: "Privacy Policy | TWSGurukulX",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -58,10 +58,10 @@ export default function PrivacyPage() {
               Trading With Sidhant LLP (&quot;we,&quot; &quot;us,&quot; or
               &quot;our&quot;) operates{" "}
               <a
-                href="https://blogs.twsgurukul.com"
+                href="https://blogs.twsgurukulx.com"
                 className="text-wealth-teal no-underline hover:underline"
               >
-                blogs.twsgurukul.com
+                blogs.twsgurukulx.com
               </a>{" "}
               (the &quot;Site&quot;). This Privacy Policy explains what
               information we collect, how we use it, and the choices you have.
@@ -442,12 +442,12 @@ export default function PrivacyPage() {
             </p>
             <p>
               <a
-                href="https://twsgurukul.com"
+                href="https://twsgurukulx.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
               >
-                twsgurukul.com
+                twsgurukulx.com
               </a>
               {" | "}
               <a

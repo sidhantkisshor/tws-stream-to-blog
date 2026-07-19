@@ -15,6 +15,7 @@ import { ProgramCTA } from "@/components/ProgramCTA";
 import { RelatedPosts } from "@/components/RelatedPosts";
 import { SessionNav } from "@/components/SessionNav";
 import { NewsletterCTA } from "@/components/NewsletterCTA";
+import { ScrollNewsletterPrompt } from "@/components/ScrollNewsletterPrompt";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -55,9 +56,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.seoDesc,
-      ...(post.heroImage
-        ? { images: [{ url: post.heroImage, width: 1200, height: 675, alt: post.title }] }
-        : {}),
+      // images intentionally omitted — picked up from app/posts/[slug]/opengraph-image.tsx
       type: "article",
       publishedTime: post.publishedAt.toISOString(),
       tags: post.tags,
@@ -66,9 +65,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: post.title,
       description: post.seoDesc,
-      ...(post.heroImage
-        ? { images: [{ url: post.heroImage, width: 1200, height: 675, alt: post.title }] }
-        : {}),
+      // images fall back to the OG image route via the file-based convention
     },
   };
 }
@@ -124,7 +121,7 @@ export default async function PostPage({
     .split(/\s+/).length;
   const readingTime = Math.max(1, Math.round(wordCount / 200));
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
 
   const jsonLd = [
     {
@@ -185,6 +182,7 @@ export default async function PostPage({
   return (
     <>
       <ReadingProgress />
+      <ScrollNewsletterPrompt />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

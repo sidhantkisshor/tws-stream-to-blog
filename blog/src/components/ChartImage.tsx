@@ -19,7 +19,15 @@ export function ChartImage({ src, alt }: ChartImageProps) {
     if (!open) return;
     const trigger = triggerRef.current;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") {
+        close();
+        return;
+      }
+      // Focus trap: only the close button is tabbable inside the modal.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        closeRef.current?.focus();
+      }
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";

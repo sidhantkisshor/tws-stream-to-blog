@@ -1,39 +1,91 @@
 import { prisma } from "./prisma";
 
-export async function getRecentPosts(limit: number = 12) {
-  return prisma.post.findMany({
+const CARD_SELECT = {
+  id: true,
+  title: true,
+  slug: true,
+  hook: true,
+  heroImage: true,
+  tags: true,
+  publishedAt: true,
+  intro: true,
+  sections: true,
+  conclusion: true,
+} as const;
+
+type RawCardPost = {
+  id: string;
+  title: string;
+  slug: string;
+  hook: string;
+  heroImage: string | null;
+  tags: string[];
+  publishedAt: Date;
+  intro: string;
+  sections: unknown;
+  conclusion: string;
+};
+
+export type PostCard = {
+  id: string;
+  title: string;
+  slug: string;
+  hook: string;
+  heroImage: string | null;
+  tags: string[];
+  publishedAt: Date;
+  readingMinutes: number;
+};
+
+export function getReadingMinutes(
+  intro: string,
+  sections: unknown,
+  conclusion: string,
+): number {
+  const sectionBodies = Array.isArray(sections)
+    ? (sections as { body?: unknown }[])
+        .map((s) => (typeof s?.body === "string" ? s.body : ""))
+    : [];
+  const wordCount = [intro, ...sectionBodies, conclusion]
+    .join(" ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.max(1, Math.round(wordCount / 200));
+}
+
+function toCard(p: RawCardPost): PostCard {
+  return {
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    hook: p.hook,
+    heroImage: p.heroImage,
+    tags: p.tags,
+    publishedAt: p.publishedAt,
+    readingMinutes: getReadingMinutes(p.intro, p.sections, p.conclusion),
+  };
+}
+
+export async function getRecentPosts(limit: number = 12): Promise<PostCard[]> {
+  const rows = await prisma.post.findMany({
     orderBy: { publishedAt: "desc" },
     take: limit,
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      hook: true,
-      heroImage: true,
-      tags: true,
-      publishedAt: true,
-    },
+    select: CARD_SELECT,
   });
+  return rows.map(toCard);
 }
 
 export async function getPostBySlug(slug: string) {
   return prisma.post.findUnique({ where: { slug } });
 }
 
-export async function getPostsByTag(tag: string) {
-  return prisma.post.findMany({
+export async function getPostsByTag(tag: string): Promise<PostCard[]> {
+  const rows = await prisma.post.findMany({
     where: { tags: { has: tag } },
     orderBy: { publishedAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      hook: true,
-      heroImage: true,
-      tags: true,
-      publishedAt: true,
-    },
+    select: CARD_SELECT,
   });
+  return rows.map(toCard);
 }
 
 export async function getRelatedPosts(excludeId: string, tags: string[], limit = 3) {

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Terms of service for TWSGurukulX (blogs.twsgurukul.com) — usage terms, disclaimers, and legal information.",
+    "Terms of service for TWSGurukulX (blogs.twsgurukulx.com) — usage terms, disclaimers, and legal information.",
   alternates: { canonical: "/terms" },
   openGraph: {
     title: "Terms of Service | TWSGurukulX",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+    process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -57,10 +57,10 @@ export default function TermsPage() {
             <p>
               These Terms of Service (&quot;Terms&quot;) govern your use of{" "}
               <a
-                href="https://blogs.twsgurukul.com"
+                href="https://blogs.twsgurukulx.com"
                 className="text-wealth-teal no-underline hover:underline"
               >
-                blogs.twsgurukul.com
+                blogs.twsgurukulx.com
               </a>{" "}
               (the &quot;Site&quot;), operated by Trading With Sidhant LLP, a
               limited liability partnership registered in India
@@ -289,12 +289,12 @@ export default function TermsPage() {
               The Site may contain links to third-party websites (including
               YouTube, social media platforms, and partner sites such as{" "}
               <a
-                href="https://twsgurukul.com"
+                href="https://twsgurukulx.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
               >
-                twsgurukul.com
+                twsgurukulx.com
               </a>{" "}
               and{" "}
               <a
@@ -370,12 +370,12 @@ export default function TermsPage() {
             </p>
             <p>
               <a
-                href="https://twsgurukul.com"
+                href="https://twsgurukulx.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
               >
-                twsgurukul.com
+                twsgurukulx.com
               </a>
               {" | "}
               <a

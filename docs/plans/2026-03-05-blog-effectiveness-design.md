@@ -1,7 +1,7 @@
 # Blog Effectiveness Overhaul — Design
 
 **Date:** 2026-03-05
-**Goal:** Improve engagement, traffic, reading experience, and conversion to twsgurukul.com programs.
+**Goal:** Improve engagement, traffic, reading experience, and conversion to twsgurukulx.com programs.
 **Approach:** Content-Led Growth Engine (Approach B) — incremental, independently shippable features.
 
 ## 1. Post Detail Page
@@ -36,7 +36,7 @@
 - Position: below featured post, above "Recent Posts"
 - Copy: "Level up your trading — Explore programs at TWSGurukulX"
 - Styling: same language as TelegramCTA but brushed-gold accent
-- Links to twsgurukul.com
+- Links to twsgurukulx.com
 - Warm recommendation feel, not pushy
 
 ### Client-Side Search
@@ -61,7 +61,7 @@
 
 ### Mid-Article Program CTA
 - Inserted after ~50% of sections
-- Single line: "Explore structured trading programs -> twsgurukul.com"
+- Single line: "Explore structured trading programs -> twsgurukulx.com"
 - Styled as subtle blockquote with brushed-gold left border
 - Editorial feel, not promotional
 - Component: `ProgramCTA` (server)

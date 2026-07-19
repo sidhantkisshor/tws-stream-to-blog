@@ -9,12 +9,12 @@ export function ProgramCTA({ variant }: ProgramCTAProps) {
         <p className="text-sm text-deep-slate/60">
           Explore structured trading programs at{" "}
           <a
-            href="https://twsgurukul.com"
+            href="https://twsgurukulx.com"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-brushed-gold no-underline hover:underline"
           >
-            twsgurukul.com
+            twsgurukulx.com
           </a>
         </p>
       </aside>
@@ -35,7 +35,7 @@ export function ProgramCTA({ variant }: ProgramCTAProps) {
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <a
-            href="https://twsgurukul.com"
+            href="https://twsgurukulx.com"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg bg-brushed-gold px-6 py-2.5 text-sm font-bold text-white no-underline shadow-[0_2px_8px_rgba(184,149,106,0.25)] transition-all hover:bg-brushed-gold/90 hover:text-white hover:no-underline hover:shadow-[0_4px_12px_rgba(184,149,106,0.3)]"
@@ -43,7 +43,7 @@ export function ProgramCTA({ variant }: ProgramCTAProps) {
             Explore Programs
           </a>
           <a
-            href="https://twsgurukul.com"
+            href="https://twsgurukulx.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-deep-slate/45 no-underline transition-colors hover:text-deep-slate/70"

@@ -49,8 +49,10 @@ export function Nav() {
             : "bg-warm-white/60 backdrop-blur-md"
         }`}
       >
-        <Link
-          href="/"
+        <a
+          href="https://twsgurukulx.com"
+          target="_blank"
+          rel="noopener noreferrer"
           className="group flex items-center no-underline hover:no-underline"
         >
           <Image
@@ -69,7 +71,7 @@ export function Nav() {
             className="hidden h-6 w-auto dark:block"
             priority
           />
-        </Link>
+        </a>
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-6 sm:flex">
@@ -90,6 +92,16 @@ export function Nav() {
               )}
             </button>
           )}
+          <Link
+            href="/"
+            className={`text-sm no-underline transition-colors ${
+              pathname === "/"
+                ? "font-medium text-deep-slate"
+                : "text-deep-slate/60 hover:text-deep-slate"
+            }`}
+          >
+            Home
+          </Link>
           <Link
             href="/posts"
             className={`text-sm no-underline transition-colors ${
@@ -152,6 +164,13 @@ export function Nav() {
         }`}
       >
         <div className="flex flex-col gap-4 px-4 py-4">
+          <Link
+            href="/"
+            onClick={() => setOpen(false)}
+            className="text-sm text-deep-slate/70 no-underline"
+          >
+            Home
+          </Link>
           <Link
             href="/posts"
             onClick={() => setOpen(false)}

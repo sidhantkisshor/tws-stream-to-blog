@@ -16,7 +16,7 @@
   --tw-burnt-amber: #D4894A;
   --tw-brushed-gold: #C9A87C;
   --tw-warm-white: #0B1221;
-  --tw-wealth-teal: #0A8D7A;
+  --tw-wealth-teal: #2DBFA8;
   --tw-surface: #111A2E;
 }
 
@@ -136,4 +136,23 @@ h1, h2, h3 {
   background-color: color-mix(in srgb, var(--color-deep-slate) 2%, transparent);
   padding-left: 8px;
   margin-left: -8px;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-reveal,
+  .animate-image-reveal,
+  .tag-pill,
+  .post-row {
+    animation: none !important;
+    transition: none !important;
+  }
+  .animate-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .animate-image-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

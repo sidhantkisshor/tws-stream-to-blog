@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Markdown from "react-markdown";
 import type { Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Term } from "./Term";
 
 /** Convert raw HTML <img> tags to markdown ![alt](url) so they go through the component override. */
 function preprocessMarkdown(md: string): string {
@@ -16,8 +18,14 @@ function preprocessMarkdown(md: string): string {
     .replace(
       /<img\s+[^>]*?alt=["']([^"']*)["'][^>]*?src=["']([^"']+)["'][^>]*?\/?>/gi,
       (_m, alt: string, src: string) => `![${alt}](${src})`
-    );
+    )
+    // Glossary term sentinel: [term:VWAP] -> [VWAP](#term:vwap)
+    .replace(/\[term:([A-Za-z0-9_-]+)\]/g, (_m, word: string) => {
+      return `[${word}](#term:${word.toLowerCase()})`;
+    });
 }
+
+const TERM_HREF = /^#term:(.+)$/;
 
 const OPTIMIZED_HOSTS = [".r2.dev", "storage.googleapis.com", "placehold.co"];
 
@@ -47,15 +55,56 @@ function ImgComponent({ src, alt }: { src?: string; alt?: string }) {
 }
 
 const components: Components = {
-  a: ({ href, children }) => (
-    <a
-      href={href}
-      className="text-wealth-teal underline decoration-wealth-teal/30 underline-offset-2 hover:decoration-wealth-teal"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+  a: ({ href, children }) => {
+    const m = typeof href === "string" ? href.match(TERM_HREF) : null;
+    if (m) {
+      const id = m[1];
+      const label = typeof children === "string" ? children : undefined;
+      return <Term id={id} label={label} />;
+    }
+    return (
+      <a
+        href={href}
+        className="text-wealth-teal underline decoration-wealth-teal/30 underline-offset-2 hover:decoration-wealth-teal"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  },
+  code: ({ children, className }) => {
+    // Block code (has language- class from fenced ```lang block) vs inline code.
+    const isBlock = typeof className === "string" && className.startsWith("language-");
+    if (isBlock) {
+      return <code className={className}>{children}</code>;
+    }
+    return (
+      <code className="rounded bg-deep-slate/8 px-1.5 py-0.5 font-mono text-[0.92em] text-deep-slate">
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }) => (
+    <pre className="my-5 overflow-x-auto rounded-lg border border-deep-slate/10 bg-deep-slate/[0.04] p-4 font-mono text-sm leading-relaxed text-deep-slate/85">
       {children}
-    </a>
+    </pre>
+  ),
+  table: ({ children }) => (
+    <div className="my-5 overflow-x-auto rounded-lg border border-deep-slate/10">
+      <table className="w-full border-collapse text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-deep-slate/5">{children}</thead>,
+  th: ({ children }) => (
+    <th className="border-b border-deep-slate/10 px-4 py-2 text-left font-bold text-deep-slate">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="border-b border-deep-slate/8 px-4 py-2 text-deep-slate/75">
+      {children}
+    </td>
   ),
   img: ImgComponent as Components["img"],
   strong: ({ children }) => (
@@ -114,7 +163,7 @@ const components: Components = {
 export function MarkdownBody({ children }: { children: string }) {
   return (
     <div className="text-lg leading-[1.75] text-deep-slate/75">
-      <Markdown components={components}>{preprocessMarkdown(children)}</Markdown>
+      <Markdown remarkPlugins={[remarkGfm]} components={components}>{preprocessMarkdown(children)}</Markdown>
     </div>
   );
 }

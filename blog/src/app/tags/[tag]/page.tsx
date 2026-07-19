@@ -46,7 +46,7 @@ export default async function TagPage({
 
   if (posts.length === 0) notFound();
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -115,6 +115,10 @@ export default async function TagPage({
                       day: "numeric",
                     })}
                   </time>
+                  <span aria-hidden className="text-deep-slate/20">·</span>
+                  <span className="text-sm tabular-nums text-deep-slate/35">
+                    {post.readingMinutes} min read
+                  </span>
                 </div>
               </div>
               {post.heroImage ? (

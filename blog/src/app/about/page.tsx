@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -91,12 +91,12 @@ export default function AboutPage() {
           </p>
           <p>
             <a
-              href="https://twsgurukul.com"
+              href="https://twsgurukulx.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-wealth-teal no-underline hover:underline"
             >
-              twsgurukul.com
+              twsgurukulx.com
             </a>
           </p>
           <p>

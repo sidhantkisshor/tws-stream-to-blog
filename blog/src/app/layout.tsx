@@ -29,7 +29,7 @@ const instrumentSerif = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com"),
   title: {
     default: "TWSGurukulX — Trading Insights",
     template: "%s | TWSGurukulX",
@@ -47,13 +47,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: "TWSGurukulX — Trading Insights",
     description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
-    images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+    // No static `images` here: setting openGraph.images at the root segment would
+    // suppress the dynamic `opengraph-image.tsx` file convention (Next only applies
+    // the file when the segment's metadata has no openGraph.images). Omitting it lets
+    // the branded dynamic OG image render site-wide.
     siteName: "TWSGurukulX",
   },
   twitter: {
     card: "summary_large_image",
     site: "@tradingwsidhant",
-    images: ["/og-banner.png"],
+    // twitter:image intentionally omitted so X falls back to the dynamic og:image,
+    // consistent with the per-post pages.
   },
   other: {
     "llms.txt": "/llms.txt",

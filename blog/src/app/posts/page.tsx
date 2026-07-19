@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { TelegramCTA } from "@/components/TelegramCTA";
+import { ArchiveList } from "@/components/ArchiveList";
 import { getRecentPosts } from "@/lib/posts";
 import type { Metadata } from "next";
 
@@ -21,6 +21,17 @@ export const metadata: Metadata = {
 
 export default async function ArchivePage() {
   const posts = await getRecentPosts(200);
+
+  const serializedPosts = posts.map((p) => ({
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    hook: p.hook,
+    heroImage: p.heroImage,
+    tags: p.tags,
+    publishedAt: p.publishedAt.toISOString(),
+    readingMinutes: p.readingMinutes,
+  }));
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
@@ -51,60 +62,8 @@ export default async function ArchivePage() {
           </p>
         </div>
       ) : (
-        <div className="animate-reveal delay-2 divide-y divide-deep-slate/8">
-          {posts.map((post) => (
-            <div
-              key={post.id}
-              className="group py-5 first:pt-0"
-            >
-              <div className="flex items-start gap-4">
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/posts/${post.slug}`}
-                    className="text-lg font-bold text-deep-slate no-underline transition-colors duration-200 hover:text-burnt-amber"
-                  >
-                    {post.title}
-                  </Link>
-                  <p className="mt-1 text-sm leading-relaxed text-deep-slate/55 line-clamp-1">
-                    {post.hook}
-                  </p>
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                    {post.tags.slice(0, 3).map((tag) => (
-                      <Link
-                        key={tag}
-                        href={`/tags/${encodeURIComponent(tag)}`}
-                        className="rounded-full bg-deep-slate/5 px-2.5 py-0.5 text-[11px] font-medium text-deep-slate/45 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/60"
-                      >
-                        {tag}
-                      </Link>
-                    ))}
-                    <time
-                      className="ml-1 text-sm tabular-nums text-deep-slate/35"
-                      dateTime={post.publishedAt.toISOString()}
-                    >
-                      {post.publishedAt.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </time>
-                  </div>
-                </div>
-                {post.heroImage ? (
-                  <Image
-                    src={post.heroImage}
-                    alt={post.title}
-                    width={80}
-                    height={80}
-                    className="h-[60px] w-[60px] shrink-0 rounded-lg object-cover sm:h-[80px] sm:w-[80px]"
-                    sizes="80px"
-                  />
-                ) : (
-                  <div className="h-[60px] w-[60px] shrink-0 rounded-lg bg-gradient-to-br from-deep-slate/5 to-burnt-amber/5 sm:h-[80px] sm:w-[80px]" />
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="animate-reveal delay-2">
+          <ArchiveList posts={serializedPosts} />
         </div>
       )}
 

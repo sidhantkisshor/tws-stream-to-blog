@@ -2,13 +2,14 @@ import { getRecentPosts } from "@/lib/posts";
 import { PostsDisplay } from "@/components/PostsDisplay";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ProgramCTA } from "@/components/ProgramCTA";
+import { NewsletterCTA } from "@/components/NewsletterCTA";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
   const posts = await getRecentPosts(50);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -41,6 +42,7 @@ export default async function HomePage() {
     heroImage: p.heroImage,
     tags: p.tags,
     publishedAt: p.publishedAt.toISOString(),
+    readingMinutes: p.readingMinutes,
   }));
 
   return (
@@ -69,6 +71,10 @@ export default async function HomePage() {
 
           <section className="mt-10 animate-reveal delay-4">
             <TelegramCTA />
+          </section>
+
+          <section className="mt-10 animate-reveal delay-4">
+            <NewsletterCTA />
           </section>
         </>
       )}

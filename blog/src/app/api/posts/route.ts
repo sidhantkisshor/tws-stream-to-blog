@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
     revalidatePath(`/posts/${post.slug}`);
 
     // Ping IndexNow for instant Bing/Yandex indexing (fire-and-forget)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
     const indexNowKey = process.env.INDEXNOW_KEY;
     if (indexNowKey) {
       fetch("https://api.indexnow.org/indexnow", {

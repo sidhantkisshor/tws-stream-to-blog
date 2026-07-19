@@ -63,12 +63,12 @@ export async function Footer() {
             WhatsApp
           </a>
           <a
-            href="https://twsgurukul.com"
+            href="https://twsgurukulx.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
           >
-            twsgurukul.com
+            twsgurukulx.com
           </a>
           <a
             href="https://tradingwithsidhant.com"

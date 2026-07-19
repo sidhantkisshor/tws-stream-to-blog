@@ -11,8 +11,28 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function imageMime(url: string): string {
+  const ext = url.split(/[?#]/)[0].split(".").pop()?.toLowerCase() ?? "";
+  switch (ext) {
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "webp":
+      return "image/webp";
+    case "avif":
+      return "image/avif";
+    case "gif":
+      return "image/gif";
+    case "svg":
+      return "image/svg+xml";
+    case "png":
+    default:
+      return "image/png";
+  }
+}
+
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukul.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
 
   const posts = await prisma.post.findMany({
     orderBy: { publishedAt: "desc" },
@@ -40,7 +60,7 @@ export async function GET() {
       <description>${escapeXml(p.seoDesc)}</description>
       <pubDate>${p.publishedAt.toUTCString()}</pubDate>
       ${p.tags.map((t) => `<category>${escapeXml(t)}</category>`).join("\n      ")}
-      ${p.heroImage ? `<enclosure url="${escapeXml(p.heroImage)}" type="image/png" length="0" />` : ""}
+      ${p.heroImage ? `<enclosure url="${escapeXml(p.heroImage)}" type="${imageMime(p.heroImage)}" length="0" />` : ""}
     </item>`
     )
     .join("\n");

@@ -13,6 +13,7 @@ export interface SerializedPost {
   heroImage: string | null;
   tags: string[];
   publishedAt: string;
+  readingMinutes: number;
 }
 
 function PostThumbnail({ src, alt }: { src: string | null; alt: string }) {
@@ -63,6 +64,10 @@ function PostRow({ post }: { post: SerializedPost }) {
                 day: "numeric",
               })}
             </time>
+            <span aria-hidden className="text-deep-slate/20">·</span>
+            <span className="text-sm tabular-nums text-deep-slate/35">
+              {post.readingMinutes} min read
+            </span>
           </div>
         </div>
         <PostThumbnail src={post.heroImage} alt={post.title} />
@@ -143,16 +148,17 @@ export function PostsDisplay({ posts }: { posts: SerializedPost[] }) {
                     {featured.title}
                   </h2>
                   <p className="mt-2 text-lg text-deep-slate/60">{featured.hook.replace(/\s*—\s*/g, ", ")}</p>
-                  <time
-                    className="mt-3 block text-sm text-deep-slate/35"
-                    dateTime={new Date(featured.publishedAt).toISOString()}
-                  >
-                    {new Date(featured.publishedAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </time>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-deep-slate/35">
+                    <time dateTime={new Date(featured.publishedAt).toISOString()}>
+                      {new Date(featured.publishedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </time>
+                    <span aria-hidden className="text-deep-slate/20">·</span>
+                    <span className="tabular-nums">{featured.readingMinutes} min read</span>
+                  </div>
                 </div>
               </article>
             </Link>
