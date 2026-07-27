@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { SITE_URL, SITE_TITLE } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -32,7 +33,7 @@ function imageMime(url: string): string {
 }
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
 
   const posts = await prisma.post.findMany({
     orderBy: { publishedAt: "desc" },
@@ -68,7 +69,7 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>TWSGurukulX — Trading Insights</title>
+    <title>${SITE_TITLE}</title>
     <link>${baseUrl}</link>
     <description>Live stream trading analysis and market insights from Trading With Sidhant Team</description>
     <language>en</language>

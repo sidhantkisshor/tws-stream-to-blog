@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 export const revalidate = 60;
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
 
   const posts = await prisma.post.findMany({
     orderBy: { publishedAt: "desc" },
@@ -11,7 +12,7 @@ export async function GET() {
   });
 
   const lines = [
-    "# TWSGurukulX",
+    `# ${SITE_NAME}`,
     "",
     "> Live stream trading analysis and market insights from Trading With Sidhant Team",
     "",
@@ -19,7 +20,7 @@ export async function GET() {
     "",
     `## Docs`,
     "",
-    `- [About](${baseUrl}/about): About TWSGurukulX and Trading With Sidhant`,
+    `- [About](${baseUrl}/about): About ${SITE_NAME} and the team behind it`,
     `- [Full content for LLMs](${baseUrl}/llms-full.txt): Complete text of all posts`,
     "",
     "## Blog Posts",

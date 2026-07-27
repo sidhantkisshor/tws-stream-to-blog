@@ -1,6 +1,25 @@
 import type { NextConfig } from "next";
 
+/**
+ * Hostnames the blog used to live on. They stay attached to the Vercel project
+ * so these rules can serve a permanent redirect; detaching them would 404 every
+ * inbound link and lose the accumulated search equity.
+ */
+const LEGACY_HOSTS = ["blogs.twsgurukulx.com", "blogs.twsgurukul.com"];
+
+const CANONICAL_ORIGIN = "https://blogs.tradingwithsidhant.com";
+
 const nextConfig: NextConfig = {
+  async redirects() {
+    // Path-preserving 308 per legacy host. Matching on `host` means preview
+    // deployments (*.vercel.app) and the canonical host are never caught.
+    return LEGACY_HOSTS.map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host }],
+      destination: `${CANONICAL_ORIGIN}/:path*`,
+      permanent: true,
+    }));
+  },
   images: {
     remotePatterns: [
       {

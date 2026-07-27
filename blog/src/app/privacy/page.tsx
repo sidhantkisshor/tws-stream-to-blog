@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
+import { SITE_URL, SITE_NAME, SITE_HOST, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description:
-    "Privacy policy for TWSGurukulX (blogs.twsgurukulx.com) — how we collect, use, and protect your data.",
+  description: `Privacy policy for ${SITE_NAME} (${SITE_HOST}) — how we collect, use, and protect your data.`,
   alternates: { canonical: "/privacy" },
   openGraph: {
-    title: "Privacy Policy | TWSGurukulX",
-    description:
-      "Privacy policy for TWSGurukulX — how we collect, use, and protect your data.",
+    title: `Privacy Policy | ${SITE_NAME}`,
+    description: `Privacy policy for ${SITE_NAME} — how we collect, use, and protect your data.`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };
 
 export default function PrivacyPage() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -23,7 +21,7 @@ export default function PrivacyPage() {
     url: `${baseUrl}/privacy`,
     publisher: {
       "@type": "Organization",
-      name: "Trading With Sidhant LLP",
+      name: LEGAL_ENTITY,
       url: baseUrl,
     },
     dateModified: "2026-03-06",
@@ -55,13 +53,13 @@ export default function PrivacyPage() {
         <section className="mt-10 animate-reveal delay-2">
           <div className="space-y-4 leading-[1.75] text-deep-slate/70">
             <p>
-              Trading With Sidhant LLP (&quot;we,&quot; &quot;us,&quot; or
+              {LEGAL_ENTITY} (&quot;we,&quot; &quot;us,&quot; or
               &quot;our&quot;) operates{" "}
               <a
-                href="https://blogs.twsgurukulx.com"
+                href={SITE_URL}
                 className="text-wealth-teal no-underline hover:underline"
               >
-                blogs.twsgurukulx.com
+                {SITE_HOST}
               </a>{" "}
               (the &quot;Site&quot;). This Privacy Policy explains what
               information we collect, how we use it, and the choices you have.
@@ -204,7 +202,7 @@ export default function PrivacyPage() {
               to WhatsApp updates. You can request deletion of your data at any
               time by sending a message to{" "}
               <a
-                href="https://wa.me/918062963333"
+                href={SOCIAL.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
@@ -419,7 +417,7 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-bold text-deep-slate">Contact Us</h2>
           <div className="mt-4 space-y-1.5 text-deep-slate/70">
             <p className="font-medium text-deep-slate/50">
-              Trading With Sidhant LLP
+              {LEGAL_ENTITY}
             </p>
             <p>
               <a
@@ -432,7 +430,7 @@ export default function PrivacyPage() {
             <p>
               WhatsApp:{" "}
               <a
-                href="https://wa.me/918062963333"
+                href={SOCIAL.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
@@ -442,16 +440,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               <a
-                href="https://twsgurukulx.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-wealth-teal no-underline hover:underline"
-              >
-                twsgurukulx.com
-              </a>
-              {" | "}
-              <a
-                href="https://tradingwithsidhant.com"
+                href={MAIN_SITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"

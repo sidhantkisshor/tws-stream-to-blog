@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
+import { SITE_NAME, SITE_WORDMARK, SITE_HOST } from "@/lib/site";
 
-export const alt = "TWSGurukulX — Live stream trading insights";
+export const alt = `${SITE_NAME} — Live stream trading insights`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -87,12 +88,12 @@ export default async function OgImage() {
             style={{
               fontSize: 32,
               fontWeight: 700,
-              letterSpacing: 4,
+              letterSpacing: 3,
               color: TEAL,
               display: "flex",
             }}
           >
-            TWSGURUKULX
+            {SITE_WORDMARK}
           </div>
           <div
             style={{ width: 2, height: 24, background: `${DEEP}33`, display: "flex" }}
@@ -104,7 +105,7 @@ export default async function OgImage() {
               display: "flex",
             }}
           >
-            blogs.twsgurukulx.com
+            {SITE_HOST}
           </div>
         </div>
       </div>

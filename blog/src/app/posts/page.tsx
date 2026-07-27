@@ -2,19 +2,20 @@ import Link from "next/link";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ArchiveList } from "@/components/ArchiveList";
 import { getRecentPosts } from "@/lib/posts";
+import { SITE_NAME } from "@/lib/site";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "All Posts | TWSGurukulX",
+  title: "All Posts",
   description:
-    "Browse every trading analysis and market insight from TWSGurukulX live streams.",
+    `Browse every trading analysis and market insight from ${SITE_NAME} live streams.`,
   alternates: { canonical: "/posts" },
   openGraph: {
-    title: "All Posts — TWSGurukulX",
+    title: `All Posts — ${SITE_NAME}`,
     description:
-      "Browse every trading analysis and market insight from TWSGurukulX live streams.",
+      `Browse every trading analysis and market insight from ${SITE_NAME} live streams.`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };

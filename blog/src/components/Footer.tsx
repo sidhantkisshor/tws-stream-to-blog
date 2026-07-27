@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getAllTags } from "@/lib/posts";
+import { PROGRAMS_URL, MAIN_SITE_URL, SITE_NAME, LEGAL_ENTITY, SOCIAL } from "@/lib/site";
 
 export async function Footer() {
   const tags = await getAllTags();
@@ -23,7 +24,7 @@ export async function Footer() {
         )}
         <div className="mb-6 flex flex-wrap items-center gap-4">
           <a
-            href="https://youtube.com/@tradingwithsidhant"
+            href={SOCIAL.youtube}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
@@ -31,7 +32,7 @@ export async function Footer() {
             YouTube
           </a>
           <a
-            href="https://instagram.com/tradingwithsidhant"
+            href={SOCIAL.instagram}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
@@ -39,7 +40,7 @@ export async function Footer() {
             Instagram
           </a>
           <a
-            href="https://x.com/tradingwsidhant"
+            href={SOCIAL.x}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
@@ -47,7 +48,7 @@ export async function Footer() {
             X
           </a>
           <a
-            href="https://t.me/tradingwsidhant"
+            href={SOCIAL.telegram}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
@@ -55,7 +56,7 @@ export async function Footer() {
             Telegram
           </a>
           <a
-            href="https://wa.me/918062963333"
+            href={SOCIAL.whatsapp}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
@@ -63,15 +64,15 @@ export async function Footer() {
             WhatsApp
           </a>
           <a
-            href="https://twsgurukulx.com"
+            href={PROGRAMS_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
           >
-            twsgurukulx.com
+            tradingwithsidhant.com/programs
           </a>
           <a
-            href="https://tradingwithsidhant.com"
+            href={MAIN_SITE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
@@ -101,7 +102,7 @@ export async function Footer() {
         </div>
         <div className="flex items-center justify-between">
           <p className="text-sm text-deep-slate/30">
-            &copy; 2026 Trading With Sidhant LLP
+            &copy; 2026 {LEGAL_ENTITY}
           </p>
           <Link
             href="/"
@@ -109,14 +110,14 @@ export async function Footer() {
           >
             <Image
               src="/wordmark-dark.png"
-              alt="TWSGurukulX"
+              alt={SITE_NAME}
               width={80}
               height={16}
               className="block h-4 w-auto opacity-30 transition-opacity group-hover:opacity-50 dark:hidden"
             />
             <Image
               src="/wordmark-light.png"
-              alt="TWSGurukulX"
+              alt={SITE_NAME}
               width={80}
               height={16}
               className="hidden h-4 w-auto opacity-30 transition-opacity group-hover:opacity-50 dark:block"

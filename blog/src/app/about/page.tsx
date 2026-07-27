@@ -1,36 +1,44 @@
 import type { Metadata } from "next";
 import { TelegramCTA } from "@/components/TelegramCTA";
+import {
+  SITE_URL,
+  SITE_NAME,
+  LEGAL_ENTITY,
+  SOCIAL,
+  CONTACT_PHONE,
+  MAIN_SITE_URL,
+} from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "About TWSGurukulX — live stream trading analysis from Trading With Sidhant Team",
+  description: `About ${SITE_NAME} — live stream trading analysis from Trading With Sidhant Team`,
   alternates: { canonical: "/about" },
   openGraph: {
-    title: "About TWSGurukulX",
-    description: "About TWSGurukulX — live stream trading analysis from Trading With Sidhant Team",
+    title: `About ${SITE_NAME}`,
+    description: `About ${SITE_NAME} — live stream trading analysis from Trading With Sidhant Team`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };
 
 export default function AboutPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "TWSGurukulX",
-    legalName: "Trading With Sidhant LLP",
+    name: SITE_NAME,
+    legalName: LEGAL_ENTITY,
     url: baseUrl,
     logo: `${baseUrl}/logo-icon.png`,
     sameAs: [
-      "https://youtube.com/@tradingwithsidhant",
-      "https://instagram.com/tradingwithsidhant",
-      "https://x.com/tradingwsidhant",
-      "https://t.me/tradingwsidhant",
-      "https://wa.me/918062963333",
+      SOCIAL.youtube,
+      SOCIAL.instagram,
+      SOCIAL.x,
+      SOCIAL.telegram,
+      SOCIAL.whatsapp,
     ],
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: "+91-8062963333",
+      telephone: CONTACT_PHONE,
       contactType: "customer service",
     },
     inLanguage: "en",
@@ -45,7 +53,7 @@ export default function AboutPage() {
     <main className="mx-auto max-w-prose px-4 py-12">
       <div className="animate-reveal">
         <h1 className="text-3xl font-bold tracking-tight text-deep-slate sm:text-4xl">
-          About <span className="font-instrument text-burnt-amber">TWSGurukulX</span>
+          About <span className="font-instrument text-burnt-amber">{SITE_NAME}</span>
         </h1>
 
         <div className="mt-6 space-y-4 leading-[1.75] text-deep-slate/70">
@@ -83,7 +91,7 @@ export default function AboutPage() {
       <section className="mt-10 animate-reveal delay-3">
         <h2 className="text-2xl font-bold text-deep-slate">Contact</h2>
         <div className="mt-4 space-y-1.5 text-deep-slate/70">
-          <p className="font-medium text-deep-slate/50">Trading With Sidhant LLP</p>
+          <p className="font-medium text-deep-slate/50">{LEGAL_ENTITY}</p>
           <p>
             <a href="tel:+918062963333" className="text-wealth-teal no-underline hover:underline">
               +91-8062963333
@@ -91,17 +99,7 @@ export default function AboutPage() {
           </p>
           <p>
             <a
-              href="https://twsgurukulx.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-wealth-teal no-underline hover:underline"
-            >
-              twsgurukulx.com
-            </a>
-          </p>
-          <p>
-            <a
-              href="https://tradingwithsidhant.com"
+              href={MAIN_SITE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-wealth-teal no-underline hover:underline"
@@ -116,7 +114,7 @@ export default function AboutPage() {
         <h2 className="text-2xl font-bold text-deep-slate">Follow Us</h2>
         <div className="mt-4 flex flex-wrap gap-3">
           <a
-            href="https://youtube.com/@tradingwithsidhant"
+            href={SOCIAL.youtube}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
@@ -124,7 +122,7 @@ export default function AboutPage() {
             YouTube
           </a>
           <a
-            href="https://instagram.com/tradingwithsidhant"
+            href={SOCIAL.instagram}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
@@ -132,7 +130,7 @@ export default function AboutPage() {
             Instagram
           </a>
           <a
-            href="https://x.com/tradingwsidhant"
+            href={SOCIAL.x}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
@@ -140,7 +138,7 @@ export default function AboutPage() {
             X (Twitter)
           </a>
           <a
-            href="https://t.me/tradingwsidhant"
+            href={SOCIAL.telegram}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"
@@ -148,7 +146,7 @@ export default function AboutPage() {
             Telegram
           </a>
           <a
-            href="https://wa.me/918062963333"
+            href={SOCIAL.whatsapp}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-deep-slate/5 px-4 py-1.5 text-sm font-medium text-deep-slate/60 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/80"

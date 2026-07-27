@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getAllTags } from "@/lib/posts";
+import { SITE_URL } from "@/lib/site";
 import type { MetadataRoute } from "next";
 
 export const revalidate = 3600;
@@ -13,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getAllTags(),
   ]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
 
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },

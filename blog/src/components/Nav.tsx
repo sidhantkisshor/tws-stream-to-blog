@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { SITE_NAME, SOCIAL } from "@/lib/site";
 
 export function Nav() {
   const [open, setOpen] = useState(false);
@@ -49,15 +50,13 @@ export function Nav() {
             : "bg-warm-white/60 backdrop-blur-md"
         }`}
       >
-        <a
-          href="https://twsgurukulx.com"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/"
           className="group flex items-center no-underline hover:no-underline"
         >
           <Image
             src="/wordmark-dark.png"
-            alt="TWSGurukulX"
+            alt={SITE_NAME}
             width={120}
             height={24}
             className="block h-6 w-auto dark:hidden"
@@ -65,13 +64,13 @@ export function Nav() {
           />
           <Image
             src="/wordmark-light.png"
-            alt="TWSGurukulX"
+            alt={SITE_NAME}
             width={120}
             height={24}
             className="hidden h-6 w-auto dark:block"
             priority
           />
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-6 sm:flex">
@@ -123,7 +122,7 @@ export function Nav() {
             About
           </Link>
           <a
-            href="https://t.me/tradingwsidhant"
+            href={SOCIAL.telegram}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-wealth-teal/20 bg-wealth-teal/5 px-4 py-1.5 text-sm font-medium text-wealth-teal no-underline transition-all hover:border-wealth-teal/40 hover:bg-wealth-teal/10 hover:text-wealth-teal hover:no-underline hover:shadow-[0_2px_8px_rgba(10,141,122,0.12)]"
@@ -186,7 +185,7 @@ export function Nav() {
             About
           </Link>
           <a
-            href="https://t.me/tradingwsidhant"
+            href={SOCIAL.telegram}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium text-wealth-teal no-underline"

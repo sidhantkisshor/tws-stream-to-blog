@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 import { getPostBySlug } from "@/lib/posts";
+import { SITE_NAME, SITE_WORDMARK } from "@/lib/site";
 
-export const alt = "TWSGurukulX — Trading insights";
+export const alt = `${SITE_NAME} — Trading insights`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -18,7 +19,7 @@ export default async function OgImage({
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
-  const title = post?.title ?? "TWSGurukulX";
+  const title = post?.title ?? SITE_NAME;
   const tag = post?.tags?.[0] ?? "Trading insights";
   const hero = post?.heroImage ?? null;
 
@@ -120,7 +121,7 @@ export default async function OgImage({
                 display: "flex",
               }}
             >
-              TWSGURUKULX
+              {SITE_WORDMARK}
             </div>
             <div
               style={{

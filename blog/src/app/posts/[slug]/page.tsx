@@ -16,6 +16,7 @@ import { RelatedPosts } from "@/components/RelatedPosts";
 import { SessionNav } from "@/components/SessionNav";
 import { NewsletterCTA } from "@/components/NewsletterCTA";
 import { ScrollNewsletterPrompt } from "@/components/ScrollNewsletterPrompt";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -121,7 +122,7 @@ export default async function PostPage({
     .split(/\s+/).length;
   const readingTime = Math.max(1, Math.round(wordCount / 200));
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
 
   const jsonLd = [
     {
@@ -132,10 +133,10 @@ export default async function PostPage({
       ...(post.heroImage ? { image: post.heroImage } : {}),
       datePublished: post.publishedAt.toISOString(),
       dateModified: post.updatedAt.toISOString(),
-      author: { "@type": "Organization", name: "TWSGurukulX", url: baseUrl },
+      author: { "@type": "Organization", name: SITE_NAME, url: baseUrl },
       publisher: {
         "@type": "Organization",
-        name: "TWSGurukulX",
+        name: SITE_NAME,
         url: baseUrl,
         logo: { "@type": "ImageObject", url: `${baseUrl}/logo-icon.png` },
       },

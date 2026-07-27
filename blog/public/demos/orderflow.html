@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/logo-icon.png">
 <title>Orderflow Console — Trading With Sidhant</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    /* Aligned to TWSGurukulX brand palette (deep-slate/wealth-teal/burnt-amber/warm-white) */
+    /* Aligned to Trading With Sidhant brand palette (deep-slate/wealth-teal/burnt-amber/warm-white) */
     --bg: #0B1221;              /* warm-white dark variant */
     --surface: #14203A;         /* lifted navy card */
     --surface-2: #1C2A4A;
@@ -16,7 +17,7 @@
     --border: rgba(245, 240, 232, 0.09);
     --text: #F5F0E8;            /* deep-slate dark = warm cream */
     --text-muted: rgba(245, 240, 232, 0.62);
-    --text-faint: rgba(245, 240, 232, 0.32);
+    --text-faint: rgba(245, 240, 232, 0.5);
     --buy: #0A8D7A;             /* wealth-teal */
     --buy-bg: rgba(10, 141, 122, 0.14);
     --buy-bg-strong: rgba(10, 141, 122, 0.55);
@@ -46,7 +47,15 @@
   a { color: inherit; text-decoration: none; }
 
   /* Site header — mirrors the blog Nav (pill in dark variant) */
-  .site-header { padding: 16px 24px 0; position: sticky; top: 0; z-index: 5; }
+  .site-header {
+    padding: 16px 24px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: rgba(11, 18, 33, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
   .site-nav {
     margin: 0 auto;
     max-width: 1280px;
@@ -496,7 +505,15 @@
 
     /* Controls — let label sit above buttons so each row stays roomy */
     .ctrl-label { min-width: 0; width: 100%; font-size: 10px; letter-spacing: 1.2px; margin-bottom: 2px; }
-    button { padding: 9px 12px; font-size: 12px; border-radius: 7px; }
+    button {
+      padding: 9px 12px;
+      font-size: 12px;
+      border-radius: 7px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
     .controls-row { gap: 8px; }
 
     /* Footer card: stacks via existing 720px rule; tune sizes */
@@ -515,12 +532,12 @@
 
 <header class="site-header">
   <nav class="site-nav" aria-label="Site">
-    <a href="https://blogs.twsgurukulx.com" target="_top" class="site-nav-brand" aria-label="TWSGurukulX home">
-      <img src="/wordmark-light.png" alt="TWSGurukulX" />
+    <a href="https://blogs.tradingwithsidhant.com" target="_top" class="site-nav-brand" aria-label="Trading With Sidhant home">
+      <img src="/wordmark-light.png" alt="Trading With Sidhant" />
     </a>
     <div class="site-nav-links">
-      <a class="nav-link" href="https://blogs.twsgurukulx.com" target="_top">Home</a>
-      <a class="nav-link" href="https://blogs.twsgurukulx.com/posts" target="_top">Posts</a>
+      <a class="nav-link" href="https://blogs.tradingwithsidhant.com" target="_top">Home</a>
+      <a class="nav-link" href="https://blogs.tradingwithsidhant.com/posts" target="_top">Posts</a>
       <a class="nav-cta" href="https://www.youtube.com/watch?v=RGdCgiqVdsA" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7L8 5z"/></svg>
         Watch the video
@@ -536,7 +553,7 @@
     <span class="brand-tag">The Architect's Console</span>
   </div>
 
-  <div class="cap" id="cap">Click any button to begin — manual trades or scripted demos</div>
+  <div class="cap" id="cap" aria-live="polite">Click any button to begin — manual trades or scripted demos</div>
 
   <div class="board">
     <div class="panel">
@@ -549,7 +566,7 @@
     </div>
   </div>
 
-  <div class="metrics">
+  <div class="metrics" aria-live="polite">
     <div class="metric">
       <div class="metric-l">Buy volume</div>
       <div class="metric-v" id="buyvol" style="color: var(--buy-text)">0</div>
@@ -569,23 +586,24 @@
   </div>
 
   <div class="controls">
-    <div class="controls-row">
+    <div class="controls-row" role="group" aria-label="Buys">
       <span class="ctrl-label">Buys</span>
-      <button class="btn-buy" onclick="ofBuy(3)">+3</button>
-      <button class="btn-buy" onclick="ofBuy(10)">+10</button>
-      <button class="btn-buy" onclick="ofBuy(25)">+25 aggressive</button>
+      <button class="btn-buy" onclick="ofBuy(3)" aria-label="Buy 3 lots">+3</button>
+      <button class="btn-buy" onclick="ofBuy(10)" aria-label="Buy 10 lots">+10</button>
+      <button class="btn-buy" onclick="ofBuy(25)" aria-label="Buy 25 lots aggressive">+25 aggressive</button>
     </div>
-    <div class="controls-row">
+    <div class="controls-row" role="group" aria-label="Sells">
       <span class="ctrl-label">Sells</span>
-      <button class="btn-sell" onclick="ofSell(3)">+3</button>
-      <button class="btn-sell" onclick="ofSell(10)">+10</button>
-      <button class="btn-sell" onclick="ofSell(25)">+25 aggressive</button>
+      <button class="btn-sell" onclick="ofSell(3)" aria-label="Sell 3 lots">+3</button>
+      <button class="btn-sell" onclick="ofSell(10)" aria-label="Sell 10 lots">+10</button>
+      <button class="btn-sell" onclick="ofSell(25)" aria-label="Sell 25 lots aggressive">+25 aggressive</button>
     </div>
-    <div class="controls-row">
+    <div class="controls-row" role="group" aria-label="Demos">
       <span class="ctrl-label">Demos</span>
       <button class="btn-spec" onclick="ofDemoTrend()">Trend bar</button>
       <button class="btn-spec" onclick="ofDemoAbsorption()">Absorption</button>
       <button class="btn-spec" onclick="ofDemoChop()">Chop bar</button>
+      <button onclick="ofNewBar()">New bar</button>
       <button onclick="ofReset()">Reset</button>
     </div>
   </div>
@@ -611,8 +629,8 @@
       <a href="https://x.com/tradingwsidhant" target="_blank" rel="noopener">X</a>
       <a href="https://t.me/tradingwsidhant" target="_blank" rel="noopener">Telegram</a>
       <a href="https://wa.me/918062963333" target="_blank" rel="noopener">WhatsApp</a>
-      <a href="https://twsgurukulx.com" target="_blank" rel="noopener">twsgurukulx.com</a>
-      <a href="https://blogs.twsgurukulx.com/posts" target="_top">All posts</a>
+      <a href="https://tradingwithsidhant.com/programs/" target="_blank" rel="noopener">tradingwithsidhant.com/programs</a>
+      <a href="https://blogs.tradingwithsidhant.com/posts" target="_top">All posts</a>
     </div>
     <div class="footer-bottom">
       <span>&copy; 2026 Trading With Sidhant LLP</span>
@@ -630,18 +648,30 @@
 
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
-  function init() {
+  // Seed a fresh resting book + empty footprint (a fresh spread) without touching cvd.
+  function seedBook() {
     book = { asks: [], bids: [] };
     footprint = {};
     for (let i = 1; i <= LEVELS; i++) book.asks.push({ price: MID + i, size: rand(7, 15) });
     for (let i = 0; i < LEVELS; i++) book.bids.push({ price: MID - i, size: rand(7, 15) });
     for (let p = MID - LEVELS + 1; p <= MID + LEVELS; p++) footprint[p] = { bid: 0, ask: 0 };
+  }
+
+  // Full reset: fresh book, empty footprint, all deltas (incl. cvd) zeroed.
+  function init() {
+    seedBook();
     buyVol = 0; sellVol = 0; cvd = 0;
+  }
+
+  // Commit the current bar: fresh book, empty footprint, bar deltas zeroed, cvd carried over.
+  function newBar() {
+    seedBook();
+    buyVol = 0; sellVol = 0;
   }
 
   function refillBook() {
     while (book.asks.length < LEVELS) {
-      const top = book.asks.length ? Math.max(...book.asks.map(a => a.price)) : MID + 1;
+      const top = book.asks.length ? Math.max(...book.asks.map(a => a.price)) : MID;
       const newPrice = top + 1;
       book.asks.push({ price: newPrice, size: rand(7, 15) });
       if (footprint[newPrice] === undefined) footprint[newPrice] = { bid: 0, ask: 0 };
@@ -712,6 +742,13 @@
     execute('sell', qty);
   }
 
+  function ofNewBar() {
+    if (busy) return;
+    newBar();
+    setCap('New bar — deltas reset, CVD carried over');
+    render([]);
+  }
+
   function ofReset() {
     demoTimers.forEach(t => clearTimeout(t)); demoTimers = []; busy = false;
     init();
@@ -720,6 +757,7 @@
   }
 
   function runSequence(steps) {
+    demoTimers.forEach(clearTimeout); demoTimers = [];
     busy = true;
     let total = 0;
     steps.forEach(s => { total += s.delay; demoTimers.push(setTimeout(s.action, total)); });
@@ -728,7 +766,7 @@
 
   function ofDemoTrend() {
     if (busy) return;
-    init();
+    newBar();
     setCap('Demo: trend bar — buyers chasing higher prices', 'alert');
     render([]);
     runSequence([
@@ -742,7 +780,7 @@
 
   function ofDemoAbsorption() {
     if (busy) return;
-    init();
+    newBar();
     book.asks.sort((a, b) => a.price - b.price);
     book.asks[0].size = 50;
     setCap('Demo: 50 lots resting at best ask. Watch the price...', 'alert');
@@ -767,7 +805,7 @@
 
   function ofDemoChop() {
     if (busy) return;
-    init();
+    newBar();
     setCap('Demo: chop bar — both sides aggressive', 'alert');
     render([]);
     runSequence([
@@ -801,16 +839,30 @@
     });
     document.getElementById('book').innerHTML = bookHTML;
 
-    const allPrices = [].concat(visAsks.map(function(a) { return a.price; }), visBids.map(function(b) { return b.price; }));
+    // Footprint shows the WHOLE current bar: every price with executed volume
+    // (even consumed levels no longer in the live book) plus the live book range.
+    // Buys execute above MID (ask side), sells at/below MID (bid side), so MID is a
+    // clean divider. Rendering every non-zero footprint price guarantees the invariant:
+    //   sum of ask cells === buyVol   and   sum of bid cells === sellVol.
+    const fpPrices = {};
+    visAsks.forEach(function(a) { fpPrices[a.price] = true; });
+    visBids.forEach(function(b) { fpPrices[b.price] = true; });
+    Object.keys(footprint).forEach(function(k) {
+      const f = footprint[k];
+      if (f && (f.bid > 0 || f.ask > 0)) fpPrices[k] = true;
+    });
+    const sortedFp = Object.keys(fpPrices).map(Number).sort(function(a, b) { return b - a; });
+
     let fpHTML = '';
-    allPrices.forEach(function(p, idx) {
+    let blankInserted = false;
+    sortedFp.forEach(function(p) {
+      if (!blankInserted && p <= MID) { fpHTML += '<div class="spread-blank"></div>'; blankInserted = true; }
       const f = footprint[p] || { bid: 0, ask: 0 };
       const flashAsk = flashed.some(function(fl) { return fl.side === 'ask' && fl.price === p; });
       const flashBid = flashed.some(function(fl) { return fl.side === 'bid' && fl.price === p; });
       const bidCls = 'fp-cell fp-cell-bid' + (f.bid > 0 ? ' has-bid' : '') + (flashBid ? ' flash-bid' : '');
       const askCls = 'fp-cell fp-cell-ask' + (f.ask > 0 ? ' has-ask' : '') + (flashAsk ? ' flash-ask' : '');
       fpHTML += '<div class="fp-row"><div class="' + bidCls + '">' + (f.bid || '·') + '</div><div class="fp-price">' + p.toLocaleString() + '</div><div class="' + askCls + '">' + (f.ask || '·') + '</div></div>';
-      if (idx === LEVELS - 1) fpHTML += '<div class="spread-blank"></div>';
     });
     document.getElementById('fp').innerHTML = fpHTML;
 
@@ -827,13 +879,34 @@
 
   window.ofBuy = ofBuy;
   window.ofSell = ofSell;
+  window.ofNewBar = ofNewBar;
   window.ofReset = ofReset;
   window.ofDemoTrend = ofDemoTrend;
   window.ofDemoAbsorption = ofDemoAbsorption;
   window.ofDemoChop = ofDemoChop;
 
+  // Auto-height: tell the parent frame how tall the content is so the iframe can
+  // resize to fit (no fixed height, no dark gap). Debounced to avoid spamming.
+  let heightTimer = null;
+  function postHeight() {
+    if (window.parent === window) return;
+    if (heightTimer) return;
+    heightTimer = setTimeout(function() {
+      heightTimer = null;
+      window.parent.postMessage({ type: 'tws-orderflow-height', height: document.documentElement.scrollHeight }, '*');
+    }, 100);
+  }
+  if (window.parent !== window) {
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(postHeight).observe(document.body);
+    }
+    window.addEventListener('load', postHeight);
+    window.addEventListener('resize', postHeight);
+  }
+
   init();
   render([]);
+  postHeight();
 })();
 </script>
 

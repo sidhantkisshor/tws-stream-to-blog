@@ -5,9 +5,8 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CookieConsent } from "@/components/CookieConsent";
 import { BackToTop } from "@/components/BackToTop";
+import { SITE_URL, SITE_TITLE, SITE_NAME, SITE_DESCRIPTION, TWITTER_HANDLE, GTM_ID } from "@/lib/site";
 import "./globals.css";
-
-const GTM_ID = "GTM-TMQ589CP";
 
 const satoshi = localFont({
   src: [
@@ -29,12 +28,12 @@ const instrumentSerif = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "TWSGurukulX — Trading Insights",
-    template: "%s | TWSGurukulX",
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
+  description: SITE_DESCRIPTION,
   alternates: {
     canonical: "/",
     types: { "application/rss+xml": "/feed.xml" },
@@ -45,17 +44,17 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "TWSGurukulX — Trading Insights",
-    description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     // No static `images` here: setting openGraph.images at the root segment would
     // suppress the dynamic `opengraph-image.tsx` file convention (Next only applies
     // the file when the segment's metadata has no openGraph.images). Omitting it lets
     // the branded dynamic OG image render site-wide.
-    siteName: "TWSGurukulX",
+    siteName: SITE_NAME,
   },
   twitter: {
     card: "summary_large_image",
-    site: "@tradingwsidhant",
+    site: TWITTER_HANDLE,
     // twitter:image intentionally omitted so X falls back to the dynamic og:image,
     // consistent with the per-post pages.
   },

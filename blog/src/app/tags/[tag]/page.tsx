@@ -3,6 +3,7 @@ import Image from "next/image";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { getPostsByTag, getAllTags } from "@/lib/posts";
 import { notFound } from "next/navigation";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -28,7 +29,7 @@ export async function generateMetadata({
     description: `Trading insights and analysis tagged with ${tag}`,
     alternates: { canonical: `/tags/${encodeURIComponent(tag)}` },
     openGraph: {
-      title: `#${tag} — TWSGurukulX`,
+      title: `#${tag} — ${SITE_NAME}`,
       description: `Trading insights and analysis tagged with ${tag}`,
       images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
     },
@@ -46,7 +47,7 @@ export default async function TagPage({
 
   if (posts.length === 0) notFound();
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",

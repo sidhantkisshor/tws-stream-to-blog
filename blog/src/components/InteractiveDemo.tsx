@@ -1,11 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface InteractiveDemoProps {
   src: string;
   title: string;
 }
 
 export function InteractiveDemo({ src, title }: InteractiveDemoProps) {
+  const [height, setHeight] = useState(640);
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      const data = e.data;
+      if (
+        data &&
+        data.type === "tws-orderflow-height" &&
+        typeof data.height === "number" &&
+        Number.isFinite(data.height)
+      ) {
+        setHeight(Math.min(4000, Math.max(400, data.height)));
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
   return (
     <figure className="my-8 -mx-1 sm:my-10 sm:-mx-6">
       <div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
@@ -38,7 +58,8 @@ export function InteractiveDemo({ src, title }: InteractiveDemoProps) {
             title={title}
             loading="lazy"
             sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-            className="block h-[1860px] w-full bg-[#0B1221] sm:h-[1920px]"
+            style={{ height }}
+            className="block w-full bg-[#0B1221]"
           />
         </div>
       </div>

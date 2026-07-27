@@ -1,21 +1,27 @@
 import type { Metadata } from "next";
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_HOST,
+  LEGAL_ENTITY,
+  SOCIAL,
+  MAIN_SITE_URL,
+  PROGRAMS_URL,
+} from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description:
-    "Terms of service for TWSGurukulX (blogs.twsgurukulx.com) — usage terms, disclaimers, and legal information.",
+  description: `Terms of service for ${SITE_NAME} (${SITE_HOST}) — usage terms, disclaimers, and legal information.`,
   alternates: { canonical: "/terms" },
   openGraph: {
-    title: "Terms of Service | TWSGurukulX",
-    description:
-      "Terms of service for TWSGurukulX — usage terms, disclaimers, and legal information.",
+    title: `Terms of Service | ${SITE_NAME}`,
+    description: `Terms of service for ${SITE_NAME} — usage terms, disclaimers, and legal information.`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };
 
 export default function TermsPage() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -23,7 +29,7 @@ export default function TermsPage() {
     url: `${baseUrl}/terms`,
     publisher: {
       "@type": "Organization",
-      name: "Trading With Sidhant LLP",
+      name: LEGAL_ENTITY,
       url: baseUrl,
     },
     dateModified: "2026-03-06",
@@ -57,12 +63,12 @@ export default function TermsPage() {
             <p>
               These Terms of Service (&quot;Terms&quot;) govern your use of{" "}
               <a
-                href="https://blogs.twsgurukulx.com"
+                href={SITE_URL}
                 className="text-wealth-teal no-underline hover:underline"
               >
-                blogs.twsgurukulx.com
+                {SITE_HOST}
               </a>{" "}
-              (the &quot;Site&quot;), operated by Trading With Sidhant LLP, a
+              (the &quot;Site&quot;), operated by {LEGAL_ENTITY}, a
               limited liability partnership registered in India
               (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
             </p>
@@ -174,7 +180,7 @@ export default function TermsPage() {
           <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
             <p>
               All content on the Site — including blog posts, images, graphics,
-              and design — is owned by Trading With Sidhant LLP or used under
+              and design — is owned by {LEGAL_ENTITY} or used under
               license. Blog content is auto-generated from live stream sessions
               conducted by the Trading With Sidhant team.
             </p>
@@ -190,8 +196,8 @@ export default function TermsPage() {
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
-                  The TWSGurukulX name, logo, and branding are trademarks of
-                  Trading With Sidhant LLP.
+                  The {SITE_NAME} name, logo, and branding are trademarks of{" "}
+                  {LEGAL_ENTITY}.
                 </span>
               </li>
             </ul>
@@ -221,7 +227,7 @@ export default function TermsPage() {
                 <span>
                   You can unsubscribe at any time by messaging us on WhatsApp at{" "}
                   <a
-                    href="https://wa.me/918062963333"
+                    href={SOCIAL.whatsapp}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-wealth-teal no-underline hover:underline"
@@ -289,16 +295,16 @@ export default function TermsPage() {
               The Site may contain links to third-party websites (including
               YouTube, social media platforms, and partner sites such as{" "}
               <a
-                href="https://twsgurukulx.com"
+                href={PROGRAMS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
               >
-                twsgurukulx.com
+                tradingwithsidhant.com/programs
               </a>{" "}
               and{" "}
               <a
-                href="https://tradingwithsidhant.com"
+                href={MAIN_SITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
@@ -347,7 +353,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">Contact Us</h2>
           <div className="mt-4 space-y-1.5 text-deep-slate/70">
             <p className="font-medium text-deep-slate/50">
-              Trading With Sidhant LLP
+              {LEGAL_ENTITY}
             </p>
             <p>
               <a
@@ -360,7 +366,7 @@ export default function TermsPage() {
             <p>
               WhatsApp:{" "}
               <a
-                href="https://wa.me/918062963333"
+                href={SOCIAL.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"
@@ -370,16 +376,7 @@ export default function TermsPage() {
             </p>
             <p>
               <a
-                href="https://twsgurukulx.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-wealth-teal no-underline hover:underline"
-              >
-                twsgurukulx.com
-              </a>
-              {" | "}
-              <a
-                href="https://tradingwithsidhant.com"
+                href={MAIN_SITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-wealth-teal no-underline hover:underline"

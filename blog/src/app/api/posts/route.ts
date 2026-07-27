@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { SITE_URL, SITE_HOST } from "@/lib/site";
 
 function slugify(text: string): string {
   return text
@@ -116,18 +117,17 @@ export async function POST(request: NextRequest) {
     revalidatePath(`/posts/${post.slug}`);
 
     // Ping IndexNow for instant Bing/Yandex indexing (fire-and-forget)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
     const indexNowKey = process.env.INDEXNOW_KEY;
     if (indexNowKey) {
       fetch("https://api.indexnow.org/indexnow", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          host: new URL(siteUrl).host,
+          host: SITE_HOST,
           key: indexNowKey,
           urlList: [
-            `${siteUrl}/posts/${post.slug}`,
-            siteUrl,
+            `${SITE_URL}/posts/${post.slug}`,
+            SITE_URL,
           ],
         }),
       }).catch(() => {});

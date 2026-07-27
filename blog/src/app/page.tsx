@@ -3,31 +3,32 @@ import { PostsDisplay } from "@/components/PostsDisplay";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ProgramCTA } from "@/components/ProgramCTA";
 import { NewsletterCTA } from "@/components/NewsletterCTA";
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
   const posts = await getRecentPosts(50);
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blogs.twsgurukulx.com";
+  const baseUrl = SITE_URL;
   const jsonLd = [
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "TWSGurukulX",
+      name: SITE_NAME,
       url: baseUrl,
       inLanguage: "en",
     },
     {
       "@context": "https://schema.org",
       "@type": "Blog",
-      name: "TWSGurukulX — Trading Insights",
-      description: "Live stream trading analysis and market insights from Trading With Sidhant Team",
+      name: SITE_TITLE,
+      description: SITE_DESCRIPTION,
       url: baseUrl,
       inLanguage: "en",
       publisher: {
         "@type": "Organization",
-        name: "TWSGurukulX",
+        name: SITE_NAME,
         url: baseUrl,
         logo: { "@type": "ImageObject", url: `${baseUrl}/logo-icon.png` },
       },
