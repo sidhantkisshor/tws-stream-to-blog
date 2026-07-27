@@ -1,14 +1,48 @@
 # N8N Workflows — TWS Stream to Blog
 
+## Provenance
+
+These files are **backups exported from the live n8n instance on 2026-07-27**, not the
+source of truth. The instance is authoritative; re-export after every change or the repo
+drifts. It had drifted badly before this export — `llm-pipeline.json` was 11 nodes against
+32 live, and `process-stream.json` was 24 against 47.
+
+| File | Workflow ID | Nodes | Exported |
+|------|-------------|-------|----------|
+| `process-stream.json` | `IPzLmrlY0ouPTnyM` | 47 | 2026-07-27 |
+| `llm-pipeline.json` | `0eyr7rl0xs1YQZmX` | 32 | 2026-07-27 |
+| `manual-transcript-to-blog.json` | `aljVaFklKureUK5h` | 6 | 2026-07-27 |
+| `publish.json` | `0CyeY196pvsvhcpv` | 9 | **stale — not re-exported** |
+
+Two caveats:
+
+- **Credentials are stripped.** The export API returns no `credentials` block on any node,
+  so importing these gives you the full logic with every credential unbound. Re-link each
+  one by hand after import (see *Required n8n Credentials* below).
+- **`publish.json` could not be re-exported.** That workflow has *Available in MCP* turned
+  off, so the export API refuses it. To refresh it, either enable that toggle on the
+  workflow card or export it from the n8n UI. Treat the committed copy as the original v1.
+
+## Removed: automatic stream detection (2026-07-27)
+
+`stream-detection.json` (`HbTFwsuTxh5gcYca`) has been removed from this repo and archived
+on the instance. It was the schedule trigger that polled the TWS and Hitpoint YouTube
+channels every 5 minutes and started the pipeline on its own; it had been inactive since
+2026-07-20 and was deleted rather than revived.
+
+**The pipeline no longer starts by itself.** The only entry point is now
+`manual-transcript-to-blog.json` — submit its form with a video URL and transcript.
+Nothing else referenced the removed workflow, so no other file changed behaviour.
+
 ## Import Instructions
 
 1. Open your n8n instance
 2. Go to **Workflows** > **Import from File**
 3. Import each JSON file in this order:
-   - `stream-detection.json` — polls YouTube every 5 minutes, detects ended streams
-   - `process-stream.json` — dispatches transcription (local GPU or cloud Whisper fallback)
-   - `llm-pipeline.json` — multi-model blog generation chain
+   - `process-stream.json` — transcription: local GPU service, with YouTube caption scraping and retry fallbacks
+   - `llm-pipeline.json` — multi-model blog generation chain (chart vision → ghost writer → editorial board agent)
    - `publish.json` — publishes to blog, validates, updates state, notifies Telegram
+   - `manual-transcript-to-blog.json` — form-triggered manual path; paste a transcript to generate a post when caption fetch fails
 
 ## Required n8n Variables
 
@@ -26,7 +60,7 @@ Set these in **Settings > Variables** before activating any workflow:
 | `R2_BUCKET` | `tws-blog-images` | R2 bucket name for hero images. |
 | `R2_PUBLIC_URL` | `https://pub-xxx.r2.dev` | Public URL of your R2 bucket (no trailing slash). |
 
-**Note on `N8N_BASE_URL`**: The workflows call each other via webhook HTTP requests using this variable. The `stream-detection` workflow calls `process-stream`, `process-stream` calls `llm-pipeline`, and `llm-pipeline` calls `publish-blog`. Setting this variable correctly is required for the pipeline to chain between workflows.
+**Note on `N8N_BASE_URL`**: The workflows call each other via webhook HTTP requests using this variable. `process-stream` calls `llm-pipeline`, and `llm-pipeline` calls `publish-blog`. Setting this variable correctly is required for the pipeline to chain between workflows.
 
 ## Required n8n Credentials
 
@@ -49,7 +83,7 @@ After creating each credential, open the relevant nodes in each workflow and upd
 
 ## State Store Setup (Postgres)
 
-The `stream-detection` and `publish` workflows use Postgres to track which videos have been processed and record final status.
+The `manual-transcript-to-blog` and `publish` workflows use Postgres to track which videos have been processed and record final status.
 
 ### 1. Create the table
 
@@ -87,24 +121,30 @@ Activate in this order so each webhook is registered before the upstream workflo
 
 1. Activate `publish.json` first (called by llm-pipeline)
 2. Activate `llm-pipeline.json` (called by process-stream)
-3. Activate `process-stream.json` (called by stream-detection)
-4. Activate `stream-detection.json` last (this starts the polling schedule)
+3. Activate `process-stream.json`
+4. Activate `manual-transcript-to-blog.json` last — this exposes the form that starts a run
 
 ## Workflow Architecture
 
+> **Outdated.** The diagram below describes the original v1 design and no longer matches the
+> exported JSON. Known divergences: workflows now chain via `executeWorkflow` nodes rather
+> than webhook POSTs; `process-stream` replaced the cloud-Whisper fallback with a YouTube
+> caption-scraping chain (timedtext and player-API fallbacks, retry_pending state, Telegram
+> retry alerts); `llm-pipeline` gained chart vision classification, an internal-link pool
+> built from the live sitemap, an Editorial Board agent, and a compliance/publish gate.
+> The scheduled `stream-detection` stage shown as the entry point was removed on
+> 2026-07-27 — runs now start from the `manual-transcript-to-blog` form.
+> Read the JSON for current behaviour.
+
 ```
-[Schedule: every 5 min]
+[Form submission: video URL + transcript]
        |
-stream-detection
-  - Fetch YouTube playlist (latest video)
-  - Fetch video details + liveStreamingDetails
-  - IF liveBroadcastContent == "none" (stream ended)
-    - Postgres: check if video_id already in pipeline_runs
-    - IF not yet processed:
-      - Postgres: INSERT pipeline_runs (status=pending)
-      - Wait 15 minutes (VOD processing time)
-      - HTTP POST → process-stream webhook
-       |
+manual-transcript-to-blog
+  - Parse video ID, map channel → voice
+  - Postgres: INSERT pipeline_runs (status=processing)
+  - → llm-pipeline (transcript supplied directly, no charts)
+
+[or, for a run that still needs transcription]
 process-stream
   - GET local API /health
   - IF local machine online:
@@ -140,11 +180,9 @@ publish
 ## Customization Notes
 
 - The LLM system prompts in `llm-pipeline.json` are tuned for trading/finance content. Edit them directly in the **Messages** fields of the OpenAI nodes (Step 1 and Step 2), and in the `jsonBody` field of the Anthropic HTTP Request node (Step 4).
-- Polling interval is 5 minutes. Change it in the Schedule Trigger node of `stream-detection.json`.
-- The 15-minute VOD processing wait can be adjusted in the Wait node of `stream-detection.json`.
 - Transcription polling: 60 retries x 30s = up to 30 minutes. Adjust `MAX_RETRIES` in the Code node.
 - Chart extraction polling: 40 retries x 30s = up to 20 minutes. Adjust `MAX_RETRIES` in the Code node.
-- The YouTube playlist ID `UUyFDhiqKcVqoIGB3CmJJFUg` is hardcoded in `stream-detection.json`. Update it in the Fetch Recent Videos node if your channel changes.
+- The channel → voice mapping lives in the `Prepare Manual Input` Code node of `manual-transcript-to-blog.json` and must stay in sync with the Voice Router in `llm-pipeline.json`.
 
 ## Pipeline State Reference
 
@@ -154,7 +192,7 @@ The `pipeline_runs` Postgres table tracks each video through the pipeline:
 |--------|-------------|
 | `video_id` | YouTube video ID (primary key) |
 | `channel_id` | YouTube channel ID |
-| `detected_at` | When the stream end was detected |
+| `detected_at` | When the run was created (form submission time) |
 | `status` | `pending`, `complete`, or `failed` |
 | `transcript` | Full transcript text (not populated by n8n — available for future use) |
 | `chart_urls` | JSON array of chart URLs (not populated by n8n — available for future use) |

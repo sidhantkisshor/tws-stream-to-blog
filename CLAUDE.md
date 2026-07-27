@@ -38,12 +38,15 @@ Starts Redis, FastAPI, ARQ worker, Cloudflare tunnel, and Next.js dev server.
 ## Architecture
 
 ```
-YouTube stream ends
-  → [n8n: stream-detection] polls YouTube API every 5 min, checks pipeline_runs table
-  → [n8n: process-stream] calls local FastAPI via Cloudflare Tunnel (or cloud Whisper fallback)
-  → [n8n: llm-pipeline] GPT-4o-mini compress → GPT-4o title/SEO → Tavily research → Claude blog body → Imagen hero image → R2 upload
+Operator submits the manual-transcript form (video URL + transcript)
+  → [n8n: manual-transcript-to-blog] parses video ID, maps channel → voice, records pipeline_runs
+  → [n8n: process-stream] calls local FastAPI via Cloudflare Tunnel (only for runs needing transcription)
+  → [n8n: llm-pipeline] GPT-4o-mini compress → GPT-4o title/SEO → Tavily research → chart vision → Claude blog body → Editorial Board agent → Imagen hero image → R2 upload
   → [n8n: publish] POST /api/posts → Prisma upsert → validates page → updates pipeline_runs → Telegram notification
 ```
+
+There is **no automatic trigger.** The scheduled `stream-detection` workflow that polled
+YouTube every 5 minutes was removed on 2026-07-27; every run now starts from the form.
 
 ### blog/ — Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma v7
 
@@ -71,8 +74,9 @@ YouTube stream ends
 
 ### n8n/ — Four workflow JSON files
 
-- Activate in order: `publish` → `llm-pipeline` → `process-stream` → `stream-detection`
-- Credential IDs are placeholders — re-link after import to n8n
+- Activate in order: `publish` → `llm-pipeline` → `process-stream` → `manual-transcript-to-blog`
+- Exports are backups of the live instance (the instance is authoritative) — re-export after every change
+- Credentials are stripped by the export API — re-link every node after import to n8n
 - Inter-workflow calls use `$env.N8N_BASE_URL` + webhook auth header
 - See `n8n/README.md` for full credential setup, state store SQL, and customization notes
 

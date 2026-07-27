@@ -34,6 +34,12 @@ n8n/data/
 # Brand assets (source files — processed copies live in blog/public/)
 TWS GurukulX/
 
+# Local dev/review screenshots & scratch notes (not part of the app)
+audit-*.png
+demo-mobile-*.png
+post-mobile-*.png
+/new.md
+
 # OS
 .DS_Store
 Thumbs.db

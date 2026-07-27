@@ -1,29 +1,18 @@
 {
-  "name": "TWS Process Stream",
+  "name": "TWS Core - Process Stream",
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "fa4d519a-ac56-49ca-ad2c-2cfcf6ba3086",
-        "authentication": "headerAuth",
-        "responseMode": "lastNode",
-        "options": {}
+        "inputSource": "passthrough"
       },
       "id": "b2c3d4e5-0001-0001-0001-000000000001",
-      "name": "Webhook Trigger",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
+      "name": "Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
       "position": [
-        100,
-        300
-      ],
-      "webhookId": "fa4d519a-ac56-49ca-ad2c-2cfcf6ba3086",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "IlRAwjG9guzimnOg",
-          "name": "N8N Webhook Auth"
-        }
-      }
+        112,
+        448
+      ]
     },
     {
       "parameters": {
@@ -32,24 +21,25 @@
             {
               "id": "local-api-url",
               "name": "LOCAL_API_URL",
-              "value": "={{ $env.LOCAL_API_TUNNEL_URL }}",
+              "value": "={{ $json.local_api_url || '' }}",
               "type": "string"
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0002-0002-0002-000000000002",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        300,
-        300
-      ]
+        336,
+        448
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "={{ $json.LOCAL_API_URL }}/health",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -60,23 +50,23 @@
       "id": "b2c3d4e5-0003-0003-0003-000000000003",
       "name": "Health Check Local Machine",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
-        520,
-        300
+        560,
+        448
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EZUz9pDRTChJqdRn",
-          "name": "Local API Key"
-        }
-      },
-      "continueOnFail": true
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "conditions": {
-          "options": {},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
           "conditions": [
             {
               "id": "local-online",
@@ -88,62 +78,60 @@
               }
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0004-0004-0004-000000000004",
       "name": "Local Machine Online?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.3,
       "position": [
-        740,
-        300
-      ]
+        784,
+        448
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $node['Config'].json.LOCAL_API_URL }}/transcribe",
+        "url": "={{ $('Config').first().json.LOCAL_API_URL }}/transcribe",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ video_id: $node['Webhook Trigger'].json.body.video_id }) }}",
+        "jsonBody": "={{ JSON.stringify({ video_id: $('Workflow Trigger').first().json.video_id }) }}",
         "options": {}
       },
       "id": "b2c3d4e5-0005-0005-0005-000000000005",
       "name": "Local: Start Transcription",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
-        980,
-        160
+        1008,
+        272
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EZUz9pDRTChJqdRn",
-          "name": "Local API Key"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "amount": 30,
-        "unit": "seconds"
+        "amount": 30
       },
       "id": "b2c3d4e5-0006-0006-0006-000000000006",
       "name": "Wait 30s (Transcription)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1200,
-        160
+        1232,
+        272
       ],
       "webhookId": "wait-transcription"
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "={{ $node['Config'].json.LOCAL_API_URL }}/status/{{ $node['Local: Start Transcription'].json.job_id }}",
+        "url": "={{ $('Config').first().json.LOCAL_API_URL }}/status/{{ $('Local: Start Transcription').first().json.job_id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}
@@ -151,35 +139,38 @@
       "id": "b2c3d4e5-0007-0007-0007-000000000007",
       "name": "Poll Transcription Status",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
-        1420,
-        160
+        1456,
+        192
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EZUz9pDRTChJqdRn",
-          "name": "Local API Key"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "jsCode": "const MAX_RETRIES = 60;\nconst status = $json.status;\nconst retryCount = ($json._retryCount || 0) + 1;\n\nif (status === 'complete') {\n  return [{ json: { ...($json), _result: 'complete' } }];\n}\n\nif (status === 'failed' || status === 'error') {\n  return [{ json: { ...($json), _result: 'failed', _error: $json.error || 'Job reported failure' } }];\n}\n\nif (retryCount >= MAX_RETRIES) {\n  return [{ json: { ...($json), _result: 'failed', _error: 'Transcription polling timed out after ' + MAX_RETRIES + ' attempts' } }];\n}\n\nreturn [{ json: { ...($json), _result: 'pending', _retryCount: retryCount } }];"
+        "jsCode": "const MAX_RETRIES = 60;\nconst item = $input.first().json;\nconst status = item.status;\nconst retryCount = (item._retryCount || 0) + 1;\n\nif (status === 'complete') {\n  return [{ json: { ...item, _result: 'complete' } }];\n}\n\nif (status === 'failed' || status === 'error') {\n  return [{ json: { ...item, _result: 'failed', _error: item.error || 'Job reported failure' } }];\n}\n\nif (retryCount >= MAX_RETRIES) {\n  return [{ json: { ...item, _result: 'failed', _error: 'Transcription polling timed out after ' + MAX_RETRIES + ' attempts' } }];\n}\n\nreturn [{ json: { ...item, _result: 'pending', _retryCount: retryCount } }];"
       },
       "id": "b2c3d4e5-0008-0008-0008-000000000008",
       "name": "Check Transcription Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1640,
-        160
+        1680,
+        192
       ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
           "conditions": [
             {
               "id": "is-complete",
@@ -191,21 +182,29 @@
               }
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0009-0009-0009-000000000009",
       "name": "Transcription Done?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.3,
       "position": [
-        1860,
-        160
-      ]
+        1904,
+        176
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "conditions": {
-          "options": {},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
           "conditions": [
             {
               "id": "is-failed",
@@ -217,28 +216,30 @@
               }
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0010-0010-0010-000000000010",
       "name": "Transcription Failed?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.3,
       "position": [
-        1860,
-        360
-      ]
+        2128,
+        384
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "const transcriptData = $node['Poll Transcription Status'].json;\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\nreturn [{ json: {\n  transcript: transcriptData.result ? transcriptData.result.full_text : '',\n  video_id: videoId\n} }];"
+        "jsCode": "const transcriptData = $('Poll Transcription Status').first().json;\nconst videoId = $('Workflow Trigger').first().json.video_id;\nreturn [{ json: {\n  transcript: transcriptData.result ? transcriptData.result.full_text : '',\n  video_id: videoId\n} }];"
       },
       "id": "b2c3d4e5-0011-0011-0011-000000000011",
       "name": "Store Transcript Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2100,
-        160
+        2128,
+        192
       ]
     },
     {
@@ -258,21 +259,22 @@
               "type": "string"
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0012-0012-0012-000000000012",
       "name": "Transcription Error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2100,
-        460
+        2352,
+        400
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $node['Config'].json.LOCAL_API_URL }}/extract-charts",
+        "url": "={{ $('Config').first().json.LOCAL_API_URL }}/extract-charts",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
@@ -283,37 +285,32 @@
       "id": "b2c3d4e5-0013-0013-0013-000000000013",
       "name": "Local: Start Chart Extraction",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
-        2320,
-        160
+        2352,
+        192
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EZUz9pDRTChJqdRn",
-          "name": "Local API Key"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "amount": 30,
-        "unit": "seconds"
+        "amount": 30
       },
       "id": "b2c3d4e5-0014-0014-0014-000000000014",
       "name": "Wait 30s (Charts)",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2540,
-        160
+        2576,
+        192
       ],
       "webhookId": "wait-charts"
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "={{ $node['Config'].json.LOCAL_API_URL }}/status/{{ $node['Local: Start Chart Extraction'].json.job_id }}",
+        "url": "={{ $('Config').first().json.LOCAL_API_URL }}/status/{{ $('Local: Start Chart Extraction').first().json.job_id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}
@@ -321,35 +318,38 @@
       "id": "b2c3d4e5-0015-0015-0015-000000000015",
       "name": "Poll Chart Extraction Status",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
-        2760,
-        160
+        2800,
+        192
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EZUz9pDRTChJqdRn",
-          "name": "Local API Key"
-        }
-      }
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "jsCode": "const MAX_RETRIES = 40;\nconst status = $json.status;\nconst retryCount = ($json._retryCount || 0) + 1;\n\nif (status === 'complete') {\n  return [{ json: { ...($json), _result: 'complete' } }];\n}\n\nif (status === 'failed' || status === 'error') {\n  return [{ json: { ...($json), _result: 'failed', _error: $json.error || 'Job reported failure' } }];\n}\n\nif (retryCount >= MAX_RETRIES) {\n  return [{ json: { ...($json), _result: 'failed', _error: 'Chart extraction polling timed out after ' + MAX_RETRIES + ' attempts' } }];\n}\n\nreturn [{ json: { ...($json), _result: 'pending', _retryCount: retryCount } }];"
+        "jsCode": "const MAX_RETRIES = 40;\nconst item = $input.first().json;\nconst status = item.status;\nconst retryCount = (item._retryCount || 0) + 1;\n\nif (status === 'complete') {\n  return [{ json: { ...item, _result: 'complete' } }];\n}\n\nif (status === 'failed' || status === 'error') {\n  return [{ json: { ...item, _result: 'failed', _error: item.error || 'Job reported failure' } }];\n}\n\nif (retryCount >= MAX_RETRIES) {\n  return [{ json: { ...item, _result: 'failed', _error: 'Chart extraction polling timed out after ' + MAX_RETRIES + ' attempts' } }];\n}\n\nreturn [{ json: { ...item, _result: 'pending', _retryCount: retryCount } }];"
       },
       "id": "b2c3d4e5-0016-0016-0016-000000000016",
       "name": "Check Charts Status",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2980,
-        160
+        3024,
+        192
       ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
           "conditions": [
             {
               "id": "charts-complete",
@@ -361,21 +361,29 @@
               }
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0017-0017-0017-000000000017",
       "name": "Charts Done?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.3,
       "position": [
-        3200,
-        160
-      ]
+        3248,
+        176
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "conditions": {
-          "options": {},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
           "conditions": [
             {
               "id": "charts-failed",
@@ -387,156 +395,735 @@
               }
             }
           ]
-        }
+        },
+        "options": {}
       },
       "id": "b2c3d4e5-0018-0018-0018-000000000018",
       "name": "Charts Failed?",
       "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3472,
+        384
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine transcript + chart URLs for LLM pipeline\nconst charts = ($('Poll Chart Extraction Status').first().json.result && $('Poll Chart Extraction Status').first().json.result.charts)\n  ? $('Poll Chart Extraction Status').first().json.result.charts\n  : [];\nlet video_title = '';\ntry { video_title = $('Pick Caption Credential').first().json.video_title || ''; } catch (e) { video_title = ''; }\nreturn [{ json: {\n  video_id: $('Store Transcript Data').first().json.video_id,\n  transcript: $('Store Transcript Data').first().json.transcript,\n  chart_urls: charts,\n  channel_id: $('Workflow Trigger').first().json.channel_id || '',\n  video_title: video_title\n} }];"
+      },
+      "id": "b2c3d4e5-0019-0019-0019-000000000019",
+      "name": "Prepare LLM Data (With Charts)",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3200,
-        360
+        3472,
+        160
       ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.N8N_BASE_URL }}/webhook/llm-pipeline",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ video_id: $node['Store Transcript Data'].json.video_id, transcript: $node['Store Transcript Data'].json.transcript, chart_urls: ($node['Poll Chart Extraction Status'].json.result && $node['Poll Chart Extraction Status'].json.result.charts) ? $node['Poll Chart Extraction Status'].json.result.charts : [] }) }}",
-        "options": {
-          "timeout": 30000
-        }
+        "workflowId": {
+          "__rl": true,
+          "value": "0eyr7rl0xs1YQZmX",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
       },
-      "id": "b2c3d4e5-0019-0019-0019-000000000019",
+      "id": "b2c3d4e5-0025-0025-0025-000000000025",
       "name": "Trigger LLM Pipeline (With Charts)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
       "position": [
-        3440,
+        3696,
         160
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "IlRAwjG9guzimnOg",
-          "name": "N8N Webhook Auth"
-        }
-      }
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.N8N_BASE_URL }}/webhook/llm-pipeline",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ video_id: $node['Store Transcript Data'].json.video_id, transcript: $node['Store Transcript Data'].json.transcript, chart_urls: [] }) }}",
-        "options": {
-          "timeout": 30000
-        }
+        "jsCode": "// Transcript only, no charts available\nlet video_title = '';\ntry { video_title = $('Pick Caption Credential').first().json.video_title || ''; } catch (e) { video_title = ''; }\nreturn [{ json: {\n  video_id: $('Store Transcript Data').first().json.video_id,\n  transcript: $('Store Transcript Data').first().json.transcript,\n  chart_urls: [],\n  channel_id: $('Workflow Trigger').first().json.channel_id || '',\n  video_title: video_title\n} }];"
       },
       "id": "b2c3d4e5-0020-0020-0020-000000000020",
-      "name": "Trigger LLM Pipeline (No Charts)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3440,
-        360
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "IlRAwjG9guzimnOg",
-          "name": "N8N Webhook Auth"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Download audio from YouTube using yt-dlp\n// Requires yt-dlp installed on the n8n server: pip install yt-dlp\nconst { execSync } = require('child_process');\nconst fs = require('fs');\nconst path = require('path');\n\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\nconst sanitizedId = videoId.replace(/[^A-Za-z0-9_-]/g, '');\nconst outputDir = '/tmp/tws-audio';\nconst outputPath = path.join(outputDir, `${sanitizedId}.mp3`);\n\nif (!fs.existsSync(outputDir)) {\n  fs.mkdirSync(outputDir, { recursive: true });\n}\n\ntry {\n  execSync(\n    `yt-dlp -x --audio-format mp3 --audio-quality 5 -o \"${outputPath}\" \"https://www.youtube.com/watch?v=${sanitizedId}\"`,\n    { timeout: 600000, maxBuffer: 50 * 1024 * 1024 }\n  );\n\n  const audioBuffer = fs.readFileSync(outputPath);\n  fs.unlinkSync(outputPath);\n\n  // Output as n8n binary data so the native OpenAI transcribe node can read it directly\n  return [{\n    json: { video_id: sanitizedId },\n    binary: {\n      data: {\n        data: audioBuffer.toString('base64'),\n        mimeType: 'audio/mpeg',\n        fileName: `${sanitizedId}.mp3`\n      }\n    }\n  }];\n} catch (error) {\n  try { fs.unlinkSync(outputPath); } catch (e) {}\n  throw new Error(`yt-dlp audio download failed: ${error.message}`);\n}"
-      },
-      "id": "b2c3d4e5-0021-0021-0021-000000000021",
-      "name": "Cloud: Download Audio (yt-dlp)",
+      "name": "Prepare LLM Data (No Charts)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        980,
-        480
-      ],
-      "notes": "Requires yt-dlp installed on the n8n server. Outputs n8n binary data (not base64 JSON) so the native OpenAI transcribe node can attach it as a file directly."
+        3696,
+        400
+      ]
     },
     {
       "parameters": {
-        "resource": "audio",
-        "operation": "transcribe",
-        "binaryPropertyName": "data",
-        "options": {
-          "language": "en"
-        }
+        "workflowId": {
+          "__rl": true,
+          "value": "0eyr7rl0xs1YQZmX",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
       },
-      "id": "b2c3d4e5-0022-0022-0022-000000000022",
-      "name": "Cloud: OpenAI Whisper API",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
+      "id": "b2c3d4e5-0026-0026-0026-000000000026",
+      "name": "Trigger LLM Pipeline (No Charts)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
       "position": [
-        1200,
-        480
+        3920,
+        400
       ],
-      "credentials": {
-        "openAiApi": {
-          "id": "ByciQx1HuxRbPxMl",
-          "name": "OpenAI API Key"
-        }
-      }
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Store cloud transcript in same format as local path\nconst transcript = $json.text || '';\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\nreturn [{\n  json: {\n    transcript: transcript,\n    video_id: videoId\n  }\n}];"
+        "jsCode": "// Store cloud transcript - handles all items (multiple videos)\nconst items = $input.all();\nreturn items.map(item => {\n  const data = item.json;\n  const videoId = data.video_id || '';\n\n  if (data.cloud_fallback_failed || data.error || !data.transcript) {\n    return {\n      json: {\n        transcript: '',\n        video_id: videoId,\n        cloud_fallback_failed: true,\n        error: data.error || 'Cloud transcription failed'\n      }\n    };\n  }\n\n  return {\n    json: {\n      transcript: data.transcript,\n      video_id: videoId,\n      source: data.source || 'cloud',\n      char_count: data.char_count || data.transcript.length\n    }\n  };\n});"
       },
       "id": "b2c3d4e5-0023-0023-0023-000000000023",
       "name": "Store Cloud Transcript",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1420,
-        480
+        3920,
+        768
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cloud path: package data for LLM Pipeline\n// Filters out failed items, stops chain if no transcripts\nconst items = $input.all();\nlet video_title = '';\ntry { video_title = $('Pick Caption Credential').first().json.video_title || ''; } catch (e) { video_title = ''; }\nreturn items\n  .filter(item => !item.json.cloud_fallback_failed && item.json.transcript)\n  .map(item => ({\n    json: {\n      video_id: item.json.video_id,\n      transcript: item.json.transcript,\n      chart_urls: [],\n      channel_id: $('Workflow Trigger').first().json.channel_id || '',\n      video_title: video_title\n    }\n  }));"
+      },
+      "id": "b2c3d4e5-0024-0024-0024-000000000024",
+      "name": "Prepare LLM Data (Cloud Path)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4368,
+        736
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "0eyr7rl0xs1YQZmX",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "b2c3d4e5-0027-0027-0027-000000000027",
+      "name": "Trigger LLM Pipeline (Cloud Path)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        4592,
+        736
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/captions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "videoId",
+              "value": "={{ $('Workflow Trigger').first().json.video_id }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "cloud-get-player-001",
+      "name": "Fetch YouTube Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3024,
+        832
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract best caption track ID from YouTube Data API captions.list response\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const video_id = $('Workflow Trigger').first().json.video_id || '';\n\n  try {\n    const allTracks = data.items || [];\n    // Guard: skip tracks with status 'failed' -- YouTube lists them but the download\n    // is a useless ~515-byte stub even for the owning channel.\n    const tracks = allTracks.filter(t => t && t.snippet && String(t.snippet.status || '').toLowerCase() !== 'failed');\n    if (tracks.length === 0) {\n      const why = allTracks.length > 0\n        ? 'All ' + allTracks.length + ' caption track(s) have status failed for video ' + video_id\n        : 'No caption tracks found for video ' + video_id;\n      results.push({ json: { video_id, captionId: '', cloud_fallback_failed: true, error: why } });\n      continue;\n    }\n\n    // Filter to serving tracks first; fall back to all tracks if none are serving\n    const servingTracks = tracks.filter(t => t.snippet.status === 'serving');\n    const pool = servingTracks.length > 0 ? servingTracks : tracks;\n\n    // Priority: manual English > auto-generated English > any English-like > first available\n    let best = pool.find(t => t.snippet.language === 'en' && t.snippet.trackKind !== 'ASR')\n      || pool.find(t => t.snippet.language === 'en' && t.snippet.trackKind === 'ASR')\n      || pool.find(t => t.snippet.language && t.snippet.language.startsWith('en'))\n      || pool[0];\n\n    results.push({\n      json: {\n        captionId: best.id,\n        language: best.snippet.language,\n        trackKind: best.snippet.trackKind || 'standard',\n        status: best.snippet.status || 'unknown',\n        video_id\n      }\n    });\n  } catch (e) {\n    results.push({ json: { video_id, captionId: '', cloud_fallback_failed: true, error: 'Caption extract error: ' + e.message } });\n  }\n}\n\nreturn results;"
+      },
+      "id": "cloud-extract-url-001",
+      "name": "Extract Caption URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3248,
+        832
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/captions/{{ $json.captionId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tfmt",
+              "value": "srt"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "cloud-fetch-captions-001",
+      "name": "Fetch Captions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3472,
+        832
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Transcript — handles BOTH timedtext json3 (primary, ASR-capable)\n// and captions.download SRT (fallback). Never stringifies arbitrary objects.\nconst items = $input.all();\n\nlet extractMeta = [];\ntry { extractMeta = $('Extract Caption URL').all(); } catch (e) { extractMeta = []; }\n\nfunction resolveVideoId(data, i) {\n  if (data && data.video_id) return data.video_id;\n  try { const v = $('Workflow Trigger').first().json.video_id; if (v) return v; } catch (e) {}\n  try { const m = extractMeta[i] && extractMeta[i].json; if (m && m.video_id) return m.video_id; } catch (e) {}\n  return '';\n}\n\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const data = items[i].json;\n  const meta = (extractMeta[i] && extractMeta[i].json) || {};\n  const video_id = resolveVideoId(data, i);\n\n  // Upstream failure: never fabricate a transcript\n  if (data.error || data.cloud_fallback_failed || meta.cloud_fallback_failed) {\n    const reason = (typeof data.error === 'string' && data.error)\n      || (typeof meta.error === 'string' && meta.error)\n      || 'Upstream caption fetch failed';\n    results.push({ json: { video_id, transcript: '', cloud_fallback_failed: true, error: reason } });\n    continue;\n  }\n\n  // Only accept STRING payloads\n  const payload = typeof data === 'string'\n    ? data\n    : (typeof data.data === 'string' ? data.data\n      : (typeof data.body === 'string' ? data.body : ''));\n\n  if (!payload) {\n    results.push({ json: { video_id, transcript: '', cloud_fallback_failed: true, error: 'Empty caption response' } });\n    continue;\n  }\n\n  let transcript = '';\n  let source = '';\n  const trimmed = payload.trimStart();\n\n  if (trimmed.startsWith('{')) {\n    source = 'timedtext_json3';\n    let parsed = null;\n    try { parsed = JSON.parse(trimmed); } catch (e) { parsed = null; }\n    if (!parsed || !Array.isArray(parsed.events)) {\n      results.push({ json: { video_id, transcript: '', cloud_fallback_failed: true, error: 'Caption endpoint returned JSON without events / error payload' } });\n      continue;\n    }\n    transcript = parsed.events\n      .flatMap(e => (e.segs || []).map(s => s.utf8 || ''))\n      .join('')\n      .replace(/\\n/g, ' ')\n      .replace(/\\s+/g, ' ')\n      .trim();\n  } else {\n    source = 'captions_download_srt';\n    const lines = payload.split('\\n');\n    const textLines = [];\n    for (const line of lines) {\n      const t = line.trim();\n      if (!t) continue;\n      if (/^\\d+$/.test(t)) continue;\n      if (/\\d{2}:\\d{2}:\\d{2}[,.]\\d{3}\\s*-->\\s*\\d{2}:\\d{2}:\\d{2}[,.]\\d{3}/.test(t)) continue;\n      textLines.push(t.replace(/<[^>]+>/g, ''));\n    }\n    transcript = textLines.join(' ').replace(/\\s+/g, ' ').trim();\n  }\n\n  if (transcript.length <= 1000) {\n    results.push({ json: { video_id, transcript: '', cloud_fallback_failed: true, error: 'Transcript too short (' + transcript.length + ' chars) — likely invalid' } });\n    continue;\n  }\n\n  results.push({ json: { transcript, video_id, source, char_count: transcript.length } });\n}\n\nreturn results;"
+      },
+      "id": "cloud-build-transcript-001",
+      "name": "Build Transcript",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3696,
+        768
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "transcript-ok",
+              "leftValue": "={{ $json.cloud_fallback_failed !== true && typeof $json.transcript === 'string' && $json.transcript.length > 1000 && !$json.transcript.trimStart().startsWith('{') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8a0fd28e-cc19-4f93-a9fa-02ca5b5e28e4",
+      "name": "Transcript OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4144,
+        768
       ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.N8N_BASE_URL }}/webhook/llm-pipeline",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ video_id: $json.video_id, transcript: $json.transcript, chart_urls: [] }) }}",
+        "operation": "executeQuery",
+        "query": "WITH old AS (SELECT status AS prev_status FROM pipeline_runs WHERE video_id = $1) UPDATE pipeline_runs SET status = 'retry_pending', failed_step = 'transcript', error_message = $2, updated_at = NOW() WHERE video_id = $1 RETURNING video_id, (SELECT prev_status FROM old) AS prev_status",
         "options": {
+          "queryReplacement": "={{ $json.video_id }},={{ $json.cloud_fallback_reason || $json.error || 'captions not available yet' }}"
+        }
+      },
+      "id": "d460b8ad-64cb-424b-acca-b4d77c1619a2",
+      "name": "Mark Retry Pending",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4368,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "first-failure",
+              "leftValue": "={{ $json.prev_status === 'processing' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2b71ac07-dd8b-4249-91cf-32901c5b82f3",
+      "name": "First Failure?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4592,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-1003723441488",
+        "text": "=⏳ *TWS Blog: transcript not ready*\nVideo: {{ $json.video_id }}\nYouTube is blocking auto-captions from the server. Paste the transcript manually here:\nhttps://n8n.srv1104529.hstgr.cloud/form/c2781738-116b-4293-9043-8c3650d62fb7\n(Auto-retry continues every ~2h for 48h in case captions open up.)",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "0e862b70-7898-445f-9c79-fc67e6934680",
+      "name": "Notify: Transcript Retry",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4816,
+        832
+      ],
+      "webhookId": "ab79603d-1311-4eb8-8bd1-368ce3ae8b77"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.youtube.com/watch?v={{ $json.video_id || $('Workflow Trigger').first().json.video_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
           "timeout": 30000
         }
       },
-      "id": "b2c3d4e5-0024-0024-0024-000000000024",
-      "name": "Trigger LLM Pipeline (Cloud Path)",
+      "id": "396a5759-db5e-4df3-afd4-0c096dd3e7c0",
+      "name": "Fetch Watch Page",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
-        1640,
-        480
+        2128,
+        640
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "IlRAwjG9guzimnOg",
-          "name": "N8N Webhook Auth"
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the best timedtext caption track URL from a YouTube watch page.\n// Primary path for the cloud transcript pipeline (works for ASR/auto tracks).\nconst items = $input.all();\nconst results = [];\n\nfunction balancedPlayerResponse(html) {\n  const key = 'ytInitialPlayerResponse';\n  const idx = html.indexOf(key);\n  if (idx === -1) return null;\n  const start = html.indexOf('{', idx);\n  if (start === -1) return null;\n  let depth = 0, inStr = false, esc = false;\n  for (let i = start; i < html.length; i++) {\n    const ch = html[i];\n    if (inStr) {\n      if (esc) esc = false;\n      else if (ch === '\\\\') esc = true;\n      else if (ch === '\"') inStr = false;\n    } else if (ch === '\"') inStr = true;\n    else if (ch === '{') depth++;\n    else if (ch === '}') { depth--; if (depth === 0) return html.slice(start, i + 1); }\n  }\n  return null;\n}\n\nfor (const item of items) {\n  const data = item.json;\n  let video_id = data.video_id || '';\n  if (!video_id) {\n    try { video_id = $('Workflow Trigger').first().json.video_id || ''; } catch (e) {}\n  }\n\n  const html = typeof data === 'string'\n    ? data\n    : (typeof data.data === 'string' ? data.data\n      : (typeof data.body === 'string' ? data.body : ''));\n\n  const fail = (error) => results.push({ json: { video_id, cloud_fallback_failed: true, use_api_fallback: true, error } });\n\n  if (!html) { fail('Empty watch page response'); continue; }\n  if (/consent\\.youtube\\.com|\\/consent\\?|action_recaptcha|\"consentBumpV2\"|\"BOT_DETECTED\"/.test(html)) {\n    fail('consent/bot wall detected'); continue;\n  }\n\n  // 1) Direct captionTracks array\n  let tracks = null;\n  const m = html.match(/\"captionTracks\":(\\[.*?\\])(?:,\"|\\])/s);\n  if (m) {\n    try { tracks = JSON.parse(m[1].replace(/\\\\u0026/g, '&')); } catch (e) { tracks = null; }\n  }\n\n  // 2) Fallback: full ytInitialPlayerResponse (brace-balanced)\n  if (!Array.isArray(tracks) || tracks.length === 0) {\n    const raw = balancedPlayerResponse(html);\n    if (raw) {\n      try {\n        const player = JSON.parse(raw);\n        const ct = player && player.captions\n          && player.captions.playerCaptionsTracklistRenderer\n          && player.captions.playerCaptionsTracklistRenderer.captionTracks;\n        if (Array.isArray(ct)) tracks = ct;\n      } catch (e) {}\n    }\n  }\n\n  if (!Array.isArray(tracks) || tracks.length === 0) {\n    fail('captionTracks not found in page'); continue;\n  }\n\n  const isAsr = (t) => t.kind === 'asr' || (typeof t.vssId === 'string' && t.vssId.indexOf('a.') === 0);\n  const lc = (t) => t.languageCode || '';\n\n  const best = tracks.find(t => !isAsr(t))\n    || tracks.find(t => isAsr(t) && lc(t).indexOf('hi') === 0)\n    || tracks.find(t => isAsr(t) && lc(t).indexOf('en') === 0)\n    || tracks[0];\n\n  let baseUrl = (best && best.baseUrl) ? String(best.baseUrl) : '';\n  baseUrl = baseUrl.replace(/\\\\u0026/g, '&').replace(/\\\\\\//g, '/');\n\n  if (!baseUrl) { fail('caption track missing baseUrl'); continue; }\n\n  results.push({ json: { video_id, timedtext_url: baseUrl + '&fmt=json3' } });\n}\n\nreturn results;"
+      },
+      "id": "7151c8b7-3806-45a1-88fd-4e5294448a79",
+      "name": "Extract Timedtext URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        640
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "timedtext-found",
+              "leftValue": "={{ !!$json.timedtext_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8d0d3dcb-ef86-496d-a4fc-1975b3be2693",
+      "name": "Timedtext Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2576,
+        640
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.timedtext_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
         }
       },
-      "notes": "Cloud path has no charts — local machine is offline so chart extraction is unavailable."
+      "id": "1643286f-0cfa-43ad-98d5-6269e8484574",
+      "name": "Fetch Timedtext",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2800,
+        640
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.youtube.com/youtubei/v1/player",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "prettyPrint",
+              "value": "false"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ context: { client: { clientName: 'ANDROID', clientVersion: '19.09.37', androidSdkVersion: 30, hl: 'en', gl: 'US' } }, videoId: ($json.video_id || $('Workflow Trigger').first().json.video_id) }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "b98c4398-04cf-4115-9ecc-03b19bffeb1d",
+      "name": "Fetch Player API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1456,
+        672
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract best caption track from InnerTube (ANDROID) player response.\n// PRIMARY cloud caption route: ASR-capable, returns baseUrls that work from datacenter IPs.\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const json = item.json || {};\n  let video_id = json.video_id || '';\n  if (!video_id) {\n    try { video_id = $('Workflow Trigger').first().json.video_id || ''; } catch (e) {}\n  }\n\n  const ct = json.captions\n    && json.captions.playerCaptionsTracklistRenderer\n    && json.captions.playerCaptionsTracklistRenderer.captionTracks;\n  const tracks = Array.isArray(ct) ? ct : [];\n\n  if (tracks.length === 0) {\n    const status = (json.playabilityStatus && json.playabilityStatus.status) || 'unknown';\n    results.push({ json: {\n      video_id,\n      cloud_fallback_failed: true,\n      use_scrape_fallback: true,\n      error: 'InnerTube: no captionTracks (playabilityStatus: ' + status + ')'\n    } });\n    continue;\n  }\n\n  const isAsr = (t) => t.kind === 'asr';\n  const lc = (t) => t.languageCode || '';\n\n  const best = tracks.find(t => !isAsr(t))\n    || tracks.find(t => isAsr(t) && lc(t).indexOf('hi') === 0)\n    || tracks.find(t => isAsr(t) && lc(t).indexOf('en') === 0)\n    || tracks[0];\n\n  const baseUrl = (best && best.baseUrl) ? String(best.baseUrl) : '';\n  if (!baseUrl) {\n    results.push({ json: {\n      video_id,\n      cloud_fallback_failed: true,\n      use_scrape_fallback: true,\n      error: 'InnerTube: caption track present but missing baseUrl'\n    } });\n    continue;\n  }\n\n  const timedtext_url = baseUrl.indexOf('fmt=') !== -1 ? baseUrl : baseUrl + '&fmt=json3';\n  results.push({ json: { video_id, timedtext_url } });\n}\n\nreturn results;"
+      },
+      "id": "fe8484be-3da7-4f6b-91bd-2bc8d2ed6340",
+      "name": "Extract Player Captions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        672
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "player-captions-found",
+              "leftValue": "={{ !!$json.timedtext_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2a54d4ef-b4d6-430a-bee2-e468886388f2",
+      "name": "Player Captions Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1904,
+        672
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/videos",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "id",
+              "value": "={{ $('Workflow Trigger').first().json.video_id }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "ef42fad7-e54d-43bb-861c-edffcd6c7206",
+      "name": "Resolve Channel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1008,
+        672
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide which YouTube OAuth credential can download captions for this video.\n// captions.download only works for the OWNING channel, and the queue mixes two\n// channels, so resolve snippet.channelId from videos.list and map it to a branch.\n// This node NEVER throws: on any failure it defaults to 'hitpoint' (all currently\n// queued content is Hitpoint Live owned) and flags channel_resolved: false.\nconst CHANNEL_MAP = {\n  'UCyFDhiqKcVqoIGB3CmJJFUg': 'hitpoint',\n  'UC9VKHMUGg5gqSebXW1m5GBw': 'tws'\n};\nconst DEFAULT_OWNER = 'hitpoint';\n\nlet video_id = '';\ntry { video_id = $('Workflow Trigger').first().json.video_id || ''; } catch (e) { video_id = ''; }\n\nlet channel_id = '';\nlet video_title = '';\nlet channel_resolved = false;\nlet resolve_error = '';\n\ntry {\n  const first = $input.first();\n  const data = (first && first.json) || {};\n\n  // Resolve Channel runs with onError: continueRegularOutput, so a 4xx/5xx or\n  // timeout arrives here as an error-shaped item rather than aborting the run.\n  if (data.error) {\n    resolve_error = typeof data.error === 'string'\n      ? data.error\n      : (data.error.message || 'videos.list returned an error');\n  }\n\n  const list = Array.isArray(data.items) ? data.items : [];\n  const entry = list[0] || null;\n  const snippet = (entry && entry.snippet) || null;\n\n  if (snippet) {\n    channel_id = snippet.channelId || '';\n    video_title = snippet.title || '';\n  }\n  if (!video_id && entry && entry.id) video_id = String(entry.id);\n} catch (e) {\n  resolve_error = 'Channel resolve error: ' + e.message;\n}\n\nlet owner = CHANNEL_MAP[channel_id];\nif (owner) {\n  channel_resolved = true;\n} else {\n  owner = DEFAULT_OWNER;\n  channel_resolved = false;\n  if (!resolve_error) {\n    resolve_error = channel_id\n      ? ('Unknown channelId ' + channel_id + ' -- defaulting to ' + DEFAULT_OWNER)\n      : ('channelId missing from videos.list response -- defaulting to ' + DEFAULT_OWNER);\n  }\n}\n\nreturn [{\n  json: {\n    video_id,\n    channel_id,\n    owner,\n    video_title,\n    channel_resolved,\n    resolve_error: resolve_error || null\n  }\n}];"
+      },
+      "id": "0ca2ad4d-f252-441a-b87b-a61c996ddbbf",
+      "name": "Pick Caption Credential",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        672
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "is-hitpoint",
+              "leftValue": "={{ ($json.owner || $('Pick Caption Credential').first().json.owner) === 'hitpoint' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aea41efc-4663-448d-8c84-aa88c0257043",
+      "name": "Is Hitpoint?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2800,
+        864
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/captions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "videoId",
+              "value": "={{ $('Workflow Trigger').first().json.video_id }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "bf262f14-1860-44ed-b306-38ac5a95b389",
+      "name": "Fetch YouTube Page (HP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3024,
+        1024
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract best caption track ID from YouTube Data API captions.list response\n// (HP variant -- Hitpoint Live owned videos, listed/downloaded with BTCHP YT Auth.)\n// Selection differs from the TWS variant: prefer the auto-generated (ASR) track that\n// is actively serving, because that is the track that reliably downloads for these.\nconst items = $input.all();\nconst results = [];\n\nconst kind = (t) => String((t.snippet && t.snippet.trackKind) || '').toLowerCase();\nconst state = (t) => String((t.snippet && t.snippet.status) || '').toLowerCase();\n\nfor (const item of items) {\n  const data = item.json;\n  const video_id = $('Workflow Trigger').first().json.video_id || '';\n\n  try {\n    const allTracks = data.items || [];\n    // Guard: skip tracks with status 'failed' -- YouTube lists them but the download\n    // is a useless ~515-byte stub even for the owning channel.\n    const tracks = allTracks.filter(t => t && t.snippet && state(t) !== 'failed');\n    if (tracks.length === 0) {\n      const why = allTracks.length > 0\n        ? 'All ' + allTracks.length + ' caption track(s) have status failed for video ' + video_id\n        : 'No caption tracks found for video ' + video_id;\n      results.push({ json: { video_id, captionId: '', cloud_fallback_failed: true, error: why } });\n      continue;\n    }\n\n    // Filter to serving tracks first; fall back to all tracks if none are serving\n    const servingTracks = tracks.filter(t => state(t) === 'serving');\n    const pool = servingTracks.length > 0 ? servingTracks : tracks;\n\n    // Priority: serving ASR track > any ASR > manual English > auto English >\n    // any English-like > first available\n    let best = pool.find(t => kind(t) === 'asr' && state(t) === 'serving')\n      || pool.find(t => kind(t) === 'asr')\n      || pool.find(t => t.snippet.language === 'en' && kind(t) !== 'asr')\n      || pool.find(t => t.snippet.language === 'en' && kind(t) === 'asr')\n      || pool.find(t => t.snippet.language && t.snippet.language.startsWith('en'))\n      || pool[0];\n\n    results.push({\n      json: {\n        captionId: best.id,\n        language: best.snippet.language,\n        trackKind: best.snippet.trackKind || 'standard',\n        status: best.snippet.status || 'unknown',\n        video_id\n      }\n    });\n  } catch (e) {\n    results.push({ json: { video_id, captionId: '', cloud_fallback_failed: true, error: 'Caption extract error: ' + e.message } });\n  }\n}\n\nreturn results;"
+      },
+      "id": "88b5e576-cbe5-4aa9-b2dd-4e000d8fb451",
+      "name": "Extract Caption URL (HP)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3248,
+        1024
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/captions/{{ $json.captionId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tfmt",
+              "value": "srt"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "300f0ac2-954a-4bcf-87db-ff69dfb27597",
+      "name": "Fetch Captions (HP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3472,
+        1024
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "-1003723441488",
+        "text": "=⚠️ *TWS Blog: transcript still unavailable*\nVideo: {{ $json.video_id }}\nThis video has failed transcript extraction more than once. Auto-retry continues, but it may need a manual transcript:\nhttps://n8n.srv1104529.hstgr.cloud/form/c2781738-116b-4293-9043-8c3650d62fb7",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "b798ead6-b9a6-46aa-8659-06ac3061f316",
+      "name": "Notify: Repeat Transcript Failure",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4816,
+        1024
+      ],
+      "webhookId": "a7f28b71-6569-49a8-a013-7756b2b23456"
     }
   ],
   "connections": {
-    "Webhook Trigger": {
+    "Workflow Trigger": {
       "main": [
         [
           {
@@ -580,7 +1167,7 @@
         ],
         [
           {
-            "node": "Cloud: Download Audio (yt-dlp)",
+            "node": "Resolve Channel",
             "type": "main",
             "index": 0
           }
@@ -726,7 +1313,7 @@
       "main": [
         [
           {
-            "node": "Trigger LLM Pipeline (With Charts)",
+            "node": "Prepare LLM Data (With Charts)",
             "type": "main",
             "index": 0
           }
@@ -744,7 +1331,7 @@
       "main": [
         [
           {
-            "node": "Trigger LLM Pipeline (No Charts)",
+            "node": "Prepare LLM Data (No Charts)",
             "type": "main",
             "index": 0
           }
@@ -758,18 +1345,73 @@
         ]
       ]
     },
-    "Cloud: Download Audio (yt-dlp)": {
+    "Prepare LLM Data (With Charts)": {
       "main": [
         [
           {
-            "node": "Cloud: OpenAI Whisper API",
+            "node": "Trigger LLM Pipeline (With Charts)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cloud: OpenAI Whisper API": {
+    "Prepare LLM Data (No Charts)": {
+      "main": [
+        [
+          {
+            "node": "Trigger LLM Pipeline (No Charts)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare LLM Data (Cloud Path)": {
+      "main": [
+        [
+          {
+            "node": "Trigger LLM Pipeline (Cloud Path)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch YouTube Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Caption URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Caption URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Captions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Captions": {
+      "main": [
+        [
+          {
+            "node": "Build Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Transcript": {
       "main": [
         [
           {
@@ -784,7 +1426,218 @@
       "main": [
         [
           {
-            "node": "Trigger LLM Pipeline (Cloud Path)",
+            "node": "Transcript OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcript OK?": {
+      "main": [
+        [
+          {
+            "node": "Prepare LLM Data (Cloud Path)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Retry Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Retry Pending": {
+      "main": [
+        [
+          {
+            "node": "First Failure?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First Failure?": {
+      "main": [
+        [
+          {
+            "node": "Notify: Transcript Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify: Repeat Transcript Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Watch Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Timedtext URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Timedtext URL": {
+      "main": [
+        [
+          {
+            "node": "Timedtext Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timedtext Found?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Timedtext",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Hitpoint?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Timedtext": {
+      "main": [
+        [
+          {
+            "node": "Build Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Player API": {
+      "main": [
+        [
+          {
+            "node": "Extract Player Captions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Player Captions": {
+      "main": [
+        [
+          {
+            "node": "Player Captions Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Player Captions Found?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Timedtext",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Watch Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Channel": {
+      "main": [
+        [
+          {
+            "node": "Pick Caption Credential",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Caption Credential": {
+      "main": [
+        [
+          {
+            "node": "Fetch Player API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Hitpoint?": {
+      "main": [
+        [
+          {
+            "node": "Fetch YouTube Page (HP)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch YouTube Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch YouTube Page (HP)": {
+      "main": [
+        [
+          {
+            "node": "Extract Caption URL (HP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Caption URL (HP)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Captions (HP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Captions (HP)": {
+      "main": [
+        [
+          {
+            "node": "Build Transcript",
             "type": "main",
             "index": 0
           }
@@ -793,6 +1646,11 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "zfnDj7llX8qffBXB"
   }
 }

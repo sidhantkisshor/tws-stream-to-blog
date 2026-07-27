@@ -1,104 +1,162 @@
 {
-  "name": "TWS LLM Pipeline",
+  "name": "TWS Core — LLM Pipeline v3",
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "llm-pipeline",
-        "authentication": "headerAuth",
-        "responseMode": "lastNode",
-        "options": {}
+        "inputSource": "passthrough"
       },
-      "id": "c3d4e5f6-0001-0001-0001-000000000001",
-      "name": "Webhook Trigger",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [240, 300],
-      "webhookId": "llm-pipeline",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "IlRAwjG9guzimnOg",
-          "name": "N8N Webhook Auth"
-        }
-      }
+      "id": "llm-v2-trigger",
+      "name": "Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        352
+      ]
     },
     {
       "parameters": {
-        "resource": "text",
-        "operation": "message",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "has-transcript",
+              "leftValue": "={{ $json.transcript || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "has-video-id",
+              "leftValue": "={{ $json.video_id || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "min-length",
+              "leftValue": "={{ ($json.transcript || '').length }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "llm-v2-validate",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        336
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "errorMessage": "LLM Pipeline received invalid input: transcript is empty, missing video_id, or transcript too short (<100 chars)."
+      },
+      "id": "llm-v2-stop",
+      "name": "Input Invalid - Stop",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        688,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Route voice/persona based on source channel\nconst TWS_CHANNEL = 'UC9VKHMUGg5gqSebXW1m5GBw';\nconst HITPOINT_CHANNEL = 'UCyFDhiqKcVqoIGB3CmJJFUg';\nconst data = $input.first().json;\nconst channelId = data.channel_id || '';\n\nlet voice;\nlet channelSlug;\nif (channelId === HITPOINT_CHANNEL) {\n  channelSlug = 'hitpoint';\n  voice = {\n    perspective: 'team',\n    brand: 'Hitpoint Live',\n    primary_name: 'Fahad',\n    pronoun: 'we',\n    tone: 'Team analysis voice. Use \"we\" and \"our team\" throughout. Reference Fahad by name when attributing specific market calls or analysis. The team discovered, the team spotted.',\n    cta: 'Join the Hitpoint community for live market coverage and real-time trade alerts.'\n  };\n} else {\n  channelSlug = 'tws';\n  voice = {\n    perspective: 'first_person',\n    brand: 'Trading With Sidhant',\n    primary_name: 'Sidhant',\n    pronoun: 'I',\n    tone: 'First person as Sidhant, the Philosopher-Operator: a systems-building CEO who trades, codes and thinks in first principles. Modern philosopher, tech-forward, entertaining as hell. Direct, opinionated, personal. Use \"I\" naturally. Reason from first principles and show the system behind the thinking. Depth, not tips, not signals, not guru shortcuts. Punch up at gurus, at hype and at the system that sells shortcuts; never punch down at the reader. No lifestyle flexing, no income or luxury signalling. No lecture register: you are thinking out loud with a sharp peer, not teaching a class. Not a trading educator, not a finance guru.',\n    cta: 'Catch me live on the next TWS stream, that is where the system gets built in the open.'\n  };\n}\n\nreturn [{ json: { ...data, voice, channelSlug } }];"
+      },
+      "id": "llm-v2-voice",
+      "name": "Voice Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        256
+      ]
+    },
+    {
+      "parameters": {
         "modelId": {
           "__rl": true,
           "value": "gpt-4o-mini",
-          "mode": "list",
-          "cachedResultName": "gpt-4o-mini"
+          "mode": "id"
         },
-        "messages": {
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "You are a trading stream analyst. Extract structured data from this live stream transcript. Return JSON with: tickers (string array of stock/index symbols mentioned), setups (array of {ticker, direction, entry, target, stop}), timestamps (array of {time, topic} for key discussion points), key_quotes (array of notable quotes from the streamer), summary (2-3 paragraph summary of the stream)."
-            },
-            {
-              "role": "user",
-              "content": "={{ $json.body.transcript }}"
+              "content": "={{ $json.transcript }}"
             }
           ]
         },
+        "builtInTools": {},
         "options": {
-          "responseFormat": "json_object",
-          "maxTokens": 4000
+          "instructions": "You are a live stream transcript analyst. Your job is NOT to summarize — it is to MINE the transcript for everything a skilled human writer would need to write an authentic, personality-rich blog post.\n\nExtract and return a JSON object with these fields:\n\n1. \"voice_samples\": Array of 8-12 objects. Direct quotes from the streamer that showcase personality, humor, conviction, or unique perspective. Each object: { \"quote\": \"exact words from transcript\", \"context\": \"what was being discussed\", \"emotion\": \"excited|frustrated|teaching|joking|confident|cautious\" }\n\n2. \"story_arc\": Object with:\n   - \"opening_mood\": How the stream started, what energy\n   - \"key_turns\": Array of 3-5 moments where the topic or energy shifted significantly\n   - \"climax\": The single most important insight, call, or revelation\n   - \"resolution\": How things wrapped up\n\n3. \"topic_clusters\": Array of 4-6 objects. Natural groupings of related content discussed. Each:\n   - \"theme\": What this cluster is about\n   - \"key_points\": Array of specific data points, price levels, observations\n   - \"best_quote\": The most compelling thing said about this topic (exact words)\n   - \"teaching_moment\": Any concept explanation, analogy, or metaphor used (exact words if possible)\n   - \"market_data\": Specific numbers, levels, percentages, timeframes mentioned\n\n4. \"tickers_and_setups\": Array of objects: { \"ticker\", \"direction\": \"long|short|neutral\", \"entry\", \"target\", \"stop\", \"reasoning\": \"why this setup\" }\n\n5. \"unique_phrases\": Array of 5-10 strings — the streamer's characteristic expressions, slang, trading jargon, and analogies that make their content distinctive (translate any Hindi/Hinglish to English)\n\n6. \"stream_metadata\": { \"energy_level\": 1-10, \"primary_theme\": \"one sentence\", \"market_conditions\": \"bull|bear|choppy|mixed\" }\n\n7. \"humanity_markers\": Array of 10-15 objects — exact phrases from the transcript that make the speaker sound HUMAN, not polished. Each: { \"phrase\": \"exact words\", \"type\": \"self_correction|thinking_aloud|emotional_reaction|humor|frustration|tangent|incomplete_thought\" }\n   LOOK FOR: \"wait, actually...\", \"no no, let me rephrase that\", \"I changed my mind\", \"honestly?\", \"look,\", moments where they laugh, curse, express genuine surprise or frustration, trail off mid-sentence, or go on a tangent before catching themselves.\n\n8. \"discourse_markers\": Array of 8-12 strings — the exact filler words, transition phrases, and verbal tics this speaker uses naturally. Examples: \"so basically\", \"here's the thing\", \"right?\", \"honestly\", \"look\", \"anyway\", \"the point is\", \"you know what I mean?\". These are GOLD for making the blog sound like this specific person.\n\n9. \"emotional_beats\": Array of 5-8 objects — moments of genuine emotion. Each: { \"moment\": \"what happened\", \"emotion\": \"excitement|frustration|skepticism|humor|surprise|conviction|disappointment\", \"intensity\": 1-10, \"quote\": \"what they said\", \"approximate_position\": \"early|mid|late\" }\n\n10. \"cultural_references\": Array of strings — any references to current events, news, specific dates, cultural moments, memes, or seasonal context that anchor this content in a specific time and place.\n\n11. \"imperfect_language\": Array of 5-8 strings — sentence fragments, self-corrections, incomplete thoughts, and grammatical 'mistakes' that feel authentic. These should be preserved in the blog to break AI-perfect patterns.\n\nCRITICAL: Return ONLY the raw JSON object. No markdown code fences. ALL output MUST be in English. If the transcript is in Hindi/Hinglish, translate all quotes and content to natural, conversational English while preserving the speaker's personality, energy, and trading terminology. Do not include any non-English text in the output.",
+          "maxTokens": 8000
         }
       },
-      "id": "c3d4e5f6-0002-0002-0002-000000000002",
-      "name": "Step 1: Compress Transcript (GPT-4o-mini)",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [480, 300],
-      "credentials": {
-        "openAiApi": {
-          "id": "ByciQx1HuxRbPxMl",
-          "name": "OpenAI API Key"
-        }
-      }
+      "id": "llm-v2-mining",
+      "name": "Phase 1: Deep Transcript Mining",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        256
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "resource": "text",
-        "operation": "message",
         "modelId": {
           "__rl": true,
           "value": "gpt-4o",
-          "mode": "list",
-          "cachedResultName": "gpt-4o"
+          "mode": "id"
         },
-        "messages": {
+        "responses": {
           "values": [
             {
-              "role": "system",
-              "content": "You are an SEO expert and content strategist for TWS Wealth OS, a trading education brand. Generate blog metadata for a trading live stream recap. Return JSON with: title (compelling, SEO-optimized, under 60 chars), hook (one engaging sentence that makes traders want to read), seo_description (under 160 chars for meta description), keywords (array of 5-10 SEO keywords), image_prompt (descriptive prompt for generating a hero image that matches the trading content — describe the visual scene, mood, and key elements)."
-            },
-            {
-              "role": "user",
-              "content": "={{ $json.choices[0].message.content }}"
+              "content": "={{ (function() {\n  function safeGet(fn, fallback) {\n    try {\n      const v = fn();\n      return (v === undefined || v === null) ? fallback : v;\n    } catch (e) { return fallback; }\n  }\n  function shapeText(j) {\n    if (!j) { return ''; }\n    if (typeof j.output === 'string') { return j.output; }\n    if (j.output && j.output[0] && j.output[0].content && j.output[0].content[0]) { return j.output[0].content[0].text || ''; }\n    if (j.content && Array.isArray(j.content) && j.content[0]) { return j.content[0].text || ''; }\n    if (typeof j.text === 'string') { return j.text; }\n    return '';\n  }\n  const voice = safeGet(function() { return $('Voice Router').first().json.voice; }, {});\n  let mining = safeGet(function() { return shapeText($json); }, '');\n  if (!mining || !mining.trim()) { mining = safeGet(function() { return shapeText($('Phase 1: Deep Transcript Mining').first().json); }, ''); }\n  if (!mining || !mining.trim()) {\n    return 'TRANSCRIPT MINING DATA UNAVAILABLE. The upstream mining step returned no usable output, so there is nothing to build a blueprint from. Do not invent transcript content, quotes, price levels or market data. Reply with exactly this JSON and nothing else: {\"error\":\"no_mining_data\",\"primary_keyword\":\"\",\"secondary_keywords\":[],\"search_intent\":\"informational\",\"title\":\"\",\"slug\":\"\",\"hook\":\"\",\"seo_description\":\"\",\"category\":\"market-recap\",\"tags\":[],\"market_scope\":\"mixed\",\"market_data_age_days\":0,\"hero_image_prompt\":\"\",\"hero_image_alt\":\"\",\"faq_plan\":[],\"section_plan\":[]}';\n  }\n  return 'Voice Config: ' + JSON.stringify(voice) + '\\n\\nTranscript Mining Data:\\n' + mining;\n})() }}"
             }
           ]
         },
+        "builtInTools": {},
         "options": {
-          "responseFormat": "json_object",
-          "maxTokens": 1000
+          "instructions": "You are an SEO and AEO (answer engine optimisation) content strategist for TWSGurukulX, a trading and markets education blog written for Indian retail traders. You receive deep transcript mining data from a trading livestream plus a voice config. You return the content blueprint that the ghost writer will follow.\n\nOUTPUT CONTRACT - THIS IS FIXED\nReturn ONLY a raw JSON object. No markdown code fences, no backticks, no preamble, no commentary afterwards. Downstream code reads these exact field names, so do not rename, add or drop keys.\n\n{\n  \"primary_keyword\": \"one realistic long-tail keyword an Indian retail trader would actually type\",\n  \"secondary_keywords\": [\"5 to 8 supporting terms\"],\n  \"search_intent\": \"informational | commercial | navigational\",\n  \"title\": \"60 characters maximum, contains the primary keyword, specific and concrete\",\n  \"slug\": \"kebab-case, 60 characters maximum, keyword-first, lowercase a-z 0-9 and hyphens only\",\n  \"hook\": \"one-sentence dek, 140 characters maximum\",\n  \"seo_description\": \"140 to 155 characters, contains the primary keyword, ends on a benefit or a curiosity gap\",\n  \"category\": \"nifty | banknifty | options | crypto | stocks | market-recap | education\",\n  \"tags\": [\"3 to 5 tags from the controlled vocabulary below, nothing else\"],\n  \"market_scope\": \"indian_securities | crypto | global | mixed\",\n  \"market_data_age_days\": 0,\n  \"hero_image_prompt\": \"detailed 16:9 editorial illustration prompt, no text or numbers rendered in the image\",\n  \"hero_image_alt\": \"descriptive alt text, 125 characters maximum\",\n  \"faq_plan\": [\n    { \"question\": \"a real question, phrased as a question, ending in ?\" }\n  ],\n  \"section_plan\": [\n    {\n      \"heading\": \"H2 heading\",\n      \"angle\": \"what this section argues\",\n      \"direct_answer\": \"40 to 60 words that directly answer the heading\",\n      \"must_include\": [\"specific data points, levels, quotes to use\"],\n      \"word_target\": 350,\n      \"table\": null,\n      \"image_prompt\": \"detailed square editorial illustration prompt, no text or numbers rendered in the image\",\n      \"image_alt\": \"descriptive alt text, 125 characters maximum\"\n    }\n  ]\n}\n\nfaq_plan must contain EXACTLY 5 objects. section_plan must contain 5 to 7 objects.\n\nFIELD RULES\n\nprimary_keyword\n- One long-tail phrase a real Indian retail trader would actually type into Google. Think \"bank nifty expiry day option strategy\", \"nifty support and resistance levels this week\", \"how to read order flow in nifty futures\".\n- Never invent brand-ego keywords. Do NOT produce a keyword containing \"Sidhant\", \"TWS\" or \"TWSGurukulX\" unless the transcript is genuinely about that person or that brand.\n- No keyword stuffing and no invented jargon that nobody searches for.\n\nDATES AND YEARS - APPLIES TO title, primary_keyword, secondary_keywords, slug AND seo_description\n- Never invent a year, a date or any time reference that does not appear in the transcript.\n- The current year is 2026. If a year is genuinely useful in the title or the keyword, it must be 2026. Never use an earlier year.\n- Prefer no year at all. Only include one when the content is genuinely time-bound.\n\nsecondary_keywords\n- 5 to 8 supporting terms: variants, related concepts, instrument or ticker names, and question forms of the primary keyword.\n\nsearch_intent\n- Exactly one of: informational, commercial, navigational.\n\ntitle\n- Hard limit 60 characters. Count the characters before you answer. If it is over 60, rewrite it shorter. Do not exceed 60 under any circumstance.\n- Must contain the primary keyword or a very close variant.\n- Be specific about what actually happened. Never \"Market Recap\", never \"Trading Update\".\n\nslug\n- Derived from the primary keyword, NOT from the full title.\n- Lowercase a-z, 0-9 and hyphens only. No dates, no random suffix, no stop-word padding. 60 characters maximum.\n\nhook\n- One sentence, 140 characters maximum. A dek that makes the reader continue. Anchor it to a specific number or a specific claim from the stream.\n\nseo_description\n- HARD RANGE: minimum 140 characters, maximum 155 characters, spaces included. This is a hard constraint, not a suggestion.\n- Work in this order: WRITE the description, then COUNT its characters one by one, then fix it if the count falls outside the range. Do not skip the count.\n- If the count is UNDER 140: do not pad with filler adjectives such as powerful, essential, comprehensive, actionable or ultimate. EXPAND it by adding one more concrete specific from the transcript: a number, a price or support level, an instrument or ticker, a timeframe, or a named concept the stream actually discussed. Then count again.\n- If the count is OVER 155: cut a whole clause and rewrite so the sentence still ends cleanly. Never truncate mid-word and never end on an ellipsis.\n- Must contain the primary keyword, and must end on a concrete benefit or a curiosity gap.\n- Worked example, compliant at 148 characters: \"Bank Nifty held 48,200 support twice on expiry day. See how the order flow flipped after 1:15 PM IST and which strike gave the cleanest risk-reward.\" It earns its length from a level, a time and an instrument, not from adjectives.\n\ncategory\n- Exactly one of: nifty, banknifty, options, crypto, stocks, market-recap, education.\n\ntags\n- 3 to 5 tags, lowercase-hyphen format, chosen ONLY from this controlled vocabulary. Anything outside this list is invalid:\nnifty, banknifty, options, futures, crypto, bitcoin, stocks, order-flow, price-action, risk-management, trading-psychology, technical-analysis, market-recap, options-strategy, position-sizing, market-structure\n\nmarket_scope\n- Exactly one of: indian_securities, crypto, global, mixed. Pick the one that describes what the stream actually traded or analysed.\n\nmarket_data_age_days\n- An integer, your best estimate of how many days old the market events discussed in the transcript are. Use 0 when the stream discusses the same day's session. If it references a session from last week, estimate the real number of days.\n\nfaq_plan\n- Exactly 5 objects, each with a single \"question\" key.\n- Each question must be phrased as a question and end with a question mark. Use questions a trader would actually ask, not filler questions invented to round out the list.\n\nsection_plan\n- 5 to 7 sections, in the order the post should read.\n- heading: an H2. Specific and concrete, includes a keyword naturally, and phrased as a question when that matches how people search for it.\n- angle: what this section argues. The tension or the insight, not just the topic.\n- direct_answer: 40 to 60 words that DIRECTLY answer the heading. This becomes the section's opening paragraph. It must stand alone as a complete answer if it is quoted in isolation: no \"as discussed above\", no \"this\", \"that\" or \"it\" pointing at anything outside the sentence, and no dependence on the heading to make sense.\n- must_include: 3 to 5 concrete items taken from the transcript mining data. Price levels, quotes, data points, teaching moments the writer must use.\n- word_target: an integer between 200 and 500.\n- table: null for most sections. Set it to a real object for AT LEAST ONE section whenever the content involves comparable numbers, such as price levels, scenarios, session timings, profit and loss outcomes or strike comparisons. Tables are the format AI answer engines extract most reliably, so use one wherever the data genuinely fits. The object shape is {\"caption\": \"...\", \"columns\": [\"...\", \"...\"], \"rows_hint\": \"what each row should contain\"}. Never invent a table for content that has no comparable numbers.\n- image_prompt and image_alt: follow the image rules below.\n\nIMAGE RULES\n- hero_image_prompt is 16:9. Every section image_prompt is square (1:1).\n- EVERY image_prompt AND the hero_image_prompt must satisfy ALL FOUR HARD REQUIREMENTS below. Before you return, re-read each prompt string you wrote and check it against all four. A prompt that misses any one of them is invalid output — rewrite it before returning.\n\nHARD REQUIREMENT 1 — BRIGHTNESS AND MOOD MUST BE STATED IN WORDS\n- Every prompt MUST literally contain the word \"bright\", AND either \"high-key\" or \"well-lit\". Write them into the sentence itself, e.g. \"a bright, high-key editorial illustration of ...\".\n- Naming the palette is NOT enough. When the mood is left unstated the image model defaults to dark and heavy, which is the current failure: only 1 of the last 12 prompts said \"bright\".\n- FORBIDDEN: dark, moody, noir, \"exposé documentary\" grading, gritty, desaturated, washed-out, shadow-heavy or low-key treatments. Deep navy is a background anchor only, never a mood — the finished image must read bright, modern and energetic.\n\nHARD REQUIREMENT 2 — NEGATIVE CLAUSE, VERBATIM, ON EVERY PROMPT\n- Every prompt MUST end with this sentence, copied character for character:\nNo text, no lettering, no numbers, no watermarks, no logos in the image.\n- Do not paraphrase it, do not shorten it, do not merge it into another sentence, do not drop it from the hero. Image models still garble rendered text, and 0 of the last 12 prompts carried any negative instruction at all.\n- This replaces describing the restriction in your own words. Describe the visual idea, then close with that exact sentence.\n\nHARD REQUIREMENT 3 — INDIA GROUNDING, MANDATORY PER PROMPT\n- This is MANDATORY PER PROMPT, not once per article. Around 4 of the last 12 prompts shipped with no India grounding at all, which is the failure being fixed.\n- Whenever a prompt contains ANY person, workspace, place, city, currency or market context, that element MUST be explicitly Indian, stated in words: Indian traders and operators, Indian desk and home-office setups, the rupee, Indian city and skyline cues. Write \"an Indian trader at an Indian home-desk setup\", never just \"a trader at a desk\".\n- Never leave nationality implied or inferred from the palette. Defaulting to non-Indian people, places, signage or currency is a known past failure of this pipeline.\n- The only exemption is a prompt that is genuinely and fully abstract, with no person, workspace or place in it at all. A vaguely described person is NOT abstract and is not exempt.\n\nHARD REQUIREMENT 4 — PALETTE NAMED INSIDE THE PROMPT\n- REQUIRED COLOUR WORLD — build every image from these five and nothing else: teal #20B2AA, warm gold #C9A84C, warm cream #E8DCC8, deep navy #0D1B2A, emerald #155E59.\n- Every prompt MUST name AT LEAST THREE of those five, each with its colour name AND its hex code, inside the prompt text so the render locks to them.\n\nBANNED CLICHÉS — NEVER DESCRIBE ANY OF THESE\n- Observed in shipped prompts and now banned outright: risk and reward balanced on a scale; a trader meditating beside a digital trading screen; a trader reviewing a checklist; a trader contemplating markets.\n- Also banned: handshakes, faceless suits, arrows crashing through charts, bull or bear statues, glowing brains, floating holographic dashboards, and anything with a generic stock-photo look.\n- A person looking at a screen is not a concept. If the prompt could illustrate any finance article on the internet, it is wrong — rebuild it around the specific idea THIS section argues.\n\nHOW THE PROMPT MUST READ\n- Write ONE composed art-direction sentence (two at most) in which subject, composition, mood, palette and India grounding are woven together as a single instruction to an art director, then the verbatim negative clause.\n- FORBIDDEN: a scene line with a colour list bolted onto the end. \"Trader at a desk, using teal #20B2AA and warm gold #C9A84C\" is exactly the pattern to avoid — the colours must do work inside the description, not sit in a trailing list.\n- Minimalist composition. Simple, confident use of colour with clean flat shapes. Generous negative space. Premium finish. FORBIDDEN: cluttered, busy or maximalist scenes, heavy texture, grain, or more than a few elements competing for attention.\n- Favour conceptual and metaphorical composition over literal depiction — the world of a modern philosopher who is tech-forward and entertaining, first-principles thinking and systems made visual.\n\nALT TEXT\n- hero_image_alt and image_alt describe what the image actually SHOWS, 125 characters maximum, written for a screen reader and not stuffed with keywords. Alt text never mentions the brand palette, hex codes, or the art direction — only the visible subject.\n\nGENERAL\n- ALL output is in English, including when the transcript is in Hindi or Hinglish.\n- Be concrete. Every heading, angle and must_include item should be traceable to something that actually happened in the stream.\n- Return ONLY the raw JSON object.",
+          "maxTokens": 4000
         }
       },
-      "id": "c3d4e5f6-0003-0003-0003-000000000003",
-      "name": "Step 2: Title & Hooks (GPT-4o)",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [720, 300],
-      "credentials": {
-        "openAiApi": {
-          "id": "ByciQx1HuxRbPxMl",
-          "name": "OpenAI API Key"
-        }
-      }
+      "id": "llm-v2-seo",
+      "name": "Phase 2: SEO + Section Blueprint",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1264,
+        256
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 8000
     },
     {
       "parameters": {
@@ -108,199 +166,895 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"query\": {{ JSON.stringify(JSON.parse($json.choices[0].message.content).keywords.join(' ')) }},\n  \"search_depth\": \"basic\",\n  \"max_results\": 5,\n  \"include_answer\": true\n}",
+        "jsonBody": "={{ (function() {\n  const fallback = { query: 'indian stock market nifty bank nifty analysis', search_depth: 'advanced', max_results: 6, include_answer: true };\n  try {\n    const rawText = String($json.output[0].content[0].text || '');\n    const stripped = rawText.replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n    const s = stripped.indexOf('{');\n    const e = stripped.lastIndexOf('}');\n    const seo = JSON.parse(s !== -1 && e > s ? stripped.slice(s, e + 1) : stripped);\n    const pk = String(seo.primary_keyword || '').trim();\n    const musts = [];\n    (Array.isArray(seo.section_plan) ? seo.section_plan : []).forEach(function(sec) {\n      const list = (sec && Array.isArray(sec.must_include)) ? sec.must_include : [];\n      list.forEach(function(m) { const t = String(m === null || m === undefined ? '' : m).trim(); if (t) { musts.push(t); } });\n    });\n    const score = function(t) { return (/[0-9]/.test(t) ? 10000 : 0) + Math.min(t.length, 200); };\n    musts.sort(function(a, b) { return score(b) - score(a); });\n    const query = [pk].concat(musts.slice(0, 2)).filter(Boolean).join(' ').replace(/\\s+/g, ' ').trim();\n    if (!query) { return JSON.stringify(fallback); }\n    const body = { query: query.slice(0, 380), search_depth: 'advanced', max_results: 6, include_answer: true };\n    const scope = String(seo.market_scope || '').trim().toLowerCase();\n    const cat = String(seo.category || '').trim().toLowerCase();\n    if (scope !== 'education' && cat !== 'education') { body.topic = 'news'; body.time_range = 'month'; }\n    return JSON.stringify(body);\n  } catch (err) { return JSON.stringify(fallback); }\n})() }}",
         "options": {}
       },
-      "id": "c3d4e5f6-0004-0004-0004-000000000004",
-      "name": "Step 3: Tavily Research",
+      "id": "llm-v2-tavily",
+      "name": "Phase 3: Tavily Research",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [960, 300],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "fbtfQRY2fi3Wunjh",
-          "name": "Tavily API Key"
-        }
-      }
+      "typeVersion": 4.4,
+      "position": [
+        1616,
+        256
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "anthropic-version", "value": "2023-06-01" },
-            { "name": "content-type", "value": "application/json" }
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ (function() {\n  function safeGet(fn, fallback) {\n    try {\n      const v = fn();\n      return (v === undefined || v === null) ? fallback : v;\n    } catch (e) { return fallback; }\n  }\n  function llmText(nodeName) {\n    return safeGet(function() {\n      const j = $(nodeName).first().json;\n      if (!j) { return ''; }\n      if (typeof j.output === 'string') { return j.output; }\n      if (j.output && j.output[0] && j.output[0].content && j.output[0].content[0]) { return j.output[0].content[0].text || ''; }\n      if (j.content && Array.isArray(j.content) && j.content[0]) { return j.content[0].text || ''; }\n      if (typeof j.text === 'string') { return j.text; }\n      return '';\n    }, '');\n  }\n  const SKELETON = '{\"intro\":\"\",\"sections\":[],\"conclusion\":\"\",\"tags\":[],\"faq\":[]}';\n  const NO_INPUT = 'UPSTREAM DATA UNAVAILABLE. The transcript mining step and the SEO blueprint step both returned no usable output, so there is no material to write from. Do not invent a blog post, quotes, price levels, sources or links. Reply with exactly this JSON and nothing else: ' + SKELETON;\n  const voice = safeGet(function() { return $('Voice Router').first().json.voice; }, {});\n  const miningRaw = llmText('Phase 1: Deep Transcript Mining') || '{}';\n  const seoRaw = (llmText('Phase 2: SEO + Section Blueprint') || '{}').replace(/```json/g,'').replace(/```/g,'').trim() || '{}';\n  const hasMining = !!(miningRaw && miningRaw.trim() && miningRaw.trim() !== '{}');\n  const hasSeo = !!(seoRaw && seoRaw.trim() && seoRaw.trim() !== '{}');\n  if (!hasMining && !hasSeo) { return NO_INPUT; }\n  const chartMap = JSON.stringify(safeGet(function() { return $('Build Chart Map').first().json._chartMap; }, []) || []);\n  const pack = safeGet(function() { return $('Build Research Pack').first().json; }, {}) || {};\n  const researchSummary = pack.research_summary || 'No additional research available.';\n  const citations = JSON.stringify(pack.citations || []);\n  const researchOk = pack.research_ok === true;\n  const poolData = safeGet(function() { return $('Build Internal Link Pool').first().json; }, {}) || {};\n  const pool = JSON.stringify(poolData.internal_link_pool || []);\n  const poolSize = poolData.pool_size || 0;\n  const out = 'VOICE CONFIG:\\n' + JSON.stringify(voice)\n    + '\\n\\nTRANSCRIPT MINING DATA:\\n' + miningRaw\n    + '\\n\\nSEO + SECTION BLUEPRINT (full Phase 2 JSON. Follow section_plan, direct_answer, table, faq_plan, primary_keyword, market_scope and market_data_age_days exactly):\\n' + seoRaw\n    + '\\n\\nRESEARCH_OK: ' + researchOk\n    + '\\n\\nRESEARCH SUMMARY:\\n' + researchSummary\n    + '\\n\\nCITATIONS (the ONLY external URLs you may cite. Never invent one):\\n' + citations\n    + '\\n\\nINTERNAL LINK POOL (pool_size=' + poolSize + '. The ONLY internal URLs you may link to):\\n' + pool\n    + '\\n\\nCHART MAP (pre-classified by vision AI with alt-text):\\n' + chartMap\n    + '\\n\\nFor each section, if a chart is mapped to it (by sectionIndex), include its url as \"chartRef\" and its alt_text as \"chartAlt\". Only use charts from this map. Do NOT invent chart URLs.';\n  return (out && out.trim()) ? out : NO_INPUT;\n})() }}"
+            }
           ]
         },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6-20250514\",\n  \"max_tokens\": 8000,\n  \"system\": \"You are a financial blog writer for TWS Wealth OS. Write an SEO-optimized, AI-citation-friendly blog post about today's trading live stream.\\n\\nSTRUCTURE RULES:\\n1. ANSWER-FIRST SECTIONS: Each section body MUST begin with a 40-60 word direct answer/summary paragraph that concisely states the key point. Follow with detailed elaboration.\\n2. QUESTION-BASED HEADINGS: Approximately half of section headings should be phrased as natural-language questions matching how users search (e.g. 'What caused Nifty to drop 847 points?'). Mix with declarative headings for variety.\\n3. CALLOUT BLOCKS: Insert a markdown blockquote callout every 200-300 words for visual rhythm. Use formats like:\\n> **Key Takeaway:** ...\\n> **Pro Tip:** ...\\n> **Market Insight:** ...\\n4. CURIOSITY GAPS: End each section body with a single italicized sentence that teases the next section's content. The final section should tease the conclusion.\\n5. DATA-DRIVEN: Every section must include at least one specific number, percentage, price level, or data point from the transcript or research context.\\n6. CHART REFERENCES: If chart image URLs are provided, reference them in the appropriate sections using chartRef. Only include if charts are available.\\n7. FAQ: Generate 3-5 Q&A pairs derived from the content. Questions should be phrased as natural language queries users would type into search engines. Answers should be 2-3 sentences each, self-contained and directly answering the question.\\n\\nReturn JSON with: intro (engaging opening paragraph, 60-100 words), sections (array of {heading, body, chartRef} where chartRef is optional), conclusion (closing paragraph with actionable takeaways), tags (array of category tags), faq (array of {question, answer}).\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Stream Summary:\\n\" + {{ JSON.stringify($node['Step 1: Compress Transcript (GPT-4o-mini)'].json.choices[0].message.content) }} + \"\\n\\nTitle: \" + {{ JSON.stringify(JSON.parse($node['Step 2: Title & Hooks (GPT-4o)'].json.choices[0].message.content).title) }} + \"\\n\\nResearch Context:\\n\" + {{ JSON.stringify($node['Step 3: Tavily Research'].json.answer || '') }} + \"\\n\\nChart URLs (may be empty if unavailable):\\n\" + {{ JSON.stringify(($node['Webhook Trigger'].json.body.chart_urls || []).map(function(c) { return c.url || c; })) }}\n    }\n  ]\n}",
+        "options": {
+          "system": "You are a ghost writer. Your job is to write a blog post that reads like a HUMAN trader wrote it — not an AI.\n\nThe voice config tells you WHO you are writing as and the brand. Follow it exactly.\n\nVOICE RULES:\n- If perspective is 'first_person': Write as that person. Use 'I spotted this...', 'My read on this...'. Be personal and direct.\n- If perspective is 'team': Write as the team. Use 'We identified...', 'Our analysis showed...'. Reference the primary_name for specific calls.\n- Weave in quotes from voice_samples NATURALLY — as part of the narrative flow, not as formal blockquotes.\n- Write like a trader talks to other traders — direct, specific, opinionated, sometimes blunt.\n- Use SHORT punchy sentences. Then occasionally a longer one for emphasis and rhythm.\n- It's OK to use incomplete sentences. For effect.\n- Include specific prices, levels, and setups — traders want precision, not generalities.\n- When explaining concepts, use the analogies and teaching_moments from the transcript mining data.\n- Don't hedge everything. Have opinions. 'This setup is solid' not 'This setup could potentially be promising.'\n- Write ENTIRELY in English. The blog audience reads English only. If the mining data contains Hindi/Hinglish quotes or phrases, convey the same energy and meaning in natural English.\n\nPERSONA ANCHORING:\nYou are not a generic writer. You are writing as the person described in voice config. For TWS (Sidhant): the Philosopher-Operator. A systems builder who trades, codes and thinks in first principles, writing for ambitious people who want to build their own system rather than copy someone else's tips. Sharp, funny, high-energy. Explains the mechanism behind a move, not just the move. Genuine excitement about a clean system and genuine frustration at hype and shortcut-selling. Punches up at gurus, courses and the system; never down at the reader. No lifestyle flexing, no lecture register, no guru posturing. Thinking out loud with a sharp peer, not teaching a class. References specific levels, specific dates, and specific mistakes he has seen traders make. Does not hedge — has opinions and states them.\nFor Hitpoint (Fahad's team): a tight-knit analysis crew that respects data but keeps it conversational. The team spots patterns together and debates setups openly.\n\nSTRUCTURE RULES:\n- Follow the section_plan from the blueprint. Each section should hit its word_target (plus or minus 20%).\n- EVERY section MUST open with that section's \"direct_answer\" from the blueprint, lightly rewritten into the brand voice. Keep it self-contained and 40-60 words, so it still fully answers the heading if it is quoted in isolation: no \"as discussed above\", no pronouns pointing at anything outside the paragraph, no dependence on the heading. Then elaborate through the rest of the section.\n- After that opening answer, hook the reader — a bold claim, a question, or a vivid moment from the stream.\n- Use bullet points for price levels, setups, and key numbers (traders scan for these).\n- Use **bold** for ticker symbols, key price levels, and important terms.\n- Vary paragraph length: mix 1-sentence paragraphs with 3-4 sentence ones.\n- Transitions should be NATURAL — as if you are telling a story to a friend, not writing a textbook.\n\nTABLES:\n- When a section's blueprint \"table\" field is NOT null, you MUST render a real GitHub-flavoured markdown table inside that section's body: a pipe-delimited header row using exactly the columns listed in table.columns, a separator row of dashes, then the data rows built from table.rows_hint and that section's must_include data. Put table.caption on its own line just above the table.\n- It must be real markdown. Never an ASCII drawing, never a bulleted list pretending to be a table.\n- When a section's \"table\" field is null, do NOT invent a table for that section.\n\nINTERNAL LINKS (this is critical — published posts are currently orphans with zero internal links):\n- You are given an INTERNAL LINK POOL: a JSON list of {slug, title, url} for posts that already exist on the blog.\n- Weave 3 to 6 of them into the section bodies as contextual markdown links: [descriptive anchor](url).\n- Place a link only where it is genuinely relevant to the sentence it sits in. If a pool entry has nothing to do with this post, skip it.\n- Never place a link in the first paragraph of a section. The opening answer stays clean.\n- Maximum 2 links per section.\n- Anchor text must describe the destination, drawn from that destination's topic or title. NEVER \"click here\", NEVER \"this post\", NEVER \"read more\", NEVER the bare URL as the anchor.\n- Never link the same URL twice in the whole article.\n- Only use URLs that appear in the pool. Do NOT invent internal URLs and do NOT guess slugs.\n- If pool_size is 0, add no internal links at all.\n\nEXTERNAL CITATIONS:\n- You are given RESEARCH_OK and a CITATIONS list of {url, title, publisher}.\n- When RESEARCH_OK is true: cite 2 to 4 of those citations inline as markdown links, each placed exactly where it supports a specific factual claim (a number, a date, a rule, an external event). Do not dump them in a list at the end.\n- Only ever use URLs that appear in the CITATIONS list. NEVER invent a URL, NEVER cite from memory, NEVER cite a domain that is not in that list.\n- When RESEARCH_OK is false: cite nothing, and make no claim that would need a citation. Stick to what happened on the stream.\n\nKEYWORD PLACEMENT:\n- The exact primary_keyword from the blueprint must appear inside the first 100 words of the intro.\n- It must also appear naturally in at least 2 section bodies.\n- No stuffing, no awkward repetition, no bolting it onto a sentence where it does not belong. If it genuinely cannot be placed naturally in a spot, use a close variant instead.\n\nPER-SECTION KEY TAKEAWAY:\n- Every section needs a \"keyTakeaway\": ONE sentence, 25 words or fewer, the single thing a reader should remember from that section.\n- It must be distinct from that section's opening answer — not a restatement of it. The opening answers the heading; the takeaway is the lesson.\n\nFAQ:\n- Answer all 5 questions from the blueprint's faq_plan, in the same order. Carry each question through VERBATIM — do not reword them.\n- Each answer is 40 to 80 words, self-contained, and answers the question directly in its FIRST sentence.\n- No preamble. No \"great question\", no \"that depends\", no restating the question before answering it.\n\nFIRST-HAND EXPERIENCE (E-E-A-T):\n- Ground claims in what actually happened on the stream: \"on the stream I flagged X at Y\", \"we watched Z hold for twenty minutes before it broke\", \"I called that a trap and said so at the time\".\n- Use ONLY what the transcript mining data actually supports. Never invent an experience, a trade, a level, a date or a reaction that is not in the mining data.\n- Specific beats general. Real moments from the session beat generic trader wisdom, every time.\n\nCOMPLIANCE FRAMING — MANDATORY AND NON-NEGOTIABLE:\nRead \"market_scope\" and \"market_data_age_days\" from the blueprint before you write a word.\n- If market_scope is \"indian_securities\" OR \"mixed\" AND market_data_age_days is less than 90:\n  Write ALL discussion of Indian securities in the PAST TENSE, as a post-session review of what already happened.\n  NO forward-looking calls on Indian securities. No \"buy above\", no \"sell below\", no \"target\", no \"stop-loss for tomorrow\", no \"I'm watching X for entry\", no \"expect this level to hold\", no predictions about future levels or future sessions.\n  Explaining what was done during the stream and WHY it was done is fine. Telling the reader what to do next is not.\n- If market_scope is \"indian_securities\" OR \"mixed\" AND market_data_age_days is 90 or more:\n  Historical framing is fine. Still no forward-looking recommendations.\n- If market_scope is \"crypto\" or \"global\":\n  Normal analytical freedom. But never phrase anything as personalised advice to the reader.\n- NEVER output a disclaimer yourself. A later step appends the correct one. Do not write \"this is not financial advice\" or any variant of it.\n\nBLACKLISTED WORDS — NEVER use any of these:\ndelve, tapestry, landscape, multifaceted, testament, pivotal, crucial, comprehensive, robust, leverage, paramount, intricate, nuanced, meticulous, groundbreaking, underscore, endeavor, embark, synergy, transformative, innovative, cutting-edge, revolutionary, harness, unlock, realm, fostering, showcasing, highlighting, bolstered, garner, vibrant, commendable, enduring, utilize, facilitate, subsequently, commence, additionally, moreover, furthermore, notably, importantly, ultimately, fundamentally, interestingly, remarkably, undoubtedly\n\nBLACKLISTED PHRASES — NEVER use any of these:\n\"In today's ever-evolving\" / \"It's important to note\" / \"In the realm of\" / \"A testament to\" / \"At its core\" / \"Let's dive in\" / \"Let's delve into\" / \"In conclusion\" / \"In summary\" / \"In essence\" / \"Overall\" / \"Furthermore\" / \"Moreover\" / \"Additionally\" (as sentence starters) / \"Not only...but also\" / \"Paving the way\" / \"When it comes to\" / \"Navigate the complexities\" / \"As we explore\" / \"This serves as a\" / \"A nuanced understanding\"\n\nREQUIRED HUMANITY MARKERS (per section):\n- At least 1 rhetorical question addressing the reader\n- At least 1 parenthetical aside: (and this is where it gets interesting)\n- At least 1 opinion statement WITHOUT hedging — commit to a position\n- At least 1 sentence fragment for emphasis. Like this.\n- Vary paragraph lengths: mix 1-sentence, 3-sentence, and 5-sentence paragraphs\n- Vary sentence lengths: alternate 5-10 word punches with 20-30 word explanations\n- Use at least 3 discourse_markers from the mining data naturally throughout\n- Weave in at least 2 humanity_markers from the mining data as-is\n- Include at least 1 emotional_beat moment per major section\n- Reference at least 1 cultural_reference from the mining data to anchor the post in time\n\nANTI-AI PATTERNS — NEVER do these:\n- Do NOT start the intro with context-setting or definitions\n- Do NOT use the same sentence structure 3 times in a row\n- Do NOT start 2+ consecutive paragraphs with the same word\n- Do NOT end with 'In conclusion' or any summary-style closer\n- Do NOT use more than 2 semicolons in the entire article\n- Do NOT capitalize words for EMPHASIS more than twice per article\n- Do NOT use the phrase 'it is worth noting' or any variant\n\nCHART HANDLING:\n- You receive a CHART MAP with pre-classified frames. Each entry has a sectionIndex, url, alt_text, and content_summary.\n- For each section, check if the chart map has an entry with a matching sectionIndex.\n- If yes: set \"chartRef\" to that chart's url and \"chartAlt\" to that chart's alt_text.\n- If no chart is mapped: set \"chartRef\" to \"\" and \"chartAlt\" to \"\".\n- NEVER invent chart URLs. ONLY use URLs from the chart map.\n- Reference the chart naturally in the section body when it exists (e.g., \"As visible in the chart above...\" or \"The setup on the chart shows...\").\n\nRETURN FORMAT — valid JSON only:\n{\n  \"intro\": \"100-150 words. Start with the single most compelling thing that happened. Pull the reader in with a specific number or bold claim. Use a direct quote from the stream if one fits naturally. The exact primary_keyword must appear inside the first 100 words.\",\n  \"sections\": [\n    {\n      \"heading\": \"Use the heading from section_plan\",\n      \"body\": \"Full markdown body. Opens with the blueprint's direct_answer rewritten in voice (40-60 words, self-contained), then elaborates on the angle and covers every must_include item. Contains a real markdown table when the blueprint's table field is not null. Contains internal links and external citations per the rules above. Include bold, bullets, specific data.\",\n      \"keyTakeaway\": \"One sentence, 25 words maximum. The single thing to remember from this section. Not a restatement of the opening answer.\",\n      \"chartRef\": \"URL from chart map if a chart is mapped to this section's index, otherwise empty string\",\n      \"chartAlt\": \"alt_text from chart map for this chart, otherwise empty string\"\n    }\n  ],\n  \"conclusion\": \"150-200 words. 3-5 bullet takeaways that are lessons, not forward-looking calls (obey the compliance framing rules), then a natural CTA using the voice config's cta style — not salesy. Never write a disclaimer here.\",\n  \"tags\": [\"3-5 lowercase-hyphenated tags\"],\n  \"faq\": [\n    { \"question\": \"carried through verbatim from faq_plan\", \"answer\": \"40-80 words, direct answer in the first sentence\" }\n  ]\n}\n\nCRITICAL: Return ONLY the raw JSON object. Do NOT wrap in markdown code blocks or backticks. No preamble, no commentary before or after the JSON.",
+          "maxTokens": 16000,
+          "temperature": 0.8
+        }
+      },
+      "id": "llm-v2-writer",
+      "name": "Phase 4a: Ghost Writer",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        3408,
+        256
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 8000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assemble final publish payload from all pipeline phases\nconst triggerData = $('Workflow Trigger').first().json;\nconst videoId = triggerData.video_id;\nconst chartUrls = triggerData.chart_urls || [];\nconst voiceData = $('Voice Router').first().json;\nconst channelSlug = voiceData.channelSlug || 'tws';\n\n// ---- contract v2 constants ----\nconst BLOG_BASE = 'https://blogs.twsgurukulx.com';\nconst POST_PREFIX = BLOG_BASE + '/posts/';\nconst WORDS_PER_MINUTE = 220;\nconst AUTHOR = {\n  name: 'Sidhant',\n  role: 'Founder, TWSGurukulX',\n  url: 'https://blogs.twsgurukulx.com/about',\n  sameAs: [\n    'https://youtube.com/@tradingwithsidhant',\n    'https://instagram.com/tradingwithsidhant',\n    'https://x.com/tradingwsidhant',\n    'https://t.me/tradingwsidhant',\n    'https://twsgurukul.com'\n  ]\n};\n\n// Robust JSON extraction: strip code fences, then take the substring from the\n// FIRST { to the LAST }. Survives LLMs that emit prose before/after the JSON.\nfunction safeParse(str, fallback) {\n  const raw = (str === null || str === undefined) ? '' : String(str);\n  const stripped = raw.replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n  const first = stripped.indexOf('{');\n  const last = stripped.lastIndexOf('}');\n  const candidate = (first !== -1 && last > first) ? stripped.slice(first, last + 1) : stripped;\n  try { return JSON.parse(candidate); } catch (e) {\n    try { return JSON.parse(stripped); } catch (e2) {\n      try { return JSON.parse(raw.trim()); } catch (e3) { return fallback; }\n    }\n  }\n}\n\nfunction fixMojibake(text) {\n  if (!text || typeof text !== 'string') return text;\n  return text\n    .replace(/â€”/g, '—')\n    .replace(/â€“/g, '–')\n    .replace(/â€™/g, '’')\n    .replace(/â€˜/g, '‘')\n    .replace(/â€œ/g, '“')\n    .replace(/â€[]/g, '”')\n    .replace(/â€¦/g, '…')\n    .replace(/Â«/g, '«')\n    .replace(/Â»/g, '»')\n    .replace(/Ã©/g, 'é')\n    .replace(/Ã¨/g, 'è');\n}\n\n// TITLES / HEADINGS: an em-dash becomes a colon, never a comma splice.\nfunction cleanTitle(text) {\n  if (!text || typeof text !== 'string') return text;\n  return text\n    .replace(/\\s*—\\s*/g, ': ')\n    .replace(/(?::\\s*){2,}/g, ': ')\n    .replace(/,\\s*:\\s*/g, ': ')\n    .replace(/:\\s*,\\s*/g, ': ')\n    .replace(/\\s+:/g, ':')\n    .replace(/ {2,}/g, ' ')\n    .replace(/^[\\s:,]+/, '')\n    .replace(/[\\s:,]+$/, '')\n    .trim();\n}\n\n// BODY COPY: keep the comma behaviour, but guard against comma pile-ups.\nfunction cleanBody(text) {\n  if (!text || typeof text !== 'string') return text;\n  return text\n    .replace(/ — /g, ', ')\n    .replace(/—/g, ', ')\n    .replace(/,(\\s*,)+/g, ',')\n    .replace(/[ \\t]+,/g, ',')\n    .replace(/,\\s*\\./g, '.')\n    .replace(/,\\s*([;:!?])/g, '$1')\n    .replace(/^,\\s*/gm, '')\n    .replace(/, {2,}/g, ', ');\n}\n\nfunction extractLLMText(nodeJson) {\n  if (!nodeJson) return '';\n  // AI Agent node outputs a string directly in .output\n  if (nodeJson.output && typeof nodeJson.output === 'string') {\n    return nodeJson.output;\n  }\n  if (nodeJson.content && Array.isArray(nodeJson.content) && nodeJson.content[0]) {\n    return nodeJson.content[0].text || '';\n  }\n  if (nodeJson.output && nodeJson.output[0] && nodeJson.output[0].content && nodeJson.output[0].content[0]) {\n    return nodeJson.output[0].content[0].text || '';\n  }\n  if (nodeJson.text) return nodeJson.text;\n  return JSON.stringify(nodeJson);\n}\n\nfunction isValidUrl(str) {\n  return typeof str === 'string' && str.startsWith('http');\n}\n\nfunction pick(a, b) {\n  if (a !== undefined && a !== null && a !== '') return a;\n  return (b === undefined || b === null) ? '' : b;\n}\n\n// ---- contract v2 helpers ----\nfunction slugify(str, maxLen) {\n  const limit = maxLen || 60;\n  return String(str === null || str === undefined ? '' : str)\n    .toLowerCase()\n    .replace(/['\"‘’“”]/g, '')\n    .replace(/&/g, ' and ')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+/, '')\n    .replace(/-+$/, '')\n    .slice(0, limit)\n    .replace(/-+$/, '');\n}\n\n// slug must match /^[a-z0-9-]+$/, max 60 chars, no leading or trailing hyphen.\n// Falls back to a slugified title when the blueprint slug is missing or unusable.\nfunction sanitizeSlug(candidate, fallbackTitle) {\n  let s = String(candidate === null || candidate === undefined ? '' : candidate)\n    .trim()\n    .toLowerCase()\n    .replace(/^\\/+/, '')\n    .replace(/\\/+$/, '')\n    .replace(/[^a-z0-9-]+/g, '-')\n    .replace(/-{2,}/g, '-')\n    .replace(/^-+/, '')\n    .replace(/-+$/, '')\n    .slice(0, 60)\n    .replace(/-+$/, '');\n  if (!s || !/^[a-z0-9-]+$/.test(s)) { s = slugify(fallbackTitle, 60); }\n  return s || 'tws-post';\n}\n\n// Hard-truncate at a word boundary, never mid-word.\nfunction truncateAtWord(str, maxLen) {\n  const s = String(str === null || str === undefined ? '' : str).trim();\n  if (s.length <= maxLen) { return s; }\n  const cut = s.slice(0, maxLen);\n  const sp = cut.lastIndexOf(' ');\n  return (sp > 0 ? cut.slice(0, sp) : cut).replace(/[\\s,;:.\\-]+$/, '').trim();\n}\n\nfunction normTag(t) {\n  return String(t === null || t === undefined ? '' : t)\n    .toLowerCase()\n    .trim()\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+/, '')\n    .replace(/-+$/, '');\n}\n\nfunction countWords(s) {\n  const t = String(s === null || s === undefined ? '' : s)\n    .replace(/!?\\[[^\\]]*\\]\\([^)]*\\)/g, ' ')\n    .replace(/[#*_`>|]+/g, ' ')\n    .trim();\n  if (!t) { return 0; }\n  const parts = t.split(/\\s+/);\n  let n = 0;\n  for (let i = 0; i < parts.length; i++) { if (parts[i]) { n++; } }\n  return n;\n}\n\nconst phase2Node = $('Phase 2: SEO + Section Blueprint').first().json;\nconst seoRaw = extractLLMText(phase2Node);\nconst titleData = safeParse(seoRaw, {\n  title: 'TWS Stream Recap',\n  hook: '',\n  seo_description: '',\n  keywords: []\n});\n\nconst debugInfo = [];\n\nfunction getParsedBlog(nodeName, label) {\n  try {\n    const nodeData = $(nodeName).first().json;\n    const rawText = extractLLMText(nodeData);\n    const len = rawText ? rawText.length : 0;\n    if (!rawText || len < 10) {\n      debugInfo.push(label + ': len=' + len + ' EMPTY');\n      return { ok: false, data: null };\n    }\n    const parsed = safeParse(rawText, null);\n    const ok = !!(parsed && parsed.intro && Array.isArray(parsed.sections) && parsed.sections.length > 0);\n    debugInfo.push(label + ': len=' + len + (ok ? (' OK sections=' + parsed.sections.length) : ' bad structure'));\n    return { ok: ok, data: parsed };\n  } catch (e) {\n    debugInfo.push(label + ': ERR ' + e.message);\n    return { ok: false, data: null };\n  }\n}\n\nconst writerParsed = getParsedBlog('Phase 4a: Ghost Writer', 'writer');\nconst editorParsed = getParsedBlog('Editorial Board Agent', 'editor');\n\nlet blogData = { intro: '', sections: [], conclusion: '', tags: [] };\nlet editorUsed = false;\n\nif (editorParsed.ok) {\n  // MERGE: editor wins on prose, writer supplies chart/image fields the editor drops.\n  const ed = editorParsed.data;\n  const wr = writerParsed.ok ? writerParsed.data : null;\n  const writerSections = (wr && Array.isArray(wr.sections)) ? wr.sections : [];\n  const mergedSections = ed.sections.map((s, idx) => {\n    const w = writerSections[idx] || {};\n    return {\n      heading: pick(s.heading, w.heading),\n      body: pick(s.body, w.body),\n      keyTakeaway: pick(s.keyTakeaway, w.keyTakeaway),\n      chartRef: pick(s.chartRef, w.chartRef),\n      chartAlt: pick(s.chartAlt, w.chartAlt),\n      imageUrl: pick(s.imageUrl, w.imageUrl),\n      imageAlt: pick(s.imageAlt, w.imageAlt)\n    };\n  });\n  blogData = {\n    intro: pick(ed.intro, wr ? wr.intro : ''),\n    sections: mergedSections,\n    conclusion: pick(ed.conclusion, wr ? wr.conclusion : ''),\n    tags: (Array.isArray(ed.tags) && ed.tags.length) ? ed.tags : ((wr && wr.tags) || []),\n    faq: (Array.isArray(ed.faq) && ed.faq.length) ? ed.faq : ((wr && wr.faq) || [])\n  };\n  editorUsed = true;\n  debugInfo.push('merge: editor+writer by index, sections=' + mergedSections.length);\n} else if (writerParsed.ok) {\n  // Editor JSON unusable -> fall back to the Ghost Writer draft entirely.\n  blogData = writerParsed.data;\n  debugInfo.push('merge: FALLBACK to ghost writer only');\n}\n\nif (!blogData.intro && (!blogData.sections || blogData.sections.length === 0)) {\n  throw new Error('Blog generation failed. Debug: ' + debugInfo.join(' | '));\n}\n\nlet imageData = {};\ntry { imageData = $('Collect Image URLs').first().json || {}; } catch (e) { imageData = {}; }\nconst heroImageObj = imageData.heroImage || null;\nconst heroImageUrl = (heroImageObj && isValidUrl(heroImageObj.url)) ? heroImageObj.url : '';\nconst sectionImages = Array.isArray(imageData.sectionImages) ? imageData.sectionImages : [];\nconst imageStats = imageData._imageStats || { total: 0, uploaded: 0, failed: 0, errors: [] };\n\n// Get chart map from Build Chart Map node\nlet chartMapData = [];\ntry {\n  chartMapData = $('Build Chart Map').first().json._chartMap || [];\n} catch (e) { chartMapData = []; }\n\nconst sections = (blogData.sections || []).map((section, idx) => {\n  let chartRef = isValidUrl(section.chartRef) ? section.chartRef : '';\n  let chartAlt = section.chartAlt || '';\n\n  // Priority 2: Chart map has a pre-matched chart\n  if (!chartRef) {\n    const mapped = chartMapData.find(c => c.sectionIndex === idx);\n    if (mapped && isValidUrl(mapped.url)) {\n      chartRef = mapped.url;\n      chartAlt = mapped.alt_text || '';\n    }\n  }\n\n  // Priority 3: Index-based from original chart_urls\n  if (!chartRef && chartUrls[idx]) {\n    const candidate = typeof chartUrls[idx] === 'string' ? chartUrls[idx] : (chartUrls[idx].url || '');\n    if (isValidUrl(candidate)) chartRef = candidate;\n  }\n\n  // Priority 4: Generated section images\n  const genImage = sectionImages.find(img => img.sectionIndex === idx) || null;\n  if (!chartRef && genImage && isValidUrl(genImage.url)) {\n    chartRef = genImage.url;\n    if (!chartAlt && genImage.alt) chartAlt = genImage.alt;\n  }\n\n  if (!chartAlt && chartRef) chartAlt = 'Chart: ' + (section.heading || 'Section ' + (idx + 1));\n\n  const isGen = !!(genImage && genImage.url === chartRef);\n\n  return {\n    heading: section.heading,\n    body: section.body,\n    keyTakeaway: section.keyTakeaway || '',\n    chartRef: chartRef,\n    chartAlt: chartAlt,\n    chartWidth: isGen ? (genImage.width || 0) : 0,\n    chartHeight: isGen ? (genImage.height || 0) : 0\n  };\n});\n\nconst youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;\nlet postTitle = cleanTitle(fixMojibake(titleData.title));\n// Real YouTube video title, resolved upstream in Stage 2 (Pick Caption Credential).\n// Empty when Stage 2 could not resolve it; the post title is the fallback.\nconst videoTitle = (typeof triggerData.video_title === 'string') ? triggerData.video_title.trim() : '';\nconst videoTitleOrPost = videoTitle || postTitle;\nconst introText = cleanBody(fixMojibake(blogData.intro));\nconst conclusionBase = cleanBody(fixMojibake(blogData.conclusion));\n\n// ---------- final cleaned sections, built once so link extraction and word\n// counts see exactly the text that ships ----------\nconst finalSections = sections.map((s, idx) => {\n  const genImage = sectionImages.find(img => img.sectionIndex === idx) || null;\n  return {\n    heading: cleanTitle(fixMojibake(s.heading)),\n    body: cleanBody(fixMojibake(s.body)),\n    keyTakeaway: cleanBody(fixMojibake(s.keyTakeaway)) || '',\n    chartRef: s.chartRef,\n    chartAlt: s.chartAlt || '',\n    chartWidth: s.chartWidth,\n    chartHeight: s.chartHeight,\n    // v2: object form of the generated section image, sent ALONGSIDE the legacy chart* fields\n    image: (genImage && isValidUrl(genImage.url))\n      ? { url: genImage.url, alt: genImage.alt || '', width: genImage.width || 0, height: genImage.height || 0 }\n      : null\n  };\n});\n\n// ---------- compliance block (defensive: the node may be unreachable) ----------\nlet compliance = { disclaimer: '', compliance_scope: '', compliance_flag: false, compliance_note: '' };\ntry {\n  const c = $('Build Compliance Block').first().json || {};\n  compliance = {\n    disclaimer: (typeof c.disclaimer === 'string') ? c.disclaimer : '',\n    compliance_scope: (typeof c.compliance_scope === 'string') ? c.compliance_scope : '',\n    compliance_flag: c.compliance_flag === true,\n    compliance_note: (typeof c.compliance_note === 'string') ? c.compliance_note : ''\n  };\n} catch (e) {\n  debugInfo.push('compliance: unreachable');\n}\n\n// conclusion = author copy, then the YouTube line, then the disclaimer\nlet conclusionText = conclusionBase\n  + `\\n\\n**Watch the full stream:** [${videoTitleOrPost} on YouTube](${youtubeUrl})`;\nif (compliance.disclaimer) {\n  conclusionText = conclusionText + '\\n\\n' + compliance.disclaimer;\n}\n\n// ---------- link extraction over the text that actually ships ----------\nconst sectionBlob = finalSections.map(s => s.body || '').join('\\n\\n');\nconst bodyBlob = introText + '\\n\\n' + sectionBlob + '\\n\\n' + conclusionBase;\nconst MD_LINK = /\\[([^\\]]+)\\]\\((https?:\\/\\/[^\\s)]+)\\)/g;\n\nconst internalLinks = [];\nconst seenInternal = {};\nlet mLink;\nMD_LINK.lastIndex = 0;\nwhile ((mLink = MD_LINK.exec(sectionBlob)) !== null) {\n  const anchor = String(mLink[1] || '').trim();\n  const url = String(mLink[2] || '').trim();\n  if (url.indexOf(POST_PREFIX) !== 0) { continue; }\n  if (seenInternal[url]) { continue; }\n  seenInternal[url] = true;\n  const path = url.split('?')[0].split('#')[0].replace(/\\/+$/, '');\n  const segs = path.split('/');\n  internalLinks.push({ slug: segs[segs.length - 1] || '', title: anchor, url: url });\n}\n\n// ---------- external links: only citations that survived editing ----------\nconst externalLinks = [];\ntry {\n  const pack = $('Build Research Pack').first().json || {};\n  const cites = Array.isArray(pack.citations) ? pack.citations : [];\n  const seenExt = {};\n  for (let i = 0; i < cites.length; i++) {\n    const c = cites[i] || {};\n    const url = (typeof c.url === 'string') ? c.url.trim() : '';\n    if (!url || seenExt[url]) { continue; }\n    if (bodyBlob.indexOf(url) === -1) { continue; }\n    seenExt[url] = true;\n    externalLinks.push({ url: url, title: c.title || '', publisher: c.publisher || '' });\n  }\n} catch (e) {\n  debugInfo.push('citations: unreachable');\n}\n\n// ---------- SEO metadata ----------\nlet slug = sanitizeSlug(titleData.slug, postTitle);\nlet seoTitle = truncateAtWord(postTitle, 60);\nlet primaryKeyword = (typeof titleData.primary_keyword === 'string') ? titleData.primary_keyword.trim() : '';\n\n// ---------- stale-year guard ----------\n// The model fabricates years that appear nowhere in the transcript: a July 2026 stream\n// shipped as 'Effective Bitcoin Shorting Strategy for 2023 Market Turns'. Any year in\n// 2000-2025 is stripped from the title, slug and primary keyword. 2026 and later are\n// left untouched. The prompt-side rule is the primary fix; this is the backstop.\nconst STALE_YEAR_RE = /\\b20(?:0\\d|1\\d|2[0-5])\\b/;\nfunction stripStaleYearText(str) {\n  const s = String(str === null || str === undefined ? '' : str);\n  if (!STALE_YEAR_RE.test(s)) { return s; }\n  return s\n    // drop a dangling preposition left immediately before the year\n    .replace(/\\s+\\b(?:for|in|of|during|by)\\b\\s+20(?:0\\d|1\\d|2[0-5])\\b/gi, '')\n    .replace(/\\b20(?:0\\d|1\\d|2[0-5])\\b/g, '')\n    .replace(/ {2,}/g, ' ')\n    .replace(/\\s+([,.;:!?])/g, '$1')\n    .replace(/^[\\s,;:.\\-]+/, '')\n    .replace(/[\\s,;:\\-]+$/, '')\n    .trim();\n}\nfunction stripStaleYearSlug(str) {\n  const s = String(str === null || str === undefined ? '' : str);\n  if (!/(?:^|-)20(?:0\\d|1\\d|2[0-5])(?:-|$)/.test(s)) { return s; }\n  return s\n    .replace(/-(?:for|in|of|during|by)-20(?:0\\d|1\\d|2[0-5])(?=-|$)/g, '')\n    .replace(/(^|-)20(?:0\\d|1\\d|2[0-5])(?=-|$)/g, '$1')\n    .replace(/-{2,}/g, '-')\n    .replace(/^-+/, '')\n    .replace(/-+$/, '');\n}\nconst staleYearHits = [];\nconst staleYearSeen = (postTitle + ' ' + slug.replace(/-/g, ' ') + ' ' + primaryKeyword).match(STALE_YEAR_RE);\nconst titleNoYear = stripStaleYearText(postTitle);\nif (titleNoYear !== postTitle) { postTitle = titleNoYear; staleYearHits.push('title'); }\nconst slugNoYear = stripStaleYearSlug(slug);\nif (slugNoYear !== slug) { slug = sanitizeSlug(slugNoYear, postTitle); staleYearHits.push('slug'); }\nconst kwNoYear = stripStaleYearText(primaryKeyword);\nif (kwNoYear !== primaryKeyword) { primaryKeyword = kwNoYear; staleYearHits.push('primaryKeyword'); }\nif (staleYearHits.length) {\n  seoTitle = truncateAtWord(postTitle, 60);\n  debugInfo.push('stale-year: stripped ' + (staleYearSeen ? staleYearSeen[0] : 'year') + ' from ' + staleYearHits.join('/'));\n}\n\nconst keywords = [];\nconst seenKw = {};\nconst kwSource = [primaryKeyword].concat(Array.isArray(titleData.secondary_keywords) ? titleData.secondary_keywords : []);\nfor (let i = 0; i < kwSource.length; i++) {\n  const k = String(kwSource[i] === null || kwSource[i] === undefined ? '' : kwSource[i]).trim();\n  if (!k) { continue; }\n  const kkey = k.toLowerCase();\n  if (seenKw[kkey]) { continue; }\n  seenKw[kkey] = true;\n  keywords.push(k);\n}\n\n// tags: the blueprint's controlled vocabulary wins, the writer's tags are the fallback\nconst rawTags = (Array.isArray(titleData.tags) && titleData.tags.length)\n  ? titleData.tags\n  : (Array.isArray(blogData.tags) ? blogData.tags : []);\nconst tags = [];\nconst seenTag = {};\nfor (let i = 0; i < rawTags.length; i++) {\n  if (tags.length >= 5) { break; }\n  const t = normTag(rawTags[i]);\n  if (!t || seenTag[t]) { continue; }\n  seenTag[t] = true;\n  tags.push(t);\n}\n\nlet totalWords = countWords(introText) + countWords(conclusionBase);\nfor (let i = 0; i < finalSections.length; i++) { totalWords += countWords(finalSections[i].body); }\nconst readingTimeMinutes = Math.max(1, Math.ceil(totalWords / WORDS_PER_MINUTE));\n\n// ---------- FAQ: never fabricate, never truncate mid-sentence ----------\nconst rawFaq = Array.isArray(blogData.faq) ? blogData.faq : [];\nconst cleanFaq = [];\nfor (let i = 0; i < rawFaq.length; i++) {\n  const f = rawFaq[i] || {};\n  const q = (typeof f.question === 'string') ? f.question.trim() : '';\n  const a = (typeof f.answer === 'string') ? f.answer.trim() : '';\n  if (!q || !a) { continue; }\n  cleanFaq.push({ question: cleanTitle(fixMojibake(q)), answer: cleanBody(fixMojibake(a)) });\n}\nconst faqOut = (cleanFaq.length >= 2) ? cleanFaq : [];\nif (faqOut.length === 0) { debugInfo.push('faq: dropped, fewer than 2 complete Q&A pairs'); }\n\n// ---------- seo_description: deterministic 140-155 char repair ----------\n// The prompt-side rule is kept, but gpt-4o cannot reliably count characters\n// (the whole backfill shipped 119-131 chars), so length is enforced here.\nconst SEO_DESC_MIN = 140;\nconst SEO_DESC_MAX = 155;\nconst hookText = cleanTitle(fixMojibake(titleData.hook));\nconst categoryText = (typeof titleData.category === 'string') ? titleData.category.trim() : '';\n\n// collapse whitespace, drop leading/trailing separators, keep terminal . ! ?\nfunction tidyFragment(str) {\n  return String(str === null || str === undefined ? '' : str)\n    .replace(/\\s+/g, ' ')\n    .replace(/^[\\s,;:.\\-]+/, '')\n    .replace(/[\\s,;:\\-]+$/, '')\n    .trim();\n}\n\n// Any fragment that gets appended must READ as a sentence. If it has no terminal\n// punctuation we add a period, so the join can never produce '... insights. crypto'.\nfunction endWithTerminal(str) {\n  const s = tidyFragment(str);\n  if (!s) { return ''; }\n  return /[.!?]$/.test(s) ? s : (s + '.');\n}\n\nlet seoDesc = tidyFragment(cleanBody(fixMojibake(titleData.seo_description)));\nconst seoDescRawLen = seoDesc.length;\n\n// Cut at the LAST sentence boundary (. ! ?) inside maxLen that still leaves at least\n// minLen chars. Returns '' when no such boundary exists, so the caller can fall back.\nfunction truncateAtSentence(str, maxLen, minLen) {\n  const s = String(str === null || str === undefined ? '' : str).trim();\n  if (s.length <= maxLen) { return s; }\n  const window = s.slice(0, maxLen);\n  let best = -1;\n  for (let i = 0; i < window.length; i++) {\n    const ch = window.charAt(i);\n    if (ch === '.' || ch === '!' || ch === '?') {\n      if (i + 1 >= minLen) { best = i; }\n    }\n  }\n  return (best >= 0) ? window.slice(0, best + 1).trim() : '';\n}\n\nconst seoFillersUsed = [];\nif (seoDesc.length < SEO_DESC_MIN) {\n  // Pad from real content only, most informative first. Never invent copy.\n  // finalSections is already built earlier in this node (right after conclusionBase),\n  // so the first section's keyTakeaway is read from there directly — already cleaned\n  // via cleanBody/fixMojibake inside finalSections.map() above — rather than blogData.\n  const firstKeyTakeaway = (finalSections[0] && finalSections[0].keyTakeaway) ? finalSections[0].keyTakeaway : '';\n  // Fillers must be SENTENCE-LIKE ONLY. Bare tokens are not prose: appending the\n  // category token shipped '...market levels and trading psychology insights. crypto'\n  // to a live meta description. categoryText and primaryKeyword are therefore removed\n  // from this list permanently. Do not re-add them.\n  const seoFillers = [\n    { label: 'hook', text: hookText },\n    { label: 'keyTakeaway', text: firstKeyTakeaway }\n  ];\n  for (let fi = 0; fi < seoFillers.length; fi++) {\n    if (seoDesc.length >= SEO_DESC_MIN) { break; }\n    const frag = endWithTerminal(seoFillers[fi].text);\n    if (!frag) { continue; }\n    if (seoDesc.toLowerCase().indexOf(frag.toLowerCase()) !== -1) { continue; }\n    const sep = seoDesc ? (/[.!?]$/.test(seoDesc) ? ' ' : '. ') : '';\n    const candidate = seoDesc + sep + frag;\n    // A filler is only ever appended WHOLE. Appending then hard-cutting at 155 is what\n    // shipped '...predict Bitcoin movements. Our team reveals how to' to production.\n    // If it does not fit, skip this filler and try the next one.\n    if (candidate.length > SEO_DESC_MAX) { continue; }\n    seoDesc = candidate;\n    seoFillersUsed.push(seoFillers[fi].label);\n  }\n  // Final fallback: neutral, non-factual sentence. Only reached if real content still\n  // leaves the description under the floor; never added when already >= 140.\n  if (seoDesc.length < SEO_DESC_MIN) {\n    const fallbackFrag = 'Full breakdown inside.';\n    if (seoDesc.toLowerCase().indexOf(fallbackFrag.toLowerCase()) === -1) {\n      const sep = seoDesc ? (/[.!?]$/.test(seoDesc) ? ' ' : '. ') : '';\n      const candidate = seoDesc + sep + fallbackFrag;\n      // Same whole-fragment-only rule as the fillers above.\n      if (candidate.length <= SEO_DESC_MAX) {\n        seoDesc = candidate;\n        seoFillersUsed.push('fallback');\n      }\n    }\n  }\n}\n\n// Only reachable when the ORIGINAL description was already over 155 (fillers can no\n// longer push it over). Prefer a clean sentence boundary that still clears the 140\n// floor; fall back to the old word-boundary cut only when no such boundary exists.\nif (seoDesc.length > SEO_DESC_MAX) {\n  const atSentence = truncateAtSentence(seoDesc, SEO_DESC_MAX, SEO_DESC_MIN);\n  seoDesc = atSentence || truncateAtWord(seoDesc, SEO_DESC_MAX);\n}\nseoDesc = tidyFragment(seoDesc);\n// The shipped string must ALWAYS end in terminal punctuation. truncateAtWord and\n// tidyFragment both strip a trailing period, so it is re-applied here, under the ceiling.\nif (seoDesc && !/[.!?]$/.test(seoDesc)) {\n  if (seoDesc.length + 1 > SEO_DESC_MAX) { seoDesc = truncateAtWord(seoDesc, SEO_DESC_MAX - 1); }\n  seoDesc = seoDesc + '.';\n}\n// If seoDesc is STILL under SEO_DESC_MIN here, that is accepted and final. A slightly\n// short but grammatical description beats a padded broken one. Never invent content\n// purely to reach 140 characters.\ndebugInfo.push('seoDesc: ' + seoDescRawLen + ' -> ' + seoDesc.length + ' chars' + (seoFillersUsed.length ? ' (' + seoFillersUsed.join(', ') + ')' : ''));\n\nconst nowIso = new Date().toISOString();\nconst heroImageObject = (heroImageObj && isValidUrl(heroImageObj.url))\n  ? { url: heroImageObj.url, alt: heroImageObj.alt || '', width: heroImageObj.width || 0, height: heroImageObj.height || 0 }\n  : null;\n\nreturn [{\n  json: {\n    // ---------- legacy contract: today's blog reads these, shapes unchanged ----------\n    videoId: videoId,\n    channel: channelSlug,\n    title: postTitle,\n    hook: hookText,\n    seoDesc: seoDesc,\n    heroImage: heroImageUrl,\n    heroImageAlt: (heroImageObj && heroImageObj.alt) ? heroImageObj.alt : '',\n    heroImageWidth: (heroImageObj && heroImageObj.width) ? heroImageObj.width : 0,\n    heroImageHeight: (heroImageObj && heroImageObj.height) ? heroImageObj.height : 0,\n    intro: introText,\n    sections: finalSections,\n    conclusion: conclusionText,\n    tags: tags,\n    keywords: keywords,\n    faq: faqOut,\n    _imageStats: imageStats,\n    _editorUsed: editorUsed,\n    _debug: debugInfo.join(' | '),\n\n    // ---------- contract v2 ----------\n    slug: slug,\n    canonicalPath: '/posts/' + slug,\n    seoTitle: seoTitle,\n    primaryKeyword: primaryKeyword,\n    category: (typeof titleData.category === 'string') ? titleData.category : '',\n    readingTimeMinutes: readingTimeMinutes,\n    author: AUTHOR,\n    publishedAt: nowIso,\n    updatedAt: nowIso,\n    video: { id: videoId, url: youtubeUrl, title: videoTitleOrPost },\n    internalLinks: internalLinks,\n    externalLinks: externalLinks,\n    disclaimer: compliance.disclaimer,\n    complianceScope: compliance.compliance_scope,\n    complianceFlag: compliance.compliance_flag,\n    complianceNote: compliance.compliance_note,\n    heroImageObject: heroImageObject,\n    noindex: false\n  }\n}];"
+      },
+      "id": "llm-v2-assemble",
+      "name": "Assemble Publish Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5920,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "0CyeY196pvsvhcpv",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
         "options": {}
       },
-      "id": "c3d4e5f6-0005-0005-0005-000000000005",
-      "name": "Step 4: Blog Body (Sonnet 4.6)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1200, 300],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "q4ymT2m2g1Zx4XXa",
-          "name": "Anthropic API Key"
-        }
-      }
+      "id": "llm-v2-publish",
+      "name": "Trigger Publish Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        6368,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract image prompts from Phase 2 SEO blueprint\nconst triggerData = $('Workflow Trigger').first().json;\nconst videoId = triggerData.video_id;\nconst phase2Node = $('Phase 2: SEO + Section Blueprint').first().json;\n\n// Robust JSON extraction: strip code fences, then take FIRST { to LAST }.\nfunction safeParse(str, fallback) {\n  const raw = (str === null || str === undefined) ? '' : String(str);\n  const stripped = raw.replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n  const first = stripped.indexOf('{');\n  const last = stripped.lastIndexOf('}');\n  const candidate = (first !== -1 && last > first) ? stripped.slice(first, last + 1) : stripped;\n  try { return JSON.parse(candidate); } catch (e) {\n    try { return JSON.parse(stripped); } catch (e2) {\n      try { return JSON.parse(raw.trim()); } catch (e3) { return fallback; }\n    }\n  }\n}\n\nfunction extractLLMText(nodeJson) {\n  if (!nodeJson) return '';\n  try {\n    if (nodeJson.output && Array.isArray(nodeJson.output) && nodeJson.output[0] && nodeJson.output[0].content && nodeJson.output[0].content[0]) {\n      return nodeJson.output[0].content[0].text || '';\n    }\n    if (typeof nodeJson.output === 'string') return nodeJson.output;\n    if (nodeJson.content && Array.isArray(nodeJson.content) && nodeJson.content[0]) return nodeJson.content[0].text || '';\n    if (typeof nodeJson.text === 'string') return nodeJson.text;\n  } catch (e) { /* fall through */ }\n  return '';\n}\n\nfunction slugify(str, maxLen) {\n  const limit = maxLen || 60;\n  const s = String(str === null || str === undefined ? '' : str)\n    .toLowerCase()\n    .replace(/[‘’“”'\\\"]/g, '')\n    .replace(/&/g, ' and ')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+/, '')\n    .replace(/-+$/, '');\n  return s.slice(0, limit).replace(/-+$/, '');\n}\n\nconst HERO_SIZE = '2048x1152';\nconst SECTION_SIZE = '1024x1024';\nconst MAX_SECTION_IMAGES = 6;\n\nconst seoRaw = extractLLMText(phase2Node) || '{}';\nconst seoData = safeParse(seoRaw, { section_plan: [], hero_image_prompt: '' });\n\nconst blueprintTitle = seoData.title || seoData.seo_title || seoData.h1 || ('TWS Stream Recap ' + (videoId || ''));\nconst slugBase = slugify(blueprintTitle, 60) || slugify('tws-' + (videoId || 'post'), 60) || 'tws-post';\nconst heroAlt = seoData.hero_image_alt || ((seoData.title || 'TWS Stream Recap') + ' — TWSGurukulX');\n\nconst items = [];\n\n// Hero image\nif (seoData.hero_image_prompt) {\n  items.push({ json: {\n    prompt: 'Generate a high-quality blog illustration image: ' + seoData.hero_image_prompt,\n    imageType: 'hero',\n    sectionIndex: -1,\n    videoId,\n    size: HERO_SIZE,\n    alt: heroAlt,\n    slugBase\n  }});\n}\n\n// One image per section that has an image_prompt, capped at MAX_SECTION_IMAGES\nconst sectionPlan = Array.isArray(seoData.section_plan) ? seoData.section_plan : [];\nlet made = 0;\nfor (let i = 0; i < sectionPlan.length; i++) {\n  if (made >= MAX_SECTION_IMAGES) break;\n  const section = sectionPlan[i] || {};\n  if (!section.image_prompt) continue;\n  const heading = section.heading || ('Section ' + (i + 1));\n  items.push({ json: {\n    prompt: 'Generate a high-quality blog illustration image: ' + section.image_prompt,\n    imageType: 'section',\n    sectionIndex: i,\n    videoId,\n    size: SECTION_SIZE,\n    alt: section.image_alt || ('Chart illustration: ' + heading),\n    slugBase\n  }});\n  made++;\n}\n\n// Safety net: if no prompts at all, still generate a default hero\nif (items.length === 0) {\n  items.push({ json: {\n    prompt: 'Generate a professional abstract financial data visualization with dark blue, gold, and teal tones for a trading blog',\n    imageType: 'hero',\n    sectionIndex: -1,\n    videoId: videoId || 'unknown',\n    size: HERO_SIZE,\n    alt: heroAlt,\n    slugBase\n  }});\n}\n\nreturn items;"
+      },
+      "id": "llm-v2-img-prep",
+      "name": "Prepare Image Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4800,
+        256
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict",
+        "url": "https://api.openai.com/v1/images/generations",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpQueryAuth",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"instances\": [\n    {\n      \"prompt\": {{ JSON.stringify(JSON.parse($node['Step 2: Title & Hooks (GPT-4o)'].json.choices[0].message.content).image_prompt) }}\n    }\n  ],\n  \"parameters\": {\n    \"sampleCount\": 1,\n    \"aspectRatio\": \"16:9\"\n  }\n}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-image-2', prompt: $json.prompt, size: $json.size, quality: 'medium', n: 1 }) }}",
+        "options": {
+          "timeout": 300000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 3000
+            }
+          }
+        }
       },
-      "id": "c3d4e5f6-0006-0006-0006-000000000006",
-      "name": "Step 5: Hero Image (Imagen 3)",
+      "id": "7596cb95-69b9-4cf4-a376-7c82b7bc5da4",
+      "name": "Generate an image",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1440, 300],
-      "continueOnFail": true,
-      "notes": "Uses Google Imagen 3. Requires a Google Cloud API key set in the httpQueryAuth credential as 'key' parameter. continueOnFail is true so pipeline proceeds even if image generation fails."
+      "position": [
+        5024,
+        256
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Extract base64 image from Imagen response and prepare upload payload\nconst imagenResponse = $json;\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\nlet imageBase64 = '';\nlet imageKey = '';\n\ntry {\n  if (imagenResponse.predictions && imagenResponse.predictions[0] && imagenResponse.predictions[0].bytesBase64Encoded) {\n    imageBase64 = imagenResponse.predictions[0].bytesBase64Encoded;\n    imageKey = 'hero/' + videoId + '-' + Date.now() + '.png';\n  }\n} catch (e) {\n  // Imagen failed (continueOnFail) — no image to upload\n}\n\nreturn [{ json: { imageBase64, imageKey, hasImage: imageBase64.length > 0 } }];"
+        "jsCode": "// Extract base64 images from the OpenAI images API, build SEO filenames + binary for R2\nconst allItems = $input.all();\nlet prepItems = [];\ntry { prepItems = $('Prepare Image Prompts').all(); } catch (e) { prepItems = []; }\nconst results = [];\n\nfunction slugify(str, maxLen) {\n  const limit = maxLen || 60;\n  const s = String(str === null || str === undefined ? '' : str)\n    .toLowerCase()\n    .replace(/[‘’“”'\\\"]/g, '')\n    .replace(/&/g, ' and ')\n    .replace(/[^a-z0-9]+/g, '-')\n    .replace(/^-+/, '')\n    .replace(/-+$/, '');\n  return s.slice(0, limit).replace(/-+$/, '');\n}\n\nfunction dimsFromSize(size) {\n  const m = /^\\s*(\\d+)\\s*[xX×]\\s*(\\d+)\\s*$/.exec(String(size || ''));\n  if (m) return { width: parseInt(m[1], 10), height: parseInt(m[2], 10) };\n  return { width: 0, height: 0 };\n}\n\nconst uniqueSuffix = String(Date.now()).slice(-6);\nconst usedNames = {};\n\nfor (let i = 0; i < allItems.length; i++) {\n  const item = allItems[i] || {};\n  const json = item.json || {};\n  const meta = prepItems[i] ? (prepItems[i].json || {}) : {};\n  const videoId = meta.videoId || 'unknown';\n  const imageType = meta.imageType || 'section';\n  const sectionIndex = (meta.sectionIndex !== undefined && meta.sectionIndex !== null) ? meta.sectionIndex : i;\n  const size = meta.size || (imageType === 'hero' ? '2048x1152' : '1024x1024');\n  const dims = dimsFromSize(size);\n  const alt = meta.alt || '';\n  const slugBase = slugify(meta.slugBase || ('tws-' + videoId), 60) || 'tws-post';\n\n  const baseOut = { imageType, sectionIndex, videoId, size, width: dims.width, height: dims.height, alt, filename: '' };\n\n  let base64Data = null;\n  let mimeType = '';\n  let errorMsg = '';\n\n  try {\n    if (json.error) {\n      errorMsg = (typeof json.error === 'string')\n        ? json.error\n        : (json.error.message || json.error.description || 'image generation failed');\n    } else {\n      const data = json.data;\n      if (Array.isArray(data) && data[0]) {\n        if (data[0].b64_json) {\n          base64Data = data[0].b64_json;\n          if (data[0].mime_type) mimeType = data[0].mime_type;\n        } else if (data[0].url) {\n          errorMsg = 'image API returned a url instead of b64_json';\n        }\n      }\n      if (!mimeType && json.output_format) mimeType = 'image/' + String(json.output_format).toLowerCase();\n      if (!base64Data && !errorMsg) errorMsg = 'no image data in response';\n    }\n  } catch (e) {\n    errorMsg = 'parse error: ' + (e && e.message ? e.message : String(e));\n  }\n\n  if (!base64Data) {\n    results.push({ json: Object.assign({}, baseOut, { skipped: true, error: errorMsg || 'no image data' }) });\n    continue;\n  }\n\n  // gpt-image-2 returns PNG by default; still honour an explicit mime if present\n  let ext = 'png';\n  if (mimeType) {\n    if (mimeType.indexOf('jpeg') !== -1 || mimeType.indexOf('jpg') !== -1) ext = 'jpg';\n    else if (mimeType.indexOf('webp') !== -1) ext = 'webp';\n    else ext = 'png';\n  }\n  const finalMime = mimeType || ('image/' + (ext === 'jpg' ? 'jpeg' : ext));\n\n  let base;\n  if (imageType === 'hero') {\n    base = slugBase + '-hero';\n  } else {\n    const descriptor = slugify(alt || ('section-' + (sectionIndex + 1)), 40) || ('section-' + (sectionIndex + 1));\n    base = slugBase + '-' + (sectionIndex + 1) + '-' + descriptor;\n  }\n\n  let filename = base + '.' + ext;\n  if (usedNames[filename]) filename = base + '-' + uniqueSuffix + '-' + i + '.' + ext;\n  usedNames[filename] = true;\n\n  try {\n    const buffer = Buffer.from(base64Data, 'base64');\n    const binary = await this.helpers.prepareBinaryData(buffer, filename, finalMime);\n    results.push({\n      json: Object.assign({}, baseOut, { filename, mimeType: finalMime, skipped: false }),\n      binary: { data: binary }\n    });\n  } catch (e) {\n    results.push({ json: Object.assign({}, baseOut, { skipped: true, error: 'binary prep failed: ' + (e && e.message ? e.message : String(e)) }) });\n  }\n}\n\nif (results.length === 0) {\n  results.push({ json: { imageType: 'none', sectionIndex: -1, videoId: 'unknown', filename: '', size: '', width: 0, height: 0, alt: '', skipped: true, error: 'no items received from image generation' } });\n}\n\nreturn results;"
       },
-      "id": "c3d4e5f6-0006-a001-a001-000000000001",
-      "name": "Extract Image Data",
+      "id": "img-extract",
+      "name": "Extract Image Binary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1620, 300]
+      "position": [
+        5248,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "tws-blog-images",
+        "fileName": "={{ $json.filename }}",
+        "additionalFields": {}
+      },
+      "id": "img-s3-upload",
+      "name": "Upload to R2",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        5472,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect image URLs — only for uploads that actually succeeded on R2.\nconst R2_PUBLIC_URL = 'https://pub-51d4279cb27a40238df5b851ddc02ffa.r2.dev';\n\nlet uploadItems = [];\ntry { uploadItems = $('Upload to R2').all() || []; } catch (e) { uploadItems = []; }\nif (!uploadItems.length) {\n  try { uploadItems = $input.all() || []; } catch (e) { uploadItems = []; }\n}\n\nlet extractItems = [];\ntry { extractItems = $('Extract Image Binary').all() || []; } catch (e) { extractItems = []; }\n\nlet heroImage = null;\nconst sectionImages = [];\nlet uploaded = 0;\nlet failed = 0;\nconst errors = [];\n\nconst total = Math.max(uploadItems.length, extractItems.length);\n\nfor (let i = 0; i < total; i++) {\n  try {\n    const meta = (extractItems[i] && extractItems[i].json) ? extractItems[i].json : {};\n    const upItem = uploadItems[i];\n    const up = (upItem && upItem.json) ? upItem.json : null;\n    const idx = (meta.sectionIndex === undefined || meta.sectionIndex === null) ? i : meta.sectionIndex;\n    const label = meta.imageType === 'hero' ? 'hero' : ('section ' + (idx + 1));\n\n    if (meta.skipped === true || !meta.filename) {\n      failed++;\n      errors.push(label + ': not generated' + (meta.error ? ' (' + meta.error + ')' : ''));\n      continue;\n    }\n    if (!up) {\n      failed++;\n      errors.push(label + ': no upload result');\n      continue;\n    }\n    if (up.error) {\n      failed++;\n      errors.push(label + ': upload failed - ' + (typeof up.error === 'string' ? up.error : (up.error.message || 'upload error')));\n      continue;\n    }\n    if (up.success === false) {\n      failed++;\n      errors.push(label + ': upload reported success=false');\n      continue;\n    }\n    // n8n S3 upload returns { success: true }. Treat an empty payload as a failure.\n    if (typeof up !== 'object' || Object.keys(up).length === 0) {\n      failed++;\n      errors.push(label + ': upload returned an empty result');\n      continue;\n    }\n\n    const entry = {\n      url: R2_PUBLIC_URL + '/' + meta.filename,\n      alt: meta.alt || '',\n      width: meta.width || 0,\n      height: meta.height || 0\n    };\n    uploaded++;\n\n    if (meta.imageType === 'hero') {\n      if (!heroImage) heroImage = entry;\n    } else {\n      sectionImages.push({ sectionIndex: idx, url: entry.url, alt: entry.alt, width: entry.width, height: entry.height });\n    }\n  } catch (e) {\n    failed++;\n    errors.push('item ' + i + ': ' + (e && e.message ? e.message : String(e)));\n  }\n}\n\nreturn [{ json: {\n  heroImage: heroImage,\n  sectionImages: sectionImages,\n  _imageStats: { total: total, uploaded: uploaded, failed: failed, errors: errors }\n} }];"
+      },
+      "id": "img-collect-urls",
+      "name": "Collect Image URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5696,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ (function() {\n  function safeGet(fn, fallback) {\n    try {\n      const v = fn();\n      return (v === undefined || v === null) ? fallback : v;\n    } catch (e) { return fallback; }\n  }\n  function llmText(nodeName) {\n    return safeGet(function() {\n      const j = $(nodeName).first().json;\n      if (!j) { return ''; }\n      if (typeof j.output === 'string') { return j.output; }\n      if (j.output && j.output[0] && j.output[0].content && j.output[0].content[0]) { return j.output[0].content[0].text || ''; }\n      if (j.content && Array.isArray(j.content) && j.content[0]) { return j.content[0].text || ''; }\n      if (typeof j.text === 'string') { return j.text; }\n      return '';\n    }, '');\n  }\n  const SKELETON = '{\"intro\":\"\",\"sections\":[],\"conclusion\":\"\",\"tags\":[],\"faq\":[]}';\n  const NO_DRAFT = 'NO DRAFT AVAILABLE. The upstream writer produced no usable output, so there is nothing to edit. Do not call any tools. Reply with exactly this JSON and nothing else: ' + SKELETON;\n  const writerText = llmText('Phase 4a: Ghost Writer');\n  if (!writerText || !writerText.trim()) { return NO_DRAFT; }\n  const voice = safeGet(function() { return $('Voice Router').first().json.voice; }, {});\n  const miningRaw = llmText('Phase 1: Deep Transcript Mining') || '{}';\n  const seoRaw = (llmText('Phase 2: SEO + Section Blueprint') || '{}').replace(/```json/g,'').replace(/```/g,'').trim() || '{}';\n  const chartMapStr = JSON.stringify(safeGet(function() { return $('Build Chart Map').first().json._chartMap; }, []) || []);\n  const pack = safeGet(function() { return $('Build Research Pack').first().json; }, {}) || {};\n  const research = pack.research_summary || 'No additional research available.';\n  const citations = JSON.stringify(pack.citations || []);\n  const researchOk = pack.research_ok === true;\n  const poolData = safeGet(function() { return $('Build Internal Link Pool').first().json; }, {}) || {};\n  const pool = JSON.stringify(poolData.internal_link_pool || []);\n  const poolSize = poolData.pool_size || 0;\n  const out = 'Edit this blog draft. First use measure_ai_patterns to get a baseline score, then make all corrections, then re-measure to verify ai_score <= 15 and blacklisted_words = 0.\\n\\nBLOG DRAFT (JSON):\\n' + writerText\n    + '\\n\\nVOICE CONFIG:\\n' + JSON.stringify(voice)\n    + '\\n\\nTRANSCRIPT MINING DATA:\\n' + miningRaw\n    + '\\n\\nSEO + SECTION BLUEPRINT (full Phase 2 JSON. Contains primary_keyword, section_plan, direct_answer, table, faq_plan, market_scope and market_data_age_days):\\n' + seoRaw\n    + '\\n\\nTAVILY RESEARCH:\\n' + research\n    + '\\n\\nRESEARCH_OK: ' + researchOk\n    + '\\n\\nALLOWED EXTERNAL CITATION URLS (no other external URL may appear in the article):\\n' + citations\n    + '\\n\\nALLOWED INTERNAL LINK POOL (pool_size=' + poolSize + '. No other internal URL may appear in the article):\\n' + pool\n    + '\\n\\nCHART MAP (verified charts with section assignments):\\n' + chartMapStr;\n  return (out && out.trim()) ? out : NO_DRAFT;\n})() }}",
+        "options": {
+          "systemMessage": "You are the Editorial Board — a combined fact-checker, AI-pattern scrubber, voice editor, and quality gate. You receive a Ghost Writer blog draft and must produce a FINAL publication-ready version.\n\n## WORKFLOW\n1. Use \"think\" tool to plan your editorial strategy\n2. Use \"measure_ai_patterns\" tool with the blog draft JSON to get baseline scores\n3. Make ALL corrections in one integrated pass (facts, AI patterns, voice, quality)\n4. Use \"measure_ai_patterns\" again on your edited JSON to verify\n5. If ai_score > 15 or blacklisted_words > 0, make targeted fixes and re-measure\n6. Run the PRE-RETURN VALIDATION CHECKLIST at the bottom of these instructions\n7. Return the final JSON when all thresholds pass\n\n## PRESERVATION RULES — READ BEFORE YOU EDIT ANYTHING\nYou are given the SEO + SECTION BLUEPRINT, the ALLOWED INTERNAL LINK POOL and the ALLOWED EXTERNAL CITATION URLS. The writer built this draft against them deliberately. You are an editor, not a rewriter. Everything below is a hard constraint.\n- Do NOT remove, unlink, or reword any markdown link, internal or external. The URL must survive byte-for-byte. You may edit the prose around a link, but the [anchor](url) itself stays. If an anchor is genuinely bad (\"click here\", \"this post\", a bare URL), rewrite the ANCHOR TEXT so it describes the destination — never delete the link.\n- Do NOT delete the primary_keyword from the intro or from any heading. If your edit pushes it out of the intro's first 100 words, put it back.\n- Do NOT drop \"keyTakeaway\", \"chartRef\" or \"chartAlt\" from any section. Carry every one of them through to your output, even on sections whose body you rewrite heavily.\n- Do NOT delete, flatten or bullet-ify a markdown table. A table exists because the blueprint asked for it. Repair broken formatting; never remove the table.\n- Do NOT shorten any FAQ answer below 40 words. Keep all 5. Keep every question verbatim as it came from faq_plan.\n- Do NOT introduce forward-looking recommendations that the writer deliberately avoided. When market_scope is \"indian_securities\" or \"mixed\" and market_data_age_days is under 90, every mention of Indian securities stays in the PAST TENSE as a review of what already happened: no \"buy above\", no \"sell below\", no \"target\", no \"stop-loss\", no \"watch for entry\", no predictions about future levels or sessions. If a sentence reads as flat description rather than a call, that was on purpose. Leave it.\n- Do NOT add a disclaimer. A later step appends the correct one.\n- Do NOT add any URL that is not in the internal link pool or the citations list.\n- Do NOT drop the section's opening direct answer. Each section body opens with a self-contained 40-60 word answer to its heading. Tighten the wording if you must; keep it self-contained and keep it first.\n\n## FACT-CHECKING\n- Every price, percentage, point value must match transcript mining data EXACTLY\n- All ticker symbols must be correctly formatted\n- Trade setups (entry, target, stop loss, direction) must match mining data\n- Direct quotes must exist in voice_samples or mining data — no invented quotes\n- External claims must be verifiable from Tavily research — remove unverifiable claims\n- No hallucinated facts/statistics not present in source data\n\n## AI PATTERN REMOVAL\nBLACKLISTED WORDS — find and replace ALL:\ndelve, tapestry, landscape, multifaceted, testament, pivotal, crucial, comprehensive, robust, leverage (verb), paramount, intricate, nuanced, meticulous, groundbreaking, underscore, endeavor, embark, synergy, transformative, innovative, cutting-edge, revolutionary, harness, unlock, realm, fostering, showcasing, highlighting, bolstered, garner, vibrant, commendable, enduring, utilize, facilitate, subsequently, commence, additionally, moreover, furthermore, notably, importantly, ultimately, fundamentally, interestingly, remarkably, undoubtedly\n\nReplacements: delve→dig into; landscape→space/market; leverage→use; pivotal→key/big; comprehensive→thorough; utilize→use; facilitate→help; subsequently→then; commence→start; furthermore→plus/and; moreover→also; ultimately→in the end; notably→worth noting\n\nBLACKLISTED PHRASES — remove or rephrase:\n\"In today's ever-evolving\" / \"It's important to note\" / \"In the realm of\" / \"A testament to\" / \"At its core\" / \"Let's dive in\" / \"Let's delve into\" / \"In conclusion\" / \"In summary\" / \"In essence\" / \"Overall\" / \"Not only...but also\" / \"Paving the way\" / \"When it comes to\" / \"Navigate the complexities\" / \"As we explore\" / \"This serves as a\" / \"A nuanced understanding\"\n\nRHYTHM: Break up 3+ consecutive sentences with similar word counts. Mix short punches (5-10 words) with longer ones (20-30 words).\n\nSTRUCTURE: Never start 2+ consecutive paragraphs with the same word. Max 2 semicolons total. Keep em dashes under 8 total — use commas or periods instead.\n\n## VOICE & PERSONALITY\nUse voice config and mining data to ensure the writing has:\n- 2-3 committed first-person opinions (no hedging)\n- 2-4 rhetorical questions at transitions\n- 1-2 thinking-out-loud moments from humanity_markers\n- 2-3 parenthetical asides for personality\n- 5-8 discourse_markers from mining data (speaker's verbal tics)\n- 3-5 humanity_markers from mining data naturally woven in\n- Write ENTIRELY in English — translate any Hindi/Hinglish to natural English\n\nDo NOT mechanically insert these at quotas per section. Spread naturally across the article.\n\n## QUALITY THRESHOLDS\n- ai_score must be 15 or below (from measure_ai_patterns tool)\n- blacklisted_words count must be 0\n- Word count 1500-3000\n- Max 3 iterations if thresholds fail\n\n## CHART REFERENCE VERIFICATION\n- Check that every section's \"chartRef\" (if present) is a valid URL starting with \"https://pub-\"\n- Verify chartRef URLs match entries from the chart map data (do NOT invent URLs)\n- Ensure \"chartAlt\" describes specific content visible (indicators, prices, tickers)\n- If a section has a chartRef that doesn't match the chart map, remove it\n- Include chartRef and chartAlt in your output JSON sections when present\n\n## PRE-RETURN VALIDATION CHECKLIST — all of these must be true before you return\n1. The exact primary_keyword from the blueprint appears within the first 100 words of \"intro\".\n2. The article contains between 3 and 6 internal markdown links to URLs from the internal link pool. (Skip this check only when pool_size is 0.)\n3. EVERY markdown link URL in the article — internal or external — appears either in the internal link pool or in the citations list. No exceptions, no invented URLs.\n4. \"faq\" has exactly 5 entries and every answer is 40 words or more.\n5. Every section object has a non-empty \"keyTakeaway\".\n6. Every section whose blueprint entry has a non-null \"table\" still contains a markdown table.\n7. If market_scope is \"indian_securities\" or \"mixed\" and market_data_age_days is under 90: there is not one forward-looking call on an Indian security anywhere in the article.\n8. There is no disclaimer text anywhere in your output.\nIf any check fails, fix it and re-run the checklist. Do not return a draft that fails a check.\n\n## OUTPUT FORMAT — raw JSON only, exactly this shape:\n{\n  \"intro\": \"edited intro\",\n  \"sections\": [{\"heading\": \"...\", \"body\": \"...\", \"keyTakeaway\": \"...\", \"chartRef\": \"URL from chart map or empty string\", \"chartAlt\": \"alt_text from chart map or empty string\"}],\n  \"conclusion\": \"...\",\n  \"tags\": [\"...\"],\n  \"faq\": [{\"question\": \"...\", \"answer\": \"...\"}]\n}\n\nDo not add keys that are not in that shape. Do not emit an editorial_report.\n\nCRITICAL: Return ONLY the raw JSON object. Your entire response must start with { and end with }. No markdown code blocks, no backticks, no preamble, no explanation text before or after, no summary of what you changed. Prose outside the JSON breaks the downstream parser.",
+          "maxIterations": 25
+        }
+      },
+      "id": "editorial-board-agent",
+      "name": "Editorial Board Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3824,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "editor-claude-model",
+      "name": "Editor Claude Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        3760,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Analyzes blog text for AI-generated patterns. Input: the full blog JSON string (with intro, sections, conclusion). Returns ai_score (0=human, 100=AI), blacklisted_words found, blacklisted_phrases found, rhythm_issues, paragraph_opener_repeats, em_dash_count, semicolon_count, word_count, and pass/fail. Use BEFORE editing to get baseline and AFTER editing to verify improvements.",
+        "jsCode": "const input = query;\nlet allText = '';\ntry {\n  const blog = JSON.parse(input);\n  allText = [\n    blog.intro || '',\n    ...(blog.sections || []).map(s => s.body || ''),\n    blog.conclusion || ''\n  ].join('\\n\\n');\n} catch(e) {\n  allText = input;\n}\n\nconst blacklisted = [\n  'delve','tapestry','landscape','multifaceted','testament','pivotal',\n  'crucial','comprehensive','robust','leverage','paramount','intricate',\n  'nuanced','meticulous','groundbreaking','underscore','endeavor','embark',\n  'synergy','transformative','innovative','cutting-edge','revolutionary',\n  'harness','unlock','realm','fostering','showcasing','highlighting',\n  'bolstered','garner','vibrant','commendable','enduring','utilize',\n  'facilitate','subsequently','commence','additionally','moreover',\n  'furthermore','notably','importantly','ultimately','fundamentally',\n  'interestingly','remarkably','undoubtedly'\n];\n\nconst textLower = allText.toLowerCase();\nconst foundBlacklisted = [];\nfor (const word of blacklisted) {\n  const regex = new RegExp('\\\\b' + word + '\\\\b', 'gi');\n  const matches = textLower.match(regex);\n  if (matches) foundBlacklisted.push({ word, count: matches.length });\n}\n\nconst phrases = [\n  \"in today's ever-evolving\",\"it's important to note\",\"in the realm of\",\n  \"a testament to\",\"at its core\",\"let's dive in\",\"let's delve into\",\n  \"in conclusion\",\"in summary\",\"in essence\",\"not only\",\"paving the way\",\n  \"when it comes to\",\"navigate the complexities\",\"as we explore\",\n  \"this serves as a\",\"a nuanced understanding\"\n];\nconst foundPhrases = [];\nfor (const p of phrases) {\n  if (textLower.includes(p)) foundPhrases.push(p);\n}\n\nconst sentences = allText.split(/[.!?]+/).filter(s => s.trim().length > 5);\nconst lens = sentences.map(s => s.trim().split(/\\s+/).length);\nlet rhythmIssues = 0;\nfor (let i = 2; i < lens.length; i++) {\n  const avg = (lens[i-2] + lens[i-1] + lens[i]) / 3;\n  if (Math.abs(lens[i-2]-avg)<3 && Math.abs(lens[i-1]-avg)<3 && Math.abs(lens[i]-avg)<3) rhythmIssues++;\n}\n\nconst paras = allText.split(/\\n\\n+/).filter(p => p.trim().length > 0);\nlet openerRepeats = 0;\nfor (let i = 1; i < paras.length; i++) {\n  const prev = paras[i-1].trim().split(/\\s+/)[0]?.toLowerCase();\n  const curr = paras[i].trim().split(/\\s+/)[0]?.toLowerCase();\n  if (prev && curr && prev === curr) openerRepeats++;\n}\n\nconst emDashes = (allText.match(/\\u2014/g) || []).length;\nconst semicolons = (allText.match(/;/g) || []).length;\nconst wordCount = allText.split(/\\s+/).filter(w => w.length > 0).length;\n\nconst bScore = Math.min(foundBlacklisted.reduce((s,b)=>s+b.count,0)*5, 30);\nconst pScore = Math.min(foundPhrases.length*8, 20);\nconst rScore = Math.min(rhythmIssues*3, 15);\nconst oScore = Math.min(openerRepeats*5, 15);\nconst emPenalty = emDashes > 8 ? Math.min((emDashes-8)*2, 8) : 0;\nconst aiScore = Math.min(bScore+pScore+rScore+oScore+emPenalty, 100);\n\nreturn JSON.stringify({\n  ai_score: aiScore,\n  word_count: wordCount,\n  blacklisted_words: foundBlacklisted,\n  blacklisted_phrases: foundPhrases,\n  rhythm_issues: rhythmIssues,\n  paragraph_opener_repeats: openerRepeats,\n  em_dash_count: emDashes,\n  semicolon_count: semicolons,\n  pass: aiScore <= 15 && foundBlacklisted.length === 0,\n  summary: 'AI Score: '+aiScore+'/100 | Blacklisted: '+foundBlacklisted.reduce((s,b)=>s+b.count,0)+' words, '+foundPhrases.length+' phrases | Rhythm: '+rhythmIssues+' | Openers: '+openerRepeats+' | Em dashes: '+emDashes+' | Words: '+wordCount\n});"
+      },
+      "id": "measure-ai-patterns",
+      "name": "Measure AI Patterns",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        3888,
+        480
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "editor-think",
+      "name": "Editor Think",
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        4016,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (function() {\n  const chartUrls = $('Workflow Trigger').first().json.chart_urls || [];\n  if (chartUrls.length === 0) {\n    return JSON.stringify({\n      model: 'gpt-4o-mini',\n      messages: [{ role: 'user', content: 'Return this exact JSON: {\"frames\":[]}' }],\n      response_format: { type: 'json_object' },\n      max_tokens: 50\n    });\n  }\n  const content = [\n    { type: 'text', text: 'You are analyzing ' + chartUrls.length + ' frames extracted from a YouTube live stream about stock/crypto trading. For EACH frame, classify it and generate alt-text if relevant.\\n\\nReturn a JSON object:\\n{\\n  \"frames\": [\\n    {\\n      \"index\": 0,\\n      \"url\": \"the_url\",\\n      \"timestamp\": 123.4,\\n      \"classification\": \"chart|screen|speaker|other\",\\n      \"is_relevant\": true,\\n      \"alt_text\": \"Descriptive alt-text for accessibility (2-3 sentences). Mention specific indicators, price levels, ticker symbols, timeframes visible.\",\\n      \"content_summary\": \"Brief summary: what ticker, what pattern, what timeframe, what indicators are shown\"\\n    }\\n  ]\\n}\\n\\nClassification rules:\\n- \"chart\": Trading chart with candlesticks, indicators, price data, technical analysis\\n- \"screen\": Screen share showing trading platform, order book, watchlist, news, spreadsheet\\n- \"speaker\": Person speaking, webcam, talking head, studio shot\\n- \"other\": Transition, blank, intro/outro, thumbnail\\n\\nOnly set is_relevant=true for \"chart\" and \"screen\" types.\\nFor \"speaker\" and \"other\", set alt_text=\"\" and content_summary=\"\".\\nPreserve the exact url and timestamp from each frame.' }\n  ];\n  chartUrls.forEach(function(frame, i) {\n    const url = typeof frame === 'string' ? frame : frame.url;\n    content.push({ type: 'image_url', image_url: { url: url, detail: 'low' } });\n    content.push({ type: 'text', text: 'Frame ' + i + ' (timestamp: ' + (frame.timestamp || 0) + 's, score: ' + (frame.score || 0) + ')' });\n  });\n  return JSON.stringify({\n    model: 'gpt-4o-mini',\n    messages: [{ role: 'user', content: content }],\n    response_format: { type: 'json_object' },\n    max_tokens: 4000,\n    temperature: 0.1\n  });\n})() }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "chart-vision-classifier",
+      "name": "Chart Vision Classifier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2288,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse vision classifier output and build chart-to-section mapping\n// Chart Vision Classifier is skipped entirely when there are no chart_urls,\n// so referencing it must never throw.\nlet classifierNode = {};\ntry {\n  const _cvc = $('Chart Vision Classifier').first();\n  classifierNode = (_cvc && _cvc.json) ? _cvc.json : {};\n} catch (e) { classifierNode = {}; }\nconst triggerData = $('Workflow Trigger').first().json;\nconst chartUrls = triggerData.chart_urls || [];\n\n// Robust JSON extraction: strip code fences, then take FIRST { to LAST }.\nfunction safeParse(str, fallback) {\n  const raw = (str === null || str === undefined) ? '' : String(str);\n  const stripped = raw.replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n  const first = stripped.indexOf('{');\n  const last = stripped.lastIndexOf('}');\n  const candidate = (first !== -1 && last > first) ? stripped.slice(first, last + 1) : stripped;\n  try { return JSON.parse(candidate); } catch (e) {\n    try { return JSON.parse(stripped); } catch (e2) {\n      try { return JSON.parse(raw.trim()); } catch (e3) { return fallback; }\n    }\n  }\n}\n\n// Extract SEO section plan\nconst seoNode = $('Phase 2: SEO + Section Blueprint').first().json;\nlet seoRaw = '';\nif (seoNode.output && seoNode.output[0] && seoNode.output[0].content && seoNode.output[0].content[0]) {\n  seoRaw = seoNode.output[0].content[0].text || '';\n}\nconst seoData = safeParse(seoRaw, { section_plan: [] });\nconst sections = seoData.section_plan || [];\n\n// Extract mining data for topic matching\nconst miningNode = $('Phase 1: Deep Transcript Mining').first().json;\nlet miningRaw = '';\nif (miningNode.output && miningNode.output[0] && miningNode.output[0].content && miningNode.output[0].content[0]) {\n  miningRaw = miningNode.output[0].content[0].text || '';\n}\nconst miningData = safeParse(miningRaw, { topic_clusters: [] });\nconst topicClusters = miningData.topic_clusters || [];\n\n// Extract classifier results\nlet classifierText = '';\ntry {\n  if (classifierNode.choices && classifierNode.choices[0]) {\n    classifierText = classifierNode.choices[0].message.content || '';\n  }\n} catch (e) { classifierText = ''; }\n\nconst classifierData = safeParse(classifierText, { frames: [] });\nconst allFrames = classifierData.frames || [];\n\n// Filter to relevant frames only (charts and screens)\nconst relevantFrames = allFrames.filter(f => f.is_relevant === true);\n\n// Get total stream duration estimate from chart timestamps\nconst allTimestamps = chartUrls.map(c => typeof c === 'object' ? c.timestamp : 0).filter(t => t > 0);\nconst maxTimestamp = allTimestamps.length > 0 ? Math.max(...allTimestamps) : 3600;\n\n// Divide stream into equal segments matching section count\nconst sectionCount = Math.max(sections.length, 1);\nconst segmentDuration = maxTimestamp / sectionCount;\n\n// Map each relevant frame to its best-matching section\nconst chartMap = relevantFrames.map(frame => {\n  const ts = frame.timestamp || 0;\n  const segmentIndex = Math.min(Math.floor(ts / segmentDuration), sectionCount - 1);\n\n  let bestSection = segmentIndex;\n  let bestScore = 0;\n  const summary = (frame.content_summary || '').toLowerCase();\n\n  if (summary.length > 0) {\n    sections.forEach((section, idx) => {\n      const heading = (section.heading || '').toLowerCase();\n      const angle = (section.angle || '').toLowerCase();\n      const words = summary.split(/\\s+/).filter(w => w.length > 3);\n      let score = 0;\n      words.forEach(w => {\n        if (heading.includes(w)) score += 2;\n        if (angle.includes(w)) score += 1;\n      });\n      if (idx < topicClusters.length) {\n        const theme = (topicClusters[idx].theme || '').toLowerCase();\n        words.forEach(w => { if (theme.includes(w)) score += 1; });\n      }\n      if (score > bestScore) {\n        bestScore = score;\n        bestSection = idx;\n      }\n    });\n    if (bestScore < 2) bestSection = segmentIndex;\n  }\n\n  return {\n    url: frame.url,\n    timestamp: ts,\n    classification: frame.classification,\n    alt_text: frame.alt_text || '',\n    content_summary: frame.content_summary || '',\n    sectionIndex: Math.max(0, bestSection)\n  };\n});\n\n// Deduplicate: if multiple charts map to same section, keep highest score\nconst sectionBestChart = {};\nchartMap.forEach(chart => {\n  const idx = chart.sectionIndex;\n  const originalFrame = chartUrls.find(c => (typeof c === 'object' ? c.url : c) === chart.url);\n  const score = originalFrame && typeof originalFrame === 'object' ? originalFrame.score : 0;\n  if (!sectionBestChart[idx] || score > (sectionBestChart[idx]._score || 0)) {\n    sectionBestChart[idx] = { ...chart, _score: score };\n  }\n});\n\nconst finalChartMap = Object.entries(sectionBestChart).map(([idx, chart]) => ({\n  sectionIndex: parseInt(idx),\n  url: chart.url,\n  alt_text: chart.alt_text,\n  content_summary: chart.content_summary,\n  classification: chart.classification,\n  timestamp: chart.timestamp\n}));\n\nreturn [{\n  json: {\n    _chartMap: finalChartMap,\n    _chartStats: {\n      total_frames: chartUrls.length,\n      classified: allFrames.length,\n      relevant: relevantFrames.length,\n      mapped_to_sections: finalChartMap.length,\n      discarded_speaker_shots: allFrames.filter(f => f.classification === 'speaker').length,\n      discarded_other: allFrames.filter(f => f.classification === 'other').length\n    }\n  }\n}];"
+      },
+      "id": "build-chart-map",
+      "name": "Build Chart Map",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2512,
+        256
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {},
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
           "conditions": [
             {
-              "id": "has-image",
-              "leftValue": "={{ $json.hasImage }}",
-              "rightValue": true,
-              "operator": { "type": "boolean", "operation": "equals" }
+              "id": "has-chart-urls",
+              "leftValue": "={{ ($('Workflow Trigger').first().json.chart_urls || []).length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "c3d4e5f6-0006-a002-a002-000000000002",
-      "name": "Has Image?",
+      "id": "6e8ced25-99a3-4fc9-bc55-1992a6e55a9e",
+      "name": "Has Charts?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [1800, 300]
+      "typeVersion": 2.3,
+      "position": [
+        2064,
+        256
+      ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.LOCAL_API_TUNNEL_URL }}/upload-image",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ image_base64: $json.imageBase64, key: $json.imageKey, content_type: 'image/png' }) }}",
-        "options": {
-          "timeout": 30000
-        }
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "hero-image-ok",
+              "leftValue": "={{ $json.heroImage || '' }}",
+              "rightValue": "http",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            },
+            {
+              "id": "title-ok",
+              "leftValue": "={{ $json.title || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "intro-ok",
+              "leftValue": "={{ $json.intro || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "body-length-ok",
+              "leftValue": "={{ ($json.sections || []).reduce(function(a, s) { return a + ((s && s.body ? s.body : '').length); }, 0) }}",
+              "rightValue": 2000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        },
+        "options": {}
       },
-      "id": "c3d4e5f6-0006-a003-a003-000000000003",
-      "name": "Upload Hero Image to R2",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2020, 200],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "EZUz9pDRTChJqdRn",
-          "name": "Local API Key"
-        }
-      },
-      "continueOnFail": true,
-      "notes": "Uploads hero image to R2 via local FastAPI /upload-image endpoint. continueOnFail=true so pipeline continues even if local machine is offline."
+      "id": "03027a4c-2733-4488-8e59-99e3abea13b7",
+      "name": "Publish Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6144,
+        256
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Assemble all data for publishing\nconst titleData = JSON.parse($node['Step 2: Title & Hooks (GPT-4o)'].json.choices[0].message.content);\nconst blogData = JSON.parse($node['Step 4: Blog Body (Sonnet 4.6)'].json.content[0].text);\nconst videoId = $node['Webhook Trigger'].json.body.video_id;\n\n// Get hero image URL from upload result (if available)\nlet heroImageUrl = '';\ntry {\n  const uploadResult = $node['Upload Hero Image to R2'].json;\n  if (uploadResult && uploadResult.url) {\n    heroImageUrl = uploadResult.url;\n  }\n} catch (e) {\n  // Upload node didn't run or failed — no hero image\n}\n\nreturn [{\n  json: {\n    videoId,\n    title: titleData.title,\n    hook: titleData.hook,\n    seoDesc: titleData.seo_description,\n    heroImage: heroImageUrl,\n    intro: blogData.intro,\n    sections: blogData.sections,\n    conclusion: blogData.conclusion,\n    tags: blogData.tags,\n    keywords: titleData.keywords,\n    faq: blogData.faq || []\n  }\n}];"
+        "chatId": "-1003723441488",
+        "text": "=🛑 *TWS Blog: publish blocked (QA gate)*\nVideo: {{ $('Workflow Trigger').first().json.video_id }}\nTitle: {{ $json.title || 'MISSING' }}\nHero image: {{ $json.heroImage && $json.heroImage.startsWith('http') ? 'ok' : 'MISSING' }}\nImages: {{ $json._imageStats ? ($json._imageStats.uploaded + '/' + $json._imageStats.total) : 'unknown' }}\nNothing was published. Check the execution.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
       },
-      "id": "c3d4e5f6-0007-0007-0007-000000000007",
-      "name": "Assemble Publish Payload",
+      "id": "ab60c6d1-9905-4314-a541-84d1efdc784d",
+      "name": "Notify: Publish Blocked",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6368,
+        352
+      ],
+      "webhookId": "c5e5237a-783a-4a5b-8a8a-89fe52f764f2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Research Pack\n// Normalises Tavily's response into { research_summary, citations[], research_ok }.\n// Phase 3 runs with onError=continueRegularOutput, so this node can receive an\n// error object instead of a search payload. It must NEVER throw.\n\nconst SELF_HOSTS = ['twsgurukul', 'tradingwithsidhant'];\nconst MAX_CITATIONS = 5;\n\nfunction pack(summary, citations, ok, err) {\n  const out = {\n    research_summary: summary || '',\n    citations: citations || [],\n    research_ok: !!ok\n  };\n  if (!ok) {\n    out.research_error = String(err === null || err === undefined ? 'unknown research error' : err).slice(0, 500);\n  }\n  return [{ json: out }];\n}\n\nfunction hostOf(url) {\n  try {\n    return new URL(url).hostname.toLowerCase().replace(/^www\\./, '');\n  } catch (e) {\n    const m = String(url).match(/^https?:\\/\\/([^/?#]+)/i);\n    return m ? m[1].toLowerCase().replace(/^www\\./, '') : '';\n  }\n}\n\nlet raw = {};\ntry {\n  const first = $input.first();\n  raw = (first && first.json) ? first.json : {};\n} catch (e) {\n  return pack('', [], false, 'no input received from Phase 3: Tavily Research');\n}\n\ntry {\n  // n8n surfaces node failures as an { error: ... } item under continueRegularOutput\n  if (raw.error !== undefined && raw.error !== null) {\n    const e = raw.error;\n    let msg;\n    if (typeof e === 'string') {\n      msg = e;\n    } else {\n      msg = e.message || e.description || e.reason || JSON.stringify(e);\n    }\n    return pack('', [], false, 'tavily error: ' + msg);\n  }\n\n  const answer = (typeof raw.answer === 'string') ? raw.answer.trim() : '';\n  if (!answer) {\n    return pack('', [], false, 'tavily response contained no answer field');\n  }\n\n  const results = Array.isArray(raw.results) ? raw.results : [];\n  const citations = [];\n  const seen = {};\n\n  for (let i = 0; i < results.length; i++) {\n    if (citations.length >= MAX_CITATIONS) { break; }\n    const r = results[i] || {};\n    const url = (typeof r.url === 'string') ? r.url.trim() : '';\n\n    // drop anything that is not a real http(s) link\n    if (!/^https?:\\/\\//i.test(url)) { continue; }\n\n    const host = hostOf(url);\n    if (!host) { continue; }\n\n    // never cite ourselves\n    let isSelf = false;\n    for (let s = 0; s < SELF_HOSTS.length; s++) {\n      if (host.indexOf(SELF_HOSTS[s]) !== -1) { isSelf = true; break; }\n    }\n    if (isSelf) { continue; }\n\n    if (seen[url]) { continue; }\n    seen[url] = true;\n\n    const title = (typeof r.title === 'string' && r.title.trim()) ? r.title.trim() : host;\n    citations.push({ url: url, title: title, publisher: host });\n  }\n\n  return pack(answer, citations, true, null);\n} catch (e) {\n  return pack('', [], false, 'research pack build failed: ' + ((e && e.message) ? e.message : String(e)));\n}"
+      },
+      "id": "d278c6a3-5f9a-4fdc-92eb-3e6b274d99e4",
+      "name": "Build Research Pack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2240, 300]
+      "position": [
+        1840,
+        256
+      ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.N8N_BASE_URL }}/webhook/publish-blog",
+        "url": "https://blogs.twsgurukulx.com/api/posts?fields=slug,title,tags,category&limit=200",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {
-          "timeout": 30000
+          "timeout": 15000
         }
       },
-      "id": "c3d4e5f6-0008-0008-0008-000000000008",
-      "name": "Trigger Publish Workflow",
+      "id": "28673527-fae0-4e55-ba16-21fb429c1b17",
+      "name": "Fetch Existing Posts",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2460, 300],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "IlRAwjG9guzimnOg",
-          "name": "N8N Webhook Auth"
+      "typeVersion": 4.4,
+      "position": [
+        2736,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://blogs.twsgurukulx.com/sitemap.xml",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
         }
+      },
+      "id": "68350e5c-2956-404d-adc7-fc693b7af0b1",
+      "name": "Fetch Sitemap",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2960,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Internal Link Pool\n// Supplies the writer with real internal links so published posts stop being orphans.\n// Primary source: the blog's /api/posts endpoint (node \"Fetch Existing Posts\").\n// Fallback: sitemap.xml (node \"Fetch Sitemap\").\n// A Code node cannot make HTTP calls, so BOTH fetches run upstream in sequence and\n// are read here via $('node'). The API wins whenever it returns usable data.\n// /api/posts does not exist yet and will 404 today - that is expected and handled.\n// This node must NEVER throw.\n\nconst BASE = 'https://blogs.twsgurukulx.com';\nconst MAX_POOL = 60;\n\nfunction urlFor(slug) { return BASE + '/posts/' + slug; }\n\nfunction cleanSlug(s) {\n  return String(s === null || s === undefined ? '' : s)\n    .trim()\n    .replace(/^\\/+|\\/+$/g, '')\n    .toLowerCase();\n}\n\n// \"nifty-expiry-playbook-a1b2c3d4\" -> \"Nifty Expiry Playbook\"\nfunction titleFromSlug(slug) {\n  const stripped = String(slug || '').replace(/-[a-z0-9]{8}$/, '');\n  return stripped\n    .split('-')\n    .filter(Boolean)\n    .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); })\n    .join(' ');\n}\n\n// ---------- slug of the post currently being generated (never self-link) ----------\nlet currentSlug = '';\ntry {\n  const seoNode = $('Phase 2: SEO + Section Blueprint').first().json;\n  let seoRaw = '';\n  if (seoNode && seoNode.output && seoNode.output[0] && seoNode.output[0].content && seoNode.output[0].content[0]) {\n    seoRaw = seoNode.output[0].content[0].text || '';\n  }\n  const stripped = String(seoRaw).replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n  const a = stripped.indexOf('{');\n  const b = stripped.lastIndexOf('}');\n  const seo = JSON.parse(a !== -1 && b > a ? stripped.slice(a, b + 1) : stripped);\n  currentSlug = cleanSlug(seo.slug);\n} catch (e) {\n  currentSlug = '';\n}\n\n// ---------- source 1: the posts API ----------\nlet apiPool = [];\ntry {\n  const items = $('Fetch Existing Posts').all() || [];\n  let list = null;\n\n  for (let i = 0; i < items.length; i++) {\n    const j = (items[i] && items[i].json) ? items[i].json : null;\n    if (!j || typeof j !== 'object') { continue; }\n    if (j.error !== undefined && j.error !== null) { continue; }\n    if (Array.isArray(j)) { list = j; break; }\n    if (Array.isArray(j.posts)) { list = j.posts; break; }\n    if (Array.isArray(j.data)) { list = j.data; break; }\n  }\n\n  // n8n splits a root-level JSON array into one item per element\n  if (!list) {\n    const flat = [];\n    for (let i = 0; i < items.length; i++) {\n      const j = (items[i] && items[i].json) ? items[i].json : null;\n      if (j && typeof j === 'object' && !Array.isArray(j) && j.slug && j.title) { flat.push(j); }\n    }\n    if (flat.length) { list = flat; }\n  }\n\n  if (Array.isArray(list)) {\n    for (let i = 0; i < list.length; i++) {\n      const p = list[i] || {};\n      const slug = cleanSlug(p.slug);\n      const title = (typeof p.title === 'string') ? p.title.trim() : '';\n      if (!slug || !title) { continue; }\n      apiPool.push({ slug: slug, title: title, url: urlFor(slug) });\n    }\n  }\n} catch (e) {\n  apiPool = [];\n}\n\n// ---------- source 2: sitemap.xml ----------\nlet sitemapPool = [];\ntry {\n  const items = $('Fetch Sitemap').all() || [];\n  let xml = '';\n\n  for (let i = 0; i < items.length; i++) {\n    const j = (items[i] && items[i].json) ? items[i].json : null;\n    if (!j) { continue; }\n    if (typeof j === 'string' && j.length) { xml = j; break; }\n    if (typeof j.data === 'string' && j.data.length) { xml = j.data; break; }\n    if (typeof j.body === 'string' && j.body.length) { xml = j.body; break; }\n    if (typeof j.text === 'string' && j.text.length) { xml = j.text; break; }\n  }\n\n  if (xml && xml.indexOf('<loc') !== -1) {\n    const re = /<loc>\\s*([^<]+?)\\s*<\\/loc>/gi;\n    let m;\n    while ((m = re.exec(xml)) !== null) {\n      if (sitemapPool.length >= MAX_POOL) { break; }\n      const loc = String(m[1]).trim();\n      if (loc.indexOf('/posts/') === -1) { continue; }\n      if (!/^https?:\\/\\//i.test(loc)) { continue; }\n      const path = loc.split('?')[0].split('#')[0].replace(/\\/+$/, '');\n      const segs = path.split('/');\n      const slug = cleanSlug(segs[segs.length - 1]);\n      if (!slug) { continue; }\n      sitemapPool.push({ slug: slug, title: titleFromSlug(slug), url: urlFor(slug) });\n    }\n  }\n} catch (e) {\n  sitemapPool = [];\n}\n\n// ---------- pick the best source, dedupe, drop self, cap ----------\nlet pool = [];\nlet source = 'none';\nif (apiPool.length > 0) {\n  pool = apiPool;\n  source = 'api';\n} else if (sitemapPool.length > 0) {\n  pool = sitemapPool;\n  source = 'sitemap';\n}\n\nconst seen = {};\nconst finalPool = [];\nfor (let i = 0; i < pool.length; i++) {\n  const p = pool[i];\n  if (!p || !p.slug || !p.title) { continue; }\n  if (currentSlug && p.slug === currentSlug) { continue; }\n  if (seen[p.slug]) { continue; }\n  seen[p.slug] = true;\n  finalPool.push(p);\n  if (finalPool.length >= MAX_POOL) { break; }\n}\n\nif (finalPool.length === 0) { source = 'none'; }\n\nreturn [{\n  json: {\n    internal_link_pool: finalPool,\n    pool_size: finalPool.length,\n    pool_source: source\n  }\n}];"
+      },
+      "id": "cc3254ee-a6d7-41ba-bdab-48ab4ecd3df0",
+      "name": "Build Internal Link Pool",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3184,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Compliance Block\n// Reads the Phase 2 blueprint and emits the disclaimer + compliance metadata for this post.\n// Sits between \"Editorial Board Agent\" and \"Prepare Image Prompts\".\n// Parses the blueprint defensively (first { to last }) and must NEVER throw.\n\nconst INDIAN_DISCLAIMER = '**Disclaimer:** This article is for educational purposes only and is not investment advice. The price levels, setups and trades described are a review of market events that have already occurred, shared to illustrate a method of analysis rather than to recommend any trade. Trading With Sidhant LLP is not a SEBI-registered Investment Adviser or Research Analyst, and nothing here constitutes a recommendation to buy or sell any security. Investments in securities markets are subject to market risks; read all the related documents carefully before investing. Past performance is not indicative of future results. Please consult a SEBI-registered financial adviser before acting on any information in this article.';\n\nconst CRYPTO_DISCLAIMER = '**Disclaimer:** This article is for educational purposes only and is not investment advice. Crypto assets are unregulated in India, are highly volatile, and can lose value rapidly; there is no established investor-protection or grievance-redressal mechanism for them. Trading With Sidhant LLP is not a SEBI-registered Investment Adviser or Research Analyst, and nothing here constitutes a recommendation to buy or sell any asset. Income from virtual digital assets is taxable in India at 30% plus applicable cess, with 1% TDS on transfers. Past performance is not indicative of future results. Do your own research before trading.';\n\n// GLOBAL = the Indian text with the SEBI market-risk sentence swapped for a generic risk sentence.\nconst GLOBAL_DISCLAIMER = INDIAN_DISCLAIMER.replace(\n  'Investments in securities markets are subject to market risks; read all the related documents carefully before investing.',\n  'All trading and investing carries risk of loss, and you should never risk capital you cannot afford to lose.'\n);\n\nconst RECENT_NOTE = 'Recent Indian market data (<90 days) — post published as historical review; verify no forward-looking calls remain.';\n\n// Robust JSON extraction: strip code fences, then take FIRST { to LAST }.\nfunction safeParse(str, fallback) {\n  const raw = (str === null || str === undefined) ? '' : String(str);\n  const stripped = raw.replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n  const first = stripped.indexOf('{');\n  const last = stripped.lastIndexOf('}');\n  const candidate = (first !== -1 && last > first) ? stripped.slice(first, last + 1) : stripped;\n  try { return JSON.parse(candidate); } catch (e) {\n    try { return JSON.parse(stripped); } catch (e2) {\n      try { return JSON.parse(raw.trim()); } catch (e3) { return fallback; }\n    }\n  }\n}\n\nfunction extractLLMText(nodeJson) {\n  if (!nodeJson) return '';\n  try {\n    if (nodeJson.output && Array.isArray(nodeJson.output) && nodeJson.output[0] && nodeJson.output[0].content && nodeJson.output[0].content[0]) {\n      return nodeJson.output[0].content[0].text || '';\n    }\n    if (typeof nodeJson.output === 'string') return nodeJson.output;\n    if (nodeJson.content && Array.isArray(nodeJson.content) && nodeJson.content[0]) return nodeJson.content[0].text || '';\n    if (typeof nodeJson.text === 'string') return nodeJson.text;\n  } catch (e) { /* fall through */ }\n  return '';\n}\n\nlet seo = {};\ntry {\n  seo = safeParse(extractLLMText($('Phase 2: SEO + Section Blueprint').first().json), {}) || {};\n} catch (e) {\n  seo = {};\n}\n\n// scope: one of indian_securities | crypto | global | mixed. Anything else falls back to global.\nlet scope = String(seo.market_scope === null || seo.market_scope === undefined ? '' : seo.market_scope).trim().toLowerCase();\nif (['indian_securities', 'crypto', 'global', 'mixed'].indexOf(scope) === -1) { scope = 'global'; }\n\nlet ageDays = parseInt(seo.market_data_age_days, 10);\nif (!isFinite(ageDays) || ageDays < 0) { ageDays = 0; }\n\nconst isIndian = (scope === 'indian_securities' || scope === 'mixed');\nconst complianceFlag = isIndian && ageDays < 90;\n\nlet disclaimer;\nif (isIndian) {\n  disclaimer = INDIAN_DISCLAIMER;\n} else if (scope === 'crypto') {\n  disclaimer = CRYPTO_DISCLAIMER;\n} else {\n  disclaimer = GLOBAL_DISCLAIMER;\n}\n\nreturn [{\n  json: {\n    disclaimer: disclaimer,\n    compliance_scope: scope,\n    compliance_flag: complianceFlag,\n    compliance_note: complianceFlag ? RECENT_NOTE : ''\n  }\n}];"
+      },
+      "id": "30ea6cd9-7a57-4e11-a6be-f60ba3d6a125",
+      "name": "Build Compliance Block",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4224,
+        256
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "content-gate-check",
+      "name": "Check Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4400,
+        256
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// CONTENT GATE — runs BEFORE any paid image generation.\n// Executions 79432 and 79436 each generated and uploaded 6 images (~$0.36) and only\n// then died at 'Assemble Publish Payload' with 'writer: len=54 bad structure |\n// editor: len=54 bad structure'. This node moves that same verdict upstream of the spend.\n//\n// The extraction below is copied faithfully from 'Assemble Publish Payload'\n// (safeParse + extractLLMText + the getParsedBlog validity test) so this gate and that\n// node can never disagree about whether the content is usable.\n//\n// Pass-through: the Build Compliance Block fields are re-emitted on this item so the\n// downstream item shape is unchanged. 'Assemble Publish Payload' reads\n// $('Build Compliance Block') BY NAME, so it keeps resolving regardless of this node.\n\n// Robust JSON extraction: strip code fences, then take the substring from the\n// FIRST { to the LAST }. Survives LLMs that emit prose before/after the JSON.\nfunction safeParse(str, fallback) {\n  const raw = (str === null || str === undefined) ? '' : String(str);\n  const stripped = raw.replace(/```[a-zA-Z0-9_-]*/g, '').trim();\n  const first = stripped.indexOf('{');\n  const last = stripped.lastIndexOf('}');\n  const candidate = (first !== -1 && last > first) ? stripped.slice(first, last + 1) : stripped;\n  try { return JSON.parse(candidate); } catch (e) {\n    try { return JSON.parse(stripped); } catch (e2) {\n      try { return JSON.parse(raw.trim()); } catch (e3) { return fallback; }\n    }\n  }\n}\n\nfunction extractLLMText(nodeJson) {\n  if (!nodeJson) return '';\n  // AI Agent node outputs a string directly in .output\n  if (nodeJson.output && typeof nodeJson.output === 'string') {\n    return nodeJson.output;\n  }\n  if (nodeJson.content && Array.isArray(nodeJson.content) && nodeJson.content[0]) {\n    return nodeJson.content[0].text || '';\n  }\n  if (nodeJson.output && nodeJson.output[0] && nodeJson.output[0].content && nodeJson.output[0].content[0]) {\n    return nodeJson.output[0].content[0].text || '';\n  }\n  if (nodeJson.text) return nodeJson.text;\n  return JSON.stringify(nodeJson);\n}\n\n// Mirrors getParsedBlog() in 'Assemble Publish Payload': usable means a parsed object\n// with a non-empty intro AND a sections array of length >= 1.\nfunction checkOne(nodeName) {\n  try {\n    const nodeData = $(nodeName).first().json;\n    const rawText = extractLLMText(nodeData);\n    const len = rawText ? rawText.length : 0;\n    if (!rawText || len < 10) { return { ok: false, len: len, why: 'EMPTY' }; }\n    const parsed = safeParse(rawText, null);\n    const ok = !!(parsed && parsed.intro && Array.isArray(parsed.sections) && parsed.sections.length > 0);\n    return { ok: ok, len: len, why: ok ? ('OK sections=' + parsed.sections.length) : 'bad structure' };\n  } catch (e) {\n    return { ok: false, len: 0, why: 'ERR ' + e.message };\n  }\n}\n\nconst writer = checkOne('Phase 4a: Ghost Writer');\nconst editor = checkOne('Editorial Board Agent');\n\n// TRUE only when at least ONE of writer/editor yields a usable object.\nconst contentOk = writer.ok || editor.ok;\n\nconst reason = 'writer: len=' + writer.len + ' ' + writer.why\n  + ' | editor: len=' + editor.len + ' ' + editor.why;\n\n// Pass the compliance fields through unchanged.\nlet compliance = {};\ntry { compliance = $('Build Compliance Block').first().json || {}; } catch (e) { compliance = {}; }\n\nreturn [{\n  json: Object.assign({}, compliance, {\n    content_ok: contentOk,\n    writer_len: writer.len,\n    editor_len: editor.len,\n    reason: reason\n  })\n}];"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "content-gate-if",
+      "name": "Content Ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4592,
+        256
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "content-ok-is-true",
+              "leftValue": "={{ $json.content_ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       }
+    },
+    {
+      "id": "notify-content-failed",
+      "name": "Notify: Content Failed",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4800,
+        432
+      ],
+      "parameters": {
+        "chatId": "-1003723441488",
+        "text": "=🛑 *TWS Blog: content generation failed*\nVideo: {{ $('Workflow Trigger').first().json.video_id }}\nThe writer and editor both returned unusable output, so no images were generated and nothing was published. Usually an upstream API rate limit. Check the execution.\nReason: {{ $json.reason }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "webhookId": "8143c7a9-d4ec-4833-b63c-d9780ce803a6"
     }
   ],
   "connections": {
-    "Webhook Trigger": {
-      "main": [[{ "node": "Step 1: Compress Transcript (GPT-4o-mini)", "type": "main", "index": 0 }]]
-    },
-    "Step 1: Compress Transcript (GPT-4o-mini)": {
-      "main": [[{ "node": "Step 2: Title & Hooks (GPT-4o)", "type": "main", "index": 0 }]]
-    },
-    "Step 2: Title & Hooks (GPT-4o)": {
-      "main": [[{ "node": "Step 3: Tavily Research", "type": "main", "index": 0 }]]
-    },
-    "Step 3: Tavily Research": {
-      "main": [[{ "node": "Step 4: Blog Body (Sonnet 4.6)", "type": "main", "index": 0 }]]
-    },
-    "Step 4: Blog Body (Sonnet 4.6)": {
-      "main": [[{ "node": "Step 5: Hero Image (Imagen 3)", "type": "main", "index": 0 }]]
-    },
-    "Step 5: Hero Image (Imagen 3)": {
-      "main": [[{ "node": "Extract Image Data", "type": "main", "index": 0 }]]
-    },
-    "Extract Image Data": {
-      "main": [[{ "node": "Has Image?", "type": "main", "index": 0 }]]
-    },
-    "Has Image?": {
+    "Workflow Trigger": {
       "main": [
-        [{ "node": "Upload Hero Image to R2", "type": "main", "index": 0 }],
-        [{ "node": "Assemble Publish Payload", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Upload Hero Image to R2": {
-      "main": [[{ "node": "Assemble Publish Payload", "type": "main", "index": 0 }]]
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Voice Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Input Invalid - Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Router": {
+      "main": [
+        [
+          {
+            "node": "Phase 1: Deep Transcript Mining",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phase 1: Deep Transcript Mining": {
+      "main": [
+        [
+          {
+            "node": "Phase 2: SEO + Section Blueprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phase 2: SEO + Section Blueprint": {
+      "main": [
+        [
+          {
+            "node": "Phase 3: Tavily Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Image Prompts": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phase 4a: Ghost Writer": {
+      "main": [
+        [
+          {
+            "node": "Editorial Board Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Extract Image Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image Binary": {
+      "main": [
+        [
+          {
+            "node": "Upload to R2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to R2": {
+      "main": [
+        [
+          {
+            "node": "Collect Image URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Image URLs": {
+      "main": [
+        [
+          {
+            "node": "Assemble Publish Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editor Claude Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Editorial Board Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Measure AI Patterns": {
+      "ai_tool": [
+        [
+          {
+            "node": "Editorial Board Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editor Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Editorial Board Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chart Vision Classifier": {
+      "main": [
+        [
+          {
+            "node": "Build Chart Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Charts?": {
+      "main": [
+        [
+          {
+            "node": "Chart Vision Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Chart Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Assemble Publish Payload": {
-      "main": [[{ "node": "Trigger Publish Workflow", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Publish Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish Ready?": {
+      "main": [
+        [
+          {
+            "node": "Trigger Publish Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify: Publish Blocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Phase 3: Tavily Research": {
+      "main": [
+        [
+          {
+            "node": "Build Research Pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Research Pack": {
+      "main": [
+        [
+          {
+            "node": "Has Charts?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Chart Map": {
+      "main": [
+        [
+          {
+            "node": "Fetch Existing Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Existing Posts": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sitemap": {
+      "main": [
+        [
+          {
+            "node": "Build Internal Link Pool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Internal Link Pool": {
+      "main": [
+        [
+          {
+            "node": "Phase 4a: Ghost Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editorial Board Agent": {
+      "main": [
+        [
+          {
+            "node": "Build Compliance Block",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Compliance Block": {
+      "main": [
+        [
+          {
+            "node": "Check Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Content": {
+      "main": [
+        [
+          {
+            "node": "Content Ready?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Ready?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Image Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify: Content Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "zfnDj7llX8qffBXB"
   }
 }

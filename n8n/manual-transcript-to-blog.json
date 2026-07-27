@@ -1,0 +1,203 @@
+{
+  "name": "TWS Content — Manual Transcript → Blog",
+  "nodes": [
+    {
+      "id": "mt2b-form-trigger",
+      "name": "Submit Transcript Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        320
+      ],
+      "parameters": {
+        "formTitle": "TWS Manual Transcript",
+        "formDescription": "Paste a full stream transcript to generate and publish a blog post. Use this when the automatic caption fetch has failed. Generation runs in the background (~10 minutes); you'll get a Telegram notification when the post publishes.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "YouTube Video URL or ID",
+              "placeholder": "https://www.youtube.com/watch?v=... , https://youtu.be/... , a /live/ URL, or the 11-character ID",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Channel",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "TWS"
+                  },
+                  {
+                    "option": "Hitpoint"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Transcript",
+              "placeholder": "Paste the full stream transcript here (minimum 1000 characters).",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "c2781738-116b-4293-9043-8c3650d62fb7"
+    },
+    {
+      "id": "mt2b-build-payload",
+      "name": "Prepare Manual Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        320
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Channel constants - must match the Voice Router inside LLM Pipeline v3\nconst TWS_CHANNEL = 'UC9VKHMUGg5gqSebXW1m5GBw';\nconst HITPOINT_CHANNEL = 'UCyFDhiqKcVqoIGB3CmJJFUg';\n\nconst form = $input.first().json;\n\nconst rawVideo = (form['YouTube Video URL or ID'] || '').toString().trim();\nconst channelChoice = (form['Channel'] || '').toString().trim();\nconst transcript = (form['Transcript'] || '').toString().trim();\n\n// Extract the 11-character YouTube video ID.\n// Accepts: raw 11-char ID, youtube.com/watch?v=, youtu.be/, /live/ (also /shorts/, /embed/).\nconst RAW_ID = new RegExp('^[A-Za-z0-9_-]{11}$');\nconst URL_ID = new RegExp('(?:youtube[.]com/(?:watch[?](?:[^&]*&)*v=|live/|shorts/|embed/)|youtu[.]be/)([A-Za-z0-9_-]{11})');\n\nlet video_id = null;\nif (RAW_ID.test(rawVideo)) {\n  video_id = rawVideo;\n} else {\n  const m = rawVideo.match(URL_ID);\n  if (m) video_id = m[1];\n}\nif (!video_id) {\n  throw new Error('Could not read a YouTube video ID from \"' + rawVideo + '\". Paste a full YouTube URL (watch?v=, youtu.be/ or /live/) or the 11-character video ID.');\n}\n\n// Map the channel dropdown to its YouTube channel_id (drives the Voice Router in Stage 3).\nconst choice = channelChoice.toLowerCase();\nlet channel_id;\nif (choice.indexOf('hitpoint') !== -1) {\n  channel_id = HITPOINT_CHANNEL;\n} else if (choice.indexOf('tws') !== -1) {\n  channel_id = TWS_CHANNEL;\n} else {\n  throw new Error('Unknown channel \"' + channelChoice + '\". Choose TWS or Hitpoint.');\n}\n\n// Require a real transcript.\nif (transcript.length <= 1000) {\n  throw new Error('Transcript too short (' + transcript.length + ' chars) - paste the full transcript, minimum 1000 characters.');\n}\n\nreturn [{\n  json: {\n    video_id: video_id,\n    transcript: transcript,\n    chart_urls: [],\n    channel_id: channel_id,\n    source: 'manual_form'\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "mt2b-trigger-llm",
+      "name": "Trigger LLM Pipeline",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1140,
+        320
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "0eyr7rl0xs1YQZmX",
+          "mode": "list",
+          "cachedResultName": "TWS Core — LLM Pipeline v3"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      }
+    },
+    {
+      "id": "4b711190-7fbf-490a-ab3b-dac6a1d422ca",
+      "name": "Mark Processing (Manual)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        700,
+        320
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO pipeline_runs (video_id, channel_id, detected_at, status, updated_at) VALUES ($1, $2, NOW(), 'processing', NOW()) ON CONFLICT (video_id) DO UPDATE SET status = 'processing', updated_at = NOW() RETURNING video_id, channel_id",
+        "options": {
+          "queryReplacement": "={{ $json.video_id }},{{ $json.channel_id }}"
+        }
+      }
+    },
+    {
+      "id": "4cbd157c-8ce8-44b0-ba75-8a571dd2bca5",
+      "name": "Build Stage 3 Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        320
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// The Postgres RETURNING step outputs only { video_id, channel_id }.\n// Re-emit the full Stage 3 contract { video_id, transcript, chart_urls, channel_id }\n// (LLM Pipeline v3 expects the transcript) from the Prepare Manual Input node.\nreturn $('Prepare Manual Input').all();\n"
+      }
+    },
+    {
+      "id": "f877a480-cc3d-48b3-bf3f-1865f43f1a69",
+      "name": "Transcript Received",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        1360,
+        320
+      ],
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "text",
+        "completionTitle": "✅ Transcript received",
+        "completionMessage": "Blog generation started — expect the Telegram publish notification in ~10 minutes.",
+        "options": {}
+      },
+      "webhookId": "88251663-5772-49a5-b3c4-07ae31707a9c"
+    }
+  ],
+  "connections": {
+    "Submit Transcript Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare Manual Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Manual Input": {
+      "main": [
+        [
+          {
+            "node": "Mark Processing (Manual)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Processing (Manual)": {
+      "main": [
+        [
+          {
+            "node": "Build Stage 3 Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Stage 3 Payload": {
+      "main": [
+        [
+          {
+            "node": "Trigger LLM Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger LLM Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Transcript Received",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "availableInMCP": true
+  }
+}

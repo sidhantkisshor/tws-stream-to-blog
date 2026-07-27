@@ -487,7 +487,7 @@ For each workflow file in the `n8n/` directory:
    - `publish.json`
    - `llm-pipeline.json`
    - `process-stream.json`
-   - `stream-detection.json`
+   - `manual-transcript-to-blog.json`
 
 ### Step 4.6: Update credential references in each workflow
 
@@ -501,12 +501,12 @@ For **every HTTP Request node** that has `"id": "xxx_CREDENTIAL_ID"`:
 This is tedious but only needs to be done once. Go through each workflow:
 - **publish.json**: Blog Publish Key
 - **llm-pipeline.json**: OpenAI API Key, Tavily API Key, Anthropic API Key
-- **process-stream.json**: Local API Key, OpenAI API Key
-- **stream-detection.json**: YouTube API Key
+- **process-stream.json**: Local API Key, OpenAI API Key, YouTube API Key
+- **manual-transcript-to-blog.json**: Pipeline Postgres
 
 ### Step 4.7: Update SQLite node paths
 
-In **stream-detection.json** and **publish.json**, each SQLite node needs the database path:
+In **manual-transcript-to-blog.json** and **publish.json**, each SQLite node needs the database path:
 1. Click each SQLite node
 2. Set the database path to `/path/to/n8n-data/tws-pipeline.db`
 
@@ -523,7 +523,10 @@ In **stream-detection.json** and **publish.json**, each SQLite node needs the da
 | `LLM_PIPELINE_WEBHOOK_URL` | Webhook URL from `TWS LLM Pipeline` |
 | `PUBLISH_WEBHOOK_URL` | Webhook URL from `TWS Publish Blog` |
 
-5. **Activate** the `TWS Stream Detection` workflow last (this starts the polling)
+5. **Activate** the `TWS Content — Manual Transcript → Blog` workflow last, then open its form URL — that form is how every run is started.
+
+> The scheduled `TWS Stream Detection` workflow was removed on 2026-07-27. Nothing polls
+> YouTube any more; the pipeline only runs when someone submits the form above.
 
 ---
 
@@ -613,16 +616,16 @@ Keep polling every 30 seconds until `status` is `complete`. The `result.full_tex
 5. Check your blog site for the new post
 6. Check Discord for the success notification
 
-### Step 6.4: Test automatic detection
+### Step 6.4: Test an end-to-end run from the form
 
-1. Note: the stream detection workflow polls every 5 minutes
-2. Start a short test live stream on your YouTube channel
-3. End the stream
-4. Wait ~20 minutes (5 min for detection + 15 min VOD delay)
+1. Open the form URL from `TWS Content — Manual Transcript → Blog`
+2. Paste a YouTube video URL (or bare 11-character ID) and pick the channel
+3. Paste a transcript of at least 1000 characters, then submit
+4. Wait ~10 minutes for generation
 5. Check:
-   - Discord notification received?
+   - Telegram notification received?
    - Blog post published?
-   - State store updated? (check SQLite: `SELECT * FROM pipeline_runs;`)
+   - State store updated? (`SELECT * FROM pipeline_runs;`)
 
 ---
 
