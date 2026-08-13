@@ -43,6 +43,8 @@ function PostRow({ post }: { post: SerializedPost }) {
           <h3 className="text-lg font-bold text-deep-slate transition-colors duration-200 group-hover:text-burnt-amber">
             {post.title}
           </h3>
+          {/* The dash in this regex is intentional and load bearing: it strips
+              em dashes out of generated hooks. Do not remove in a dash sweep. */}
           <p className="mt-1 text-sm leading-relaxed text-deep-slate/55 line-clamp-1">
             {post.hook.replace(/\s*—\s*/g, ", ")}
           </p>
@@ -147,6 +149,7 @@ export function PostsDisplay({ posts }: { posts: SerializedPost[] }) {
                   <h2 className="text-3xl font-bold tracking-tight text-deep-slate transition-colors duration-300 group-hover:text-burnt-amber sm:text-4xl">
                     {featured.title}
                   </h2>
+                  {/* Same intentional, load bearing em dash stripper as above. */}
                   <p className="mt-2 text-lg text-deep-slate/60">{featured.hook.replace(/\s*—\s*/g, ", ")}</p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-deep-slate/35">
                     <time dateTime={new Date(featured.publishedAt).toISOString()}>

@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
 import { TelegramCTA } from "@/components/TelegramCTA";
-import {
-  SITE_URL,
-  SITE_NAME,
-  LEGAL_ENTITY,
-  SOCIAL,
-  CONTACT_PHONE,
-  MAIN_SITE_URL,
-} from "@/lib/site";
+import { SITE_NAME, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL, OG_IMAGE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About",
@@ -16,40 +9,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: `About ${SITE_NAME}`,
     description: `About ${SITE_NAME}: live stream trading analysis from Trading With Sidhant Team`,
-    images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+    images: [OG_IMAGE],
   },
 };
 
 export default function AboutPage() {
-  const baseUrl = SITE_URL;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: SITE_NAME,
-    legalName: LEGAL_ENTITY,
-    url: baseUrl,
-    logo: `${baseUrl}/logo-icon.png`,
-    sameAs: [
-      SOCIAL.youtube,
-      SOCIAL.instagram,
-      SOCIAL.x,
-      SOCIAL.telegram,
-      SOCIAL.whatsapp,
-    ],
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: CONTACT_PHONE,
-      contactType: "customer service",
-    },
-    inLanguage: "en",
-  };
-
+  // The Organization node this page used to declare now lives in the root
+  // layout's @graph, so it ships on every route rather than only on /about.
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
     <main className="mx-auto max-w-prose px-4 py-12">
       <div className="animate-reveal">
         <h1 className="text-3xl font-bold tracking-tight text-deep-slate sm:text-4xl">
@@ -160,6 +127,5 @@ export default function AboutPage() {
         <TelegramCTA />
       </section>
     </main>
-    </>
   );
 }

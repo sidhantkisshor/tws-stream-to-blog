@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { SITE_NAME, SOCIAL } from "@/lib/site";
+import { SOCIAL } from "@/lib/site";
+import { BrandLockup } from "@/components/BrandLockup";
 
 export function Nav() {
   const [open, setOpen] = useState(false);
@@ -52,24 +52,10 @@ export function Nav() {
       >
         <Link
           href="/"
-          className="group flex items-center no-underline hover:no-underline"
+          className="group flex items-center gap-2 no-underline hover:no-underline"
         >
-          <Image
-            src="/wordmark-dark.png"
-            alt={SITE_NAME}
-            width={120}
-            height={24}
-            className="block h-6 w-auto dark:hidden"
-            priority
-          />
-          <Image
-            src="/wordmark-light.png"
-            alt={SITE_NAME}
-            width={120}
-            height={24}
-            className="hidden h-6 w-auto dark:block"
-            priority
-          />
+          {/* The only lockup above the fold, so this is the one instance that preloads. */}
+          <BrandLockup size={28} priority />
         </Link>
 
         {/* Desktop nav */}

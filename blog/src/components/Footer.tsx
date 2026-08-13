@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getAllTags } from "@/lib/posts";
-import { PROGRAMS_URL, MAIN_SITE_URL, SITE_NAME, LEGAL_ENTITY, SOCIAL } from "@/lib/site";
+import { PROGRAMS_URL, MAIN_SITE_URL, LEGAL_ENTITY, SOCIAL } from "@/lib/site";
+import { BrandLockup } from "@/components/BrandLockup";
 
 export async function Footer() {
   const tags = await getAllTags();
@@ -56,6 +56,14 @@ export async function Footer() {
             Telegram
           </a>
           <a
+            href={SOCIAL.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
+          >
+            LinkedIn
+          </a>
+          <a
             href={SOCIAL.whatsapp}
             target="_blank"
             rel="noopener noreferrer"
@@ -106,22 +114,26 @@ export async function Footer() {
           </p>
           <Link
             href="/"
-            className="group flex items-center no-underline hover:no-underline"
+            className="group flex items-center gap-2 no-underline hover:no-underline"
           >
-            <Image
-              src="/wordmark-dark.png"
-              alt={SITE_NAME}
-              width={80}
-              height={16}
-              className="block h-4 w-auto opacity-30 transition-opacity group-hover:opacity-50 dark:hidden"
-            />
-            <Image
-              src="/wordmark-light.png"
-              alt={SITE_NAME}
-              width={80}
-              height={16}
-              className="hidden h-4 w-auto opacity-30 transition-opacity group-hover:opacity-50 dark:block"
-            />
+            {/*
+              Below the fold, so no `priority`: preloading here would compete
+              with the LCP image.
+
+              size={26} rather than the old 20 because the name is derived from
+              it at 0.55: 20 rendered an 11px brand name, below this footer's
+              own 12px small print. 26 puts the name at 14.3px, level with the
+              `text-sm` copyright line it sits beside, and scales the avatar
+              with it so the lockup stays in proportion.
+
+              The quiet look is `tone="muted"` now, not an opacity wrapper. The
+              wrapper faded real text to 1.75:1 in light mode and 2.53:1 in
+              dark; the tone mutes the decorative avatar with opacity and the
+              name with the deep-slate token at 75% alpha, which measures
+              5.26:1 and 8.82:1 against this gradient. Hover still resolves the
+              whole lockup to full strength.
+            */}
+            <BrandLockup size={26} tone="muted" />
           </Link>
         </div>
       </div>

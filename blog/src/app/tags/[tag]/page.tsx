@@ -3,7 +3,7 @@ import Image from "next/image";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { getPostsByTag, getAllTags } from "@/lib/posts";
 import { notFound } from "next/navigation";
-import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { SITE_URL, SITE_NAME, OG_IMAGE } from "@/lib/site";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -31,7 +31,7 @@ export async function generateMetadata({
     openGraph: {
       title: `#${tag} | ${SITE_NAME}`,
       description: `Trading insights and analysis tagged with ${tag}`,
-      images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+      images: [OG_IMAGE],
     },
   };
 }

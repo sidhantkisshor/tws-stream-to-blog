@@ -9,7 +9,9 @@ import { Term } from "./Term";
 /** Convert raw HTML <img> tags to markdown ![alt](url) so they go through the component override. */
 function preprocessMarkdown(md: string): string {
   return md
-    // Replace em dashes (—) with comma or nothing, but not inside markdown links
+    // Replace em dashes with a comma, but not inside markdown links. The dash
+    // in this regex is intentional and load bearing: it is what strips em
+    // dashes out of generated copy. Do not remove it in a dash sweep.
     .replace(/(?<!\[[^\]]*)\s*—\s*(?![^\[]*\])/g, ", ")
     .replace(
       /<img\s+[^>]*?src=["']([^"']+)["'][^>]*?(?:alt=["']([^"']*)["'])?[^>]*?\/?>/gi,

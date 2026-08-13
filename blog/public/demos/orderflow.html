@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="/logo-icon.png">
+<link rel="icon" href="/brand-icon-32.png">
 <title>Orderflow Console | Trading With Sidhant</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,7 +46,7 @@
 
   a { color: inherit; text-decoration: none; }
 
-  /* Site header — mirrors the blog Nav (pill in dark variant) */
+  /* Site header: mirrors the blog Nav (pill in dark variant) */
   .site-header {
     padding: 16px 24px 8px;
     position: sticky;
@@ -80,7 +80,7 @@
     color: var(--text);
     text-transform: uppercase;
   }
-  .site-nav-brand img { height: 22px; width: auto; display: block; }
+  .site-nav-brand img { height: 22px; width: 22px; display: block; border-radius: 50%; }
   .site-nav-links {
     display: inline-flex;
     align-items: center;
@@ -116,7 +116,7 @@
     .site-nav-links a.nav-link { display: none; }
     .site-nav-links { gap: 0; }
     .site-nav { padding: 7px 10px 7px 14px; }
-    .site-nav-brand img { height: 18px; }
+    .site-nav-brand img { height: 18px; width: 18px; }
     .nav-cta { padding: 6px 12px; font-size: 12px; }
   }
 
@@ -132,7 +132,7 @@
     flex: 1;
   }
 
-  /* Site footer — mirrors the blog Footer */
+  /* Site footer: mirrors the blog Footer */
   .site-footer {
     margin-top: 32px;
     border-top: 1px solid var(--border);
@@ -482,7 +482,7 @@
     .brand { font-size: 10px; letter-spacing: 1.3px; gap: 6px; flex-wrap: wrap; }
     .brand-tag { font-size: 10px; }
 
-    /* Caption — tighter so it fits one or two lines */
+    /* Caption: tighter so it fits one or two lines */
     .cap { font-size: 15px; padding: 13px 14px; line-height: 1.35; border-radius: 12px; min-height: 28px; }
 
     /* Panels */
@@ -503,7 +503,7 @@
     .metric-l { font-size: 10px; margin-bottom: 4px; letter-spacing: 0.8px; }
     .metric-v { font-size: 22px; }
 
-    /* Controls — let label sit above buttons so each row stays roomy */
+    /* Controls: let label sit above buttons so each row stays roomy */
     .ctrl-label { min-width: 0; width: 100%; font-size: 10px; letter-spacing: 1.2px; margin-bottom: 2px; }
     button {
       padding: 9px 12px;
@@ -532,8 +532,9 @@
 
 <header class="site-header">
   <nav class="site-nav" aria-label="Site">
-    <a href="https://blogs.tradingwithsidhant.com" target="_top" class="site-nav-brand" aria-label="Trading With Sidhant home">
-      <img src="/wordmark-light.png" alt="Trading With Sidhant" />
+    <a href="https://blogs.tradingwithsidhant.com" target="_top" class="site-nav-brand">
+      <img src="/parent-avatar.png" alt="" aria-hidden="true" />
+      Trading With Sidhant
     </a>
     <div class="site-nav-links">
       <a class="nav-link" href="https://blogs.tradingwithsidhant.com" target="_top">Home</a>
@@ -745,14 +746,14 @@
   function ofNewBar() {
     if (busy) return;
     newBar();
-    setCap('New bar: deltas reset, CVD carried over');
+    setCap('New bar, deltas reset, CVD carried over');
     render([]);
   }
 
   function ofReset() {
     demoTimers.forEach(t => clearTimeout(t)); demoTimers = []; busy = false;
     init();
-    setCap('Reset: fresh order book, empty footprint');
+    setCap('Reset, fresh order book, empty footprint');
     render([]);
   }
 
@@ -771,9 +772,9 @@
     render([]);
     runSequence([
       { delay: 1500, action: function() { setCap('Buyer takes 6', 'buy'); execute('buy', 6); }},
-      { delay: 1100, action: function() { setCap('Bigger buyer: 10', 'buy'); execute('buy', 10); }},
-      { delay: 1100, action: function() { setCap('Stronger: 14', 'buy'); execute('buy', 14); }},
-      { delay: 1100, action: function() { setCap('Aggressive: 20 lots', 'buy'); execute('buy', 20); }},
+      { delay: 1100, action: function() { setCap('Bigger buyer, 10', 'buy'); execute('buy', 10); }},
+      { delay: 1100, action: function() { setCap('Stronger, 14', 'buy'); execute('buy', 14); }},
+      { delay: 1100, action: function() { setCap('Aggressive, 20 lots', 'buy'); execute('buy', 20); }},
       { delay: 1500, action: function() { setCap('Trend confirmed: delta crushing positive, price ratcheting up', 'alert'); }}
     ]);
   }
@@ -792,13 +793,13 @@
       render([]);
     };
     runSequence([
-      { delay: 1800, action: function() { setCap('Aggressive buyer #1: 15 lots', 'buy'); execute('buy', 15); }},
+      { delay: 1800, action: function() { setCap('Aggressive buyer #1, 15 lots', 'buy'); execute('buy', 15); }},
       { delay: 1400, action: function() { setCap('Sellers refill instantly. Price unchanged.', 'alert'); refillBest(); }},
-      { delay: 1300, action: function() { setCap('Buyer #2: another 15', 'buy'); execute('buy', 15); }},
+      { delay: 1300, action: function() { setCap('Buyer #2, another 15', 'buy'); execute('buy', 15); }},
       { delay: 1400, action: function() { setCap('Refilled again. Where is the price going?', 'alert'); refillBest(); }},
-      { delay: 1300, action: function() { setCap('Buyer #3: 15 more', 'buy'); execute('buy', 15); }},
+      { delay: 1300, action: function() { setCap('Buyer #3, 15 more', 'buy'); execute('buy', 15); }},
       { delay: 1400, action: function() { setCap('Refilled. Sellers crushing every buyer.', 'alert'); refillBest(); }},
-      { delay: 1300, action: function() { setCap('Buyer #4: final 15', 'buy'); execute('buy', 15); }},
+      { delay: 1300, action: function() { setCap('Buyer #4, final 15', 'buy'); execute('buy', 15); }},
       { delay: 2000, action: function() { setCap('ABSORPTION: 60 lots aggressively bought, price unchanged. Passive sellers won.', 'alert'); }}
     ]);
   }

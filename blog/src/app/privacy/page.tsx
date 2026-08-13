@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_URL, SITE_NAME, SITE_HOST, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_HOST, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL, OG_IMAGE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Privacy Policy | ${SITE_NAME}`,
     description: `Privacy policy for ${SITE_NAME}: how we collect, use, and protect your data.`,
-    images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+    images: [OG_IMAGE],
   },
 };
 
@@ -19,11 +19,10 @@ export default function PrivacyPage() {
     "@type": "WebPage",
     name: "Privacy Policy",
     url: `${baseUrl}/privacy`,
-    publisher: {
-      "@type": "Organization",
-      name: LEGAL_ENTITY,
-      url: baseUrl,
-    },
+    // The @id ties this back to the Organization the root layout declares.
+    // @type and name are restated because most consumers parse each
+    // ld+json block on its own and would otherwise see a nameless stub.
+    publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
     dateModified: "2026-03-06",
     inLanguage: "en",
   };
@@ -83,7 +82,7 @@ export default function PrivacyPage() {
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
-                  <strong className="text-deep-slate/90">Phone number:</strong>{" "}
+                  <strong className="text-deep-slate/90">Phone number</strong>:{" "}
                   If you opt in to receive WhatsApp notifications about new
                   blog posts, we collect your phone number through our
                   subscription form. This is the only personal data we request.
@@ -93,8 +92,8 @@ export default function PrivacyPage() {
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
                   <strong className="text-deep-slate/90">
-                    Analytics data (cookies):
-                  </strong>{" "}
+                    Analytics data (cookies)
+                  </strong>:{" "}
                   We use Google Tag Manager (GTM) to understand how visitors
                   use the Site. GTM is loaded{" "}
                   <strong className="text-deep-slate/90">
@@ -124,8 +123,8 @@ export default function PrivacyPage() {
               <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
               <span>
                 <strong className="text-deep-slate/90">
-                  WhatsApp notifications:
-                </strong>{" "}
+                  WhatsApp notifications
+                </strong>:{" "}
                 Your phone number is used solely to send you updates when a
                 new blog post is published.
               </span>
@@ -134,8 +133,8 @@ export default function PrivacyPage() {
               <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
               <span>
                 <strong className="text-deep-slate/90">
-                  Email alerts:
-                </strong>{" "}
+                  Email alerts
+                </strong>:{" "}
                 Your email address is used solely to notify you when a new
                 blog post is published.
               </span>
@@ -144,8 +143,8 @@ export default function PrivacyPage() {
               <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
               <span>
                 <strong className="text-deep-slate/90">
-                  Analytics and site improvement:
-                </strong>{" "}
+                  Analytics and site improvement
+                </strong>:{" "}
                 Aggregated analytics data helps us understand traffic patterns
                 and improve content.
               </span>
@@ -238,8 +237,8 @@ export default function PrivacyPage() {
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
                   <strong className="text-deep-slate/90">
-                    Google Tag Manager:
-                  </strong>{" "}
+                    Google Tag Manager
+                  </strong>:{" "}
                   Analytics and tracking, loaded only after cookie consent.
                   Subject to{" "}
                   <a
@@ -290,8 +289,8 @@ export default function PrivacyPage() {
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
                   <strong className="text-deep-slate/90">
-                    Cloudflare R2:
-                  </strong>{" "}
+                    Cloudflare R2
+                  </strong>:{" "}
                   Object storage for blog images. Subject to{" "}
                   <a
                     href="https://www.cloudflare.com/privacypolicy/"

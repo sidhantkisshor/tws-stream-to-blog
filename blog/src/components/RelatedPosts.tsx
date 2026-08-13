@@ -44,6 +44,8 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
             <p className="mt-2 text-sm font-bold text-deep-slate transition-colors group-hover:text-burnt-amber">
               {post.title}
             </p>
+            {/* The dash in the regex below is intentional and load bearing: it strips
+                em dashes out of generated hooks. Do not remove in a dash sweep. */}
             {post.hook && (
               <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-deep-slate/45">
                 {post.hook.replace(/\s*—\s*/g, ", ")}

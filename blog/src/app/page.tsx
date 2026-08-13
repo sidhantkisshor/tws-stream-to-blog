@@ -14,24 +14,15 @@ export default async function HomePage() {
   const jsonLd = [
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: SITE_NAME,
-      url: baseUrl,
-      inLanguage: "en",
-    },
-    {
-      "@context": "https://schema.org",
       "@type": "Blog",
       name: SITE_TITLE,
       description: SITE_DESCRIPTION,
       url: baseUrl,
       inLanguage: "en",
-      publisher: {
-        "@type": "Organization",
-        name: SITE_NAME,
-        url: baseUrl,
-        logo: { "@type": "ImageObject", url: `${baseUrl}/logo-icon.png` },
-      },
+      // The @id ties this back to the Organization the root layout declares.
+      // @type and name are restated because most consumers parse each
+      // ld+json block on its own and would otherwise see a nameless stub.
+      publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
     },
   ];
 

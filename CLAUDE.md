@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**TWSGurukulX — Live Stream to Blog**. Automated pipeline: detects ended YouTube live streams → transcribes via local GPU (faster-whisper) or cloud Whisper fallback → extracts chart frames → multi-model LLM chain (GPT-4o-mini → GPT-4o → Tavily → Claude Sonnet → Imagen 3) → publishes blog post to Next.js frontend on Vercel.
+**Trading With Sidhant, Live Stream to Blog**. The blog ships at `blogs.tradingwithsidhant.com`, parented by `tradingwithsidhant.com`. Automated pipeline: detects ended YouTube live streams → transcribes via local GPU (faster-whisper) or cloud Whisper fallback → extracts chart frames → multi-model LLM chain (GPT-4o-mini → GPT-4o → Tavily → Claude Sonnet → Imagen 3) → publishes blog post to Next.js frontend on Vercel.
 
 ## Build / Dev / Test Commands
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm install              # install deps
 npm run dev              # dev server at localhost:3000
 npm run build            # production build
-npm run lint             # ESLint (only automated check — no test suite)
+npm run lint             # ESLint (only automated check, no test suite)
 npx prisma db push       # push schema to database
 npx prisma migrate dev --name <name>  # create migration
 ```
@@ -29,7 +29,7 @@ pytest                                     # all tests
 pytest tests/test_api.py::test_transcribe_returns_job_id -v  # single test
 ```
 
-pytest-asyncio uses `asyncio_mode = "auto"` — no `@pytest.mark.asyncio` needed.
+pytest-asyncio uses `asyncio_mode = "auto"`, so no `@pytest.mark.asyncio` is needed.
 
 ### Start Everything (`bash start-local.sh`)
 
@@ -48,7 +48,7 @@ Operator submits the manual-transcript form (video URL + transcript)
 There is **no automatic trigger.** The scheduled `stream-detection` workflow that polled
 YouTube every 5 minutes was removed on 2026-07-27; every run now starts from the form.
 
-### blog/ — Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma v7
+### blog/ (Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma v7)
 
 - App Router only. Pages: `/`, `/posts`, `/posts/[slug]`, `/tags/[tag]`, `/about`, `/privacy`, `/terms`
 - API routes: `POST /api/posts` (publish, X-API-Key auth), `POST /api/hero-card` (renders the takeaway hero PNG for live-stream posts, X-API-Key auth), `POST /api/subscribe` (WhatsApp opt-in, rate-limited), `POST /api/subscribe-email` (email newsletter, rate-limited)
@@ -56,15 +56,15 @@ YouTube every 5 minutes was removed on 2026-07-27; every run now starts from the
 - Prisma client output: `src/generated/prisma/` (non-standard). Import from `@/lib/prisma` (singleton).
 - Data access helpers in `@/lib/posts.ts` (`getRecentPosts`, `getPostBySlug`, `getPostsByTag`, `getAllTags`, `getRelatedPosts`, `getAdjacentPosts`). ISR with `revalidate = 60`.
 - Design tokens in `globals.css` `@theme inline`: deep-slate, burnt-amber, brushed-gold, warm-white, wealth-teal. Fonts: `font-satoshi` (body), `font-instrument` (accent).
-- Local fonts loaded in `layout.tsx` via `next/font/local` (Satoshi, Instrument Serif) — woff2 files in `src/app/fonts/`.
+- Local fonts loaded in `layout.tsx` via `next/font/local` (Satoshi, Instrument Serif). The woff2 files live in `src/app/fonts/`.
 - Database: Neon Postgres. Models: `Post` (videoId unique, slug unique, sections as JSON, faq as JSON), `Subscriber` (phone unique), `EmailSubscriber` (email unique).
-- JSON-LD structured data on all pages: Article + FAQPage + BreadcrumbList on posts, ItemList on tag pages, WebSite + Blog on homepage, Organization on about page, WebPage on legal pages. All include `inLanguage: "en"`.
+- JSON-LD structured data: `layout.tsx` emits a single `@graph` holding the Organization (`@id` `{SITE_URL}/#organization`) and WebSite (`@id` `{SITE_URL}/#website`) nodes, so both ship site wide on every route. Page-level schema covers only its own page: Blog on the homepage, Article + BreadcrumbList + FAQPage on posts, ItemList on tag pages, WebPage on legal pages. Where a node needs an author or publisher it references `#organization` by `@id` instead of restating the entity, and `/about` no longer declares an Organization of its own. Do not add a second Organization node on any page, the duplicate was removed on purpose. Content nodes carry `inLanguage: "en"` (the Organization and BreadcrumbList nodes do not).
 - Dark mode: CSS variable indirection in `globals.css` `@theme inline` block. Toggle in Nav persists to localStorage. Inline script in layout prevents FOUC.
 - Markdown rendering: `react-markdown` with custom components in `MarkdownBody.tsx`. Callout blockquotes (Key Takeaway, Pro Tip, etc.) get teal styling via AST text inspection.
 
-### services/local-api/ — Python 3.11+, FastAPI, ARQ, Redis
+### services/local-api/ (Python 3.11+, FastAPI, ARQ, Redis)
 
-- Endpoints: `GET /health`, `POST /transcribe`, `POST /extract-charts`, `POST /upload-image`, `GET /status/{job_id}` — all require X-API-Key
+- Endpoints: `GET /health`, `POST /transcribe`, `POST /extract-charts`, `POST /upload-image`, `GET /status/{job_id}`. All require X-API-Key
 - Heavy work goes through ARQ jobs (max 2 concurrent, 1hr timeout). Never do heavy work in request handlers.
 - Whisper model loaded lazily (`_model = None` pattern). Downloads cleaned up in `finally` blocks.
 - Job state in Redis: key `tws:job:{uuid}`, 24h TTL. Module: `src/jobs.py` (create/update/get).
@@ -72,11 +72,11 @@ YouTube every 5 minutes was removed on 2026-07-27; every run now starts from the
 - Chart extraction: OpenCV scene detection → R2 upload via boto3 (`src/storage.py`).
 - Config via pydantic-settings (`src/config.py`), reads from `.env`.
 
-### n8n/ — Four workflow JSON files
+### n8n/ (four workflow JSON files)
 
 - Activate in order: `publish` → `llm-pipeline` → `process-stream` → `manual-transcript-to-blog`
-- Exports are backups of the live instance (the instance is authoritative) — re-export after every change
-- Credentials are stripped by the export API — re-link every node after import to n8n
+- Exports are backups of the live instance (the instance is authoritative), so re-export after every change
+- Credentials are stripped by the export API, so re-link every node after import to n8n
 - Inter-workflow calls use `$env.N8N_BASE_URL` + webhook auth header
 - See `n8n/README.md` for full credential setup, state store SQL, and customization notes
 

@@ -18,6 +18,8 @@ function ArchiveRow({ post }: { post: SerializedPost }) {
           >
             {post.title}
           </Link>
+          {/* The dash in this regex is intentional and load bearing: it strips
+              em dashes out of generated hooks. Do not remove in a dash sweep. */}
           <p className="mt-1 text-sm leading-relaxed text-deep-slate/55 line-clamp-1">
             {post.hook.replace(/\s*—\s*/g, ", ")}
           </p>

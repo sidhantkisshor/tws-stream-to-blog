@@ -80,7 +80,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.seoDesc,
-      // images intentionally omitted — picked up from app/posts/[slug]/opengraph-image.tsx
+      // images intentionally omitted, picked up from app/posts/[slug]/opengraph-image.tsx
       type: "article",
       publishedTime: post.publishedAt.toISOString(),
       tags: post.tags,
@@ -156,13 +156,12 @@ export default async function PostPage({
       ...(post.heroImage ? { image: post.heroImage } : {}),
       datePublished: post.publishedAt.toISOString(),
       dateModified: post.updatedAt.toISOString(),
-      author: { "@type": "Organization", name: SITE_NAME, url: baseUrl },
-      publisher: {
-        "@type": "Organization",
-        name: SITE_NAME,
-        url: baseUrl,
-        logo: { "@type": "ImageObject", url: `${baseUrl}/logo-icon.png` },
-      },
+      // The @id ties both back to the Organization the root layout declares.
+      // @type and name are restated because most consumers parse each ld+json
+      // block on its own, and Article.author without a name fails Google's
+      // required-field check on every indexed post.
+      author: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
+      publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
       mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}/posts/${slug}` },
       url: `${baseUrl}/posts/${slug}`,
       keywords: post.keywords.join(", "),
@@ -231,6 +230,8 @@ export default async function PostPage({
             <h1 className="text-3xl font-bold leading-tight tracking-tight text-deep-slate sm:text-4xl">
               {post.title}
             </h1>
+            {/* The dash in this regex is intentional and load bearing: it strips
+                em dashes out of generated hooks. Do not remove it in a dash sweep. */}
             <p className="mt-3 font-instrument text-xl text-burnt-amber/80">{post.hook.replace(/\s*—\s*/g, ", ")}</p>
             <div className="mt-3 flex items-center gap-2 text-sm text-deep-slate/35">
               <time dateTime={post.publishedAt.toISOString()}>

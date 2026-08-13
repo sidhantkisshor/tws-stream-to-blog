@@ -21,7 +21,7 @@ const RAW: TermDef[] = [
     id: "absorption",
     label: "Absorption",
     short: "When aggressive market orders are met by hidden passive size that prevents price from moving.",
-    long: "Absorption is a sign that the side being absorbed is exhausted. Opposing momentum often follows.",
+    long: "Absorption is a sign that the side being absorbed is exhausted, and opposing momentum often follows.",
   },
   {
     id: "footprint",
@@ -41,7 +41,7 @@ const RAW: TermDef[] = [
   {
     id: "liquidity",
     label: "Liquidity",
-    short: "Resting orders waiting to be filled: the visible (and hidden) supply on the book.",
+    short: "Resting orders waiting to be filled, the visible (and hidden) supply on the book.",
   },
   {
     id: "imbalance",

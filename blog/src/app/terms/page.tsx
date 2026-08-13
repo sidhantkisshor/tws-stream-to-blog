@@ -7,6 +7,7 @@ import {
   SOCIAL,
   MAIN_SITE_URL,
   PROGRAMS_URL,
+  OG_IMAGE,
 } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Terms of Service | ${SITE_NAME}`,
     description: `Terms of service for ${SITE_NAME}: usage terms, disclaimers, and legal information.`,
-    images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
+    images: [OG_IMAGE],
   },
 };
 
@@ -27,11 +28,10 @@ export default function TermsPage() {
     "@type": "WebPage",
     name: "Terms of Service",
     url: `${baseUrl}/terms`,
-    publisher: {
-      "@type": "Organization",
-      name: LEGAL_ENTITY,
-      url: baseUrl,
-    },
+    // The @id ties this back to the Organization the root layout declares.
+    // @type and name are restated because most consumers parse each
+    // ld+json block on its own and would otherwise see a nameless stub.
+    publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
     dateModified: "2026-03-06",
     inLanguage: "en",
   };
@@ -82,7 +82,7 @@ export default function TermsPage() {
         {/* Not Financial Advice */}
         <section className="mt-10 animate-reveal delay-3">
           <h2 className="text-2xl font-bold text-deep-slate">
-            Educational Content Only: Not Financial Advice
+            Educational Content Only, Not Financial Advice
           </h2>
           <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
             <div className="rounded-lg border border-burnt-amber/20 bg-burnt-amber/5 p-4">

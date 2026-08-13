@@ -5,7 +5,18 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CookieConsent } from "@/components/CookieConsent";
 import { BackToTop } from "@/components/BackToTop";
-import { SITE_URL, SITE_TITLE, SITE_NAME, SITE_DESCRIPTION, TWITTER_HANDLE, GTM_ID } from "@/lib/site";
+import {
+  SITE_URL,
+  SITE_TITLE,
+  SITE_NAME,
+  SITE_DESCRIPTION,
+  TWITTER_HANDLE,
+  GTM_ID,
+  LEGAL_ENTITY,
+  SAME_AS,
+  CONTACT_PHONE,
+  SCHEMA_LOGO,
+} from "@/lib/site";
 import "./globals.css";
 
 const satoshi = localFont({
@@ -38,9 +49,19 @@ export const metadata: Metadata = {
     canonical: "/",
     types: { "application/rss+xml": "/feed.xml" },
   },
+  // PNGs, not an .ico: every browser still in support has read PNG favicons for
+  // years, and both of the files named here before were retired GurukulX
+  // artwork. Serving two sizes lets the browser pick without downscaling.
+  //
+  // The App Router also serves `src/app/favicon.ico` automatically and that
+  // file convention outranks this metadata, so the icon here only takes effect
+  // because that file was deleted. Do not restore it.
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/brand-icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand-icon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/brand-icon-180.png",
   },
   manifest: "/manifest.webmanifest",
   openGraph: {
@@ -61,6 +82,44 @@ export const metadata: Metadata = {
   other: {
     "llms.txt": "/llms.txt",
   },
+};
+
+/**
+ * The one canonical description of the publisher and the site, emitted here
+ * because the root layout wraps every route. Page-level schema (Blog, Article,
+ * WebPage) points at these two stable @id values instead of restating name,
+ * legalName and logo, so the entity cannot drift apart page by page the way it
+ * did when five files each declared their own Organization.
+ */
+const siteJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      legalName: LEGAL_ENTITY,
+      url: SITE_URL,
+      // Deliberately not BRAND_AVATAR: the display mark is too small for
+      // Google's 112x112 floor on an Organization logo, so schema gets the
+      // 512x512 rendering of the same avatar. See SCHEMA_LOGO in lib/site.
+      logo: `${SITE_URL}${SCHEMA_LOGO}`,
+      sameAs: [...SAME_AS],
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: CONTACT_PHONE,
+        contactType: "customer service",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      inLanguage: "en",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -85,6 +144,10 @@ export default function RootLayout({
         `}</Script>
       </head>
       <body className="grain min-h-screen antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd).replace(/</g, "\\u003c") }}
+        />
         <a
           href="#main-content"
           className="fixed left-2 top-2 z-50 -translate-y-16 rounded-md bg-wealth-teal px-4 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
