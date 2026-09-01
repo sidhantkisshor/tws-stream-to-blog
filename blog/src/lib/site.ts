@@ -16,7 +16,7 @@ export const SITE_WORDMARK = "TRADING WITH SIDHANT";
 export const SITE_TAGLINE = "Trading Insights";
 
 /** `<title>` default and og:title for the site root. */
-export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
+export const SITE_TITLE = `${SITE_NAME} | ${SITE_TAGLINE}`;
 
 export const SITE_DESCRIPTION =
   "Live stream trading analysis and market insights from Trading With Sidhant Team";

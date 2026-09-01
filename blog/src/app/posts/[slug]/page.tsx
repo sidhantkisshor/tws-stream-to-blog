@@ -190,7 +190,7 @@ export default async function PostPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-8 px-4 py-12 lg:flex-row lg:items-start lg:justify-start">
-        {/* TOC — renders its own desktop sidebar and mobile disclosure */}
+        {/* TOC: renders its own desktop sidebar and mobile disclosure */}
         <TableOfContents sections={sections} />
 
         <article className="min-w-0 max-w-prose">

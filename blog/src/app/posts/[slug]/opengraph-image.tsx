@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { getPostBySlug } from "@/lib/posts";
 import { SITE_NAME, SITE_WORDMARK } from "@/lib/site";
 
-export const alt = `${SITE_NAME} — Trading insights`;
+export const alt = `${SITE_NAME}: Trading insights`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

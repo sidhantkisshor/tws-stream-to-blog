@@ -11,11 +11,11 @@ import {
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: `Terms of service for ${SITE_NAME} (${SITE_HOST}) — usage terms, disclaimers, and legal information.`,
+  description: `Terms of service for ${SITE_NAME} (${SITE_HOST}): usage terms, disclaimers, and legal information.`,
   alternates: { canonical: "/terms" },
   openGraph: {
     title: `Terms of Service | ${SITE_NAME}`,
-    description: `Terms of service for ${SITE_NAME} — usage terms, disclaimers, and legal information.`,
+    description: `Terms of service for ${SITE_NAME}: usage terms, disclaimers, and legal information.`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };
@@ -82,7 +82,7 @@ export default function TermsPage() {
         {/* Not Financial Advice */}
         <section className="mt-10 animate-reveal delay-3">
           <h2 className="text-2xl font-bold text-deep-slate">
-            Educational Content Only — Not Financial Advice
+            Educational Content Only: Not Financial Advice
           </h2>
           <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
             <div className="rounded-lg border border-burnt-amber/20 bg-burnt-amber/5 p-4">
@@ -179,8 +179,8 @@ export default function TermsPage() {
           </h2>
           <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
             <p>
-              All content on the Site — including blog posts, images, graphics,
-              and design — is owned by {LEGAL_ENTITY} or used under
+              All content on the Site (including blog posts, images, graphics,
+              and design) is owned by {LEGAL_ENTITY} or used under
               license. Blog content is auto-generated from live stream sessions
               conducted by the Trading With Sidhant team.
             </p>

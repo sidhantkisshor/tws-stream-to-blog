@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     `Browse every trading analysis and market insight from ${SITE_NAME} live streams.`,
   alternates: { canonical: "/posts" },
   openGraph: {
-    title: `All Posts — ${SITE_NAME}`,
+    title: `All Posts | ${SITE_NAME}`,
     description:
       `Browse every trading analysis and market insight from ${SITE_NAME} live streams.`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],

@@ -11,11 +11,11 @@ import {
 
 export const metadata: Metadata = {
   title: "About",
-  description: `About ${SITE_NAME} — live stream trading analysis from Trading With Sidhant Team`,
+  description: `About ${SITE_NAME}: live stream trading analysis from Trading With Sidhant Team`,
   alternates: { canonical: "/about" },
   openGraph: {
     title: `About ${SITE_NAME}`,
-    description: `About ${SITE_NAME} — live stream trading analysis from Trading With Sidhant Team`,
+    description: `About ${SITE_NAME}: live stream trading analysis from Trading With Sidhant Team`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };
@@ -59,7 +59,7 @@ export default function AboutPage() {
         <div className="mt-6 space-y-4 leading-[1.75] text-deep-slate/70">
           <p>
             Trading With Sidhant Team breaks down Nifty, BankNifty, and options
-            setups live — every trading day. This blog captures those sessions so
+            setups live, every trading day. This blog captures those sessions so
             you can revisit the analysis, study the setups, and learn at your own
             pace.
           </p>

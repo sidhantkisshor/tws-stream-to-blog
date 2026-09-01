@@ -65,7 +65,7 @@ export function ChartImage({ src, alt }: ChartImageProps) {
           />
         </div>
         <figcaption className="mt-2 text-xs text-deep-slate/40 transition-colors group-hover:text-deep-slate/60">
-          {alt} — click to expand
+          {alt} (click to expand)
         </figcaption>
       </figure>
 

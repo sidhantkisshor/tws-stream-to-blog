@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { SITE_NAME, SITE_WORDMARK, SITE_HOST } from "@/lib/site";
 
-export const alt = `${SITE_NAME} — Live stream trading insights`;
+export const alt = `${SITE_NAME}: Live stream trading insights`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

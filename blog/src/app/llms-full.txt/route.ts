@@ -57,7 +57,7 @@ export async function GET() {
   });
 
   const output = [
-    `# ${SITE_NAME} — Full Content`,
+    `# ${SITE_NAME}: Full Content`,
     "",
     "> Live stream trading analysis and market insights from Trading With Sidhant Team",
     "",

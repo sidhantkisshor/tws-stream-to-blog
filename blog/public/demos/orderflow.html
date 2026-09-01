@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/logo-icon.png">
-<title>Orderflow Console — Trading With Sidhant</title>
+<title>Orderflow Console | Trading With Sidhant</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -553,7 +553,7 @@
     <span class="brand-tag">The Architect's Console</span>
   </div>
 
-  <div class="cap" id="cap" aria-live="polite">Click any button to begin — manual trades or scripted demos</div>
+  <div class="cap" id="cap" aria-live="polite">Click any button to begin: manual trades or scripted demos</div>
 
   <div class="board">
     <div class="panel">
@@ -725,7 +725,7 @@
   function ofBuy(qty) {
     if (busy) return;
     let cap;
-    if (qty >= 20) cap = 'Aggressive buyer takes ' + qty + ' — walking the ask';
+    if (qty >= 20) cap = 'Aggressive buyer takes ' + qty + ', walking the ask';
     else if (qty >= 8) cap = 'Buyer takes ' + qty + ' at market';
     else cap = 'Small buyer takes ' + qty;
     setCap(cap, 'buy');
@@ -735,7 +735,7 @@
   function ofSell(qty) {
     if (busy) return;
     let cap;
-    if (qty >= 20) cap = 'Aggressive seller dumps ' + qty + ' — walking the bid';
+    if (qty >= 20) cap = 'Aggressive seller dumps ' + qty + ', walking the bid';
     else if (qty >= 8) cap = 'Seller dumps ' + qty + ' at market';
     else cap = 'Small seller dumps ' + qty;
     setCap(cap, 'sell');
@@ -745,14 +745,14 @@
   function ofNewBar() {
     if (busy) return;
     newBar();
-    setCap('New bar — deltas reset, CVD carried over');
+    setCap('New bar: deltas reset, CVD carried over');
     render([]);
   }
 
   function ofReset() {
     demoTimers.forEach(t => clearTimeout(t)); demoTimers = []; busy = false;
     init();
-    setCap('Reset — fresh order book, empty footprint');
+    setCap('Reset: fresh order book, empty footprint');
     render([]);
   }
 
@@ -767,14 +767,14 @@
   function ofDemoTrend() {
     if (busy) return;
     newBar();
-    setCap('Demo: trend bar — buyers chasing higher prices', 'alert');
+    setCap('Demo: trend bar, buyers chasing higher prices', 'alert');
     render([]);
     runSequence([
       { delay: 1500, action: function() { setCap('Buyer takes 6', 'buy'); execute('buy', 6); }},
-      { delay: 1100, action: function() { setCap('Bigger buyer — 10', 'buy'); execute('buy', 10); }},
-      { delay: 1100, action: function() { setCap('Stronger — 14', 'buy'); execute('buy', 14); }},
-      { delay: 1100, action: function() { setCap('Aggressive — 20 lots', 'buy'); execute('buy', 20); }},
-      { delay: 1500, action: function() { setCap('Trend confirmed — delta crushing positive, price ratcheting up', 'alert'); }}
+      { delay: 1100, action: function() { setCap('Bigger buyer: 10', 'buy'); execute('buy', 10); }},
+      { delay: 1100, action: function() { setCap('Stronger: 14', 'buy'); execute('buy', 14); }},
+      { delay: 1100, action: function() { setCap('Aggressive: 20 lots', 'buy'); execute('buy', 20); }},
+      { delay: 1500, action: function() { setCap('Trend confirmed: delta crushing positive, price ratcheting up', 'alert'); }}
     ]);
   }
 
@@ -792,21 +792,21 @@
       render([]);
     };
     runSequence([
-      { delay: 1800, action: function() { setCap('Aggressive buyer #1 — 15 lots', 'buy'); execute('buy', 15); }},
+      { delay: 1800, action: function() { setCap('Aggressive buyer #1: 15 lots', 'buy'); execute('buy', 15); }},
       { delay: 1400, action: function() { setCap('Sellers refill instantly. Price unchanged.', 'alert'); refillBest(); }},
-      { delay: 1300, action: function() { setCap('Buyer #2 — another 15', 'buy'); execute('buy', 15); }},
+      { delay: 1300, action: function() { setCap('Buyer #2: another 15', 'buy'); execute('buy', 15); }},
       { delay: 1400, action: function() { setCap('Refilled again. Where is the price going?', 'alert'); refillBest(); }},
-      { delay: 1300, action: function() { setCap('Buyer #3 — 15 more', 'buy'); execute('buy', 15); }},
+      { delay: 1300, action: function() { setCap('Buyer #3: 15 more', 'buy'); execute('buy', 15); }},
       { delay: 1400, action: function() { setCap('Refilled. Sellers crushing every buyer.', 'alert'); refillBest(); }},
-      { delay: 1300, action: function() { setCap('Buyer #4 — final 15', 'buy'); execute('buy', 15); }},
-      { delay: 2000, action: function() { setCap('ABSORPTION — 60 lots aggressively bought, price unchanged. Passive sellers won.', 'alert'); }}
+      { delay: 1300, action: function() { setCap('Buyer #4: final 15', 'buy'); execute('buy', 15); }},
+      { delay: 2000, action: function() { setCap('ABSORPTION: 60 lots aggressively bought, price unchanged. Passive sellers won.', 'alert'); }}
     ]);
   }
 
   function ofDemoChop() {
     if (busy) return;
     newBar();
-    setCap('Demo: chop bar — both sides aggressive', 'alert');
+    setCap('Demo: chop bar, both sides aggressive', 'alert');
     render([]);
     runSequence([
       { delay: 1300, action: function() { setCap('Buyer 8', 'buy'); execute('buy', 8); }},
@@ -815,7 +815,7 @@
       { delay: 1100, action: function() { setCap('Seller 11', 'sell'); execute('sell', 11); }},
       { delay: 1100, action: function() { setCap('Buyer 9', 'buy'); execute('buy', 9); }},
       { delay: 1100, action: function() { setCap('Seller 10', 'sell'); execute('sell', 10); }},
-      { delay: 1500, action: function() { setCap('Chop — high volume both sides, delta near zero. No conviction.', 'alert'); }}
+      { delay: 1500, action: function() { setCap('Chop: high volume both sides, delta near zero. No conviction.', 'alert'); }}
     ]);
   }
 

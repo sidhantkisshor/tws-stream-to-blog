@@ -3,11 +3,11 @@ import { SITE_URL, SITE_NAME, SITE_HOST, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL } f
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: `Privacy policy for ${SITE_NAME} (${SITE_HOST}) — how we collect, use, and protect your data.`,
+  description: `Privacy policy for ${SITE_NAME} (${SITE_HOST}): how we collect, use, and protect your data.`,
   alternates: { canonical: "/privacy" },
   openGraph: {
     title: `Privacy Policy | ${SITE_NAME}`,
-    description: `Privacy policy for ${SITE_NAME} — how we collect, use, and protect your data.`,
+    description: `Privacy policy for ${SITE_NAME}: how we collect, use, and protect your data.`,
     images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
   },
 };
@@ -83,8 +83,8 @@ export default function PrivacyPage() {
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
-                  <strong className="text-deep-slate/90">Phone number</strong>{" "}
-                  — If you opt in to receive WhatsApp notifications about new
+                  <strong className="text-deep-slate/90">Phone number:</strong>{" "}
+                  If you opt in to receive WhatsApp notifications about new
                   blog posts, we collect your phone number through our
                   subscription form. This is the only personal data we request.
                 </span>
@@ -93,9 +93,9 @@ export default function PrivacyPage() {
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
                   <strong className="text-deep-slate/90">
-                    Analytics data (cookies)
+                    Analytics data (cookies):
                   </strong>{" "}
-                  — We use Google Tag Manager (GTM) to understand how visitors
+                  We use Google Tag Manager (GTM) to understand how visitors
                   use the Site. GTM is loaded{" "}
                   <strong className="text-deep-slate/90">
                     only after you accept cookies
@@ -124,9 +124,9 @@ export default function PrivacyPage() {
               <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
               <span>
                 <strong className="text-deep-slate/90">
-                  WhatsApp notifications
+                  WhatsApp notifications:
                 </strong>{" "}
-                — Your phone number is used solely to send you updates when a
+                Your phone number is used solely to send you updates when a
                 new blog post is published.
               </span>
             </li>
@@ -134,9 +134,9 @@ export default function PrivacyPage() {
               <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
               <span>
                 <strong className="text-deep-slate/90">
-                  Email alerts
+                  Email alerts:
                 </strong>{" "}
-                — Your email address is used solely to notify you when a new
+                Your email address is used solely to notify you when a new
                 blog post is published.
               </span>
             </li>
@@ -144,9 +144,9 @@ export default function PrivacyPage() {
               <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
               <span>
                 <strong className="text-deep-slate/90">
-                  Analytics and site improvement
+                  Analytics and site improvement:
                 </strong>{" "}
-                — Aggregated analytics data helps us understand traffic patterns
+                Aggregated analytics data helps us understand traffic patterns
                 and improve content.
               </span>
             </li>
@@ -238,9 +238,9 @@ export default function PrivacyPage() {
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
                   <strong className="text-deep-slate/90">
-                    Google Tag Manager
+                    Google Tag Manager:
                   </strong>{" "}
-                  — Analytics and tracking, loaded only after cookie consent.
+                  Analytics and tracking, loaded only after cookie consent.
                   Subject to{" "}
                   <a
                     href="https://policies.google.com/privacy"
@@ -256,7 +256,7 @@ export default function PrivacyPage() {
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
-                  <strong className="text-deep-slate/90">Vercel</strong> — Site
+                  <strong className="text-deep-slate/90">Vercel</strong>: Site
                   hosting and edge delivery. Subject to{" "}
                   <a
                     href="https://vercel.com/legal/privacy-policy"
@@ -272,7 +272,7 @@ export default function PrivacyPage() {
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
-                  <strong className="text-deep-slate/90">Neon</strong> —
+                  <strong className="text-deep-slate/90">Neon</strong>:
                   Managed PostgreSQL database where subscriber phone numbers are
                   stored. Subject to{" "}
                   <a
@@ -290,9 +290,9 @@ export default function PrivacyPage() {
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
                   <strong className="text-deep-slate/90">
-                    Cloudflare R2
+                    Cloudflare R2:
                   </strong>{" "}
-                  — Object storage for blog images. Subject to{" "}
+                  Object storage for blog images. Subject to{" "}
                   <a
                     href="https://www.cloudflare.com/privacypolicy/"
                     target="_blank"
