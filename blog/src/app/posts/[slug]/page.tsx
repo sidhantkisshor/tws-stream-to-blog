@@ -21,6 +21,11 @@ import type { Metadata } from "next";
 
 export const revalidate = 60;
 
+// Every other post is served on-demand via ISR (see dynamicParams below) and
+// then cached for `revalidate` seconds, so this only has to warm the pages
+// most likely to get traffic right after a build.
+const BUILD_TIME_PRERENDER_COUNT = 20;
+
 interface Section {
   heading: string;
   body: string;
@@ -33,14 +38,31 @@ interface FaqItem {
   answer: string;
 }
 
+// Only prerender a small, bounded slice of the most recent posts at build
+// time. The post count grows continuously (n8n publishes new posts on an
+// ongoing basis via POST /api/posts) and every prerendered page issues its
+// own set of Prisma queries, so building all of them made the build's DB
+// connection/query fan-out scale with total post count instead of staying
+// flat. `dynamicParams = true` (the default, set explicitly here) means any
+// slug not in this slice - an older post, or a brand-new one published after
+// this build - is rendered on the first request and then cached for
+// `revalidate` seconds, exactly like the prerendered pages.
 export async function generateStaticParams() {
   try {
-    const posts = await prisma.post.findMany({ select: { slug: true } });
+    const posts = await prisma.post.findMany({
+      orderBy: { publishedAt: "desc" },
+      take: BUILD_TIME_PRERENDER_COUNT,
+      select: { slug: true },
+    });
     return posts.map((p) => ({ slug: p.slug }));
   } catch {
     return [];
   }
 }
+
+// Explicit (matches the Next.js default, but this behavior is load-bearing
+// here so it should not depend on the default staying what it is).
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
