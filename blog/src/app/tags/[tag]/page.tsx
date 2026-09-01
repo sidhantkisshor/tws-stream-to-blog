@@ -29,7 +29,7 @@ export async function generateMetadata({
     description: `Trading insights and analysis tagged with ${tag}`,
     alternates: { canonical: `/tags/${encodeURIComponent(tag)}` },
     openGraph: {
-      title: `#${tag} — ${SITE_NAME}`,
+      title: `#${tag} | ${SITE_NAME}`,
       description: `Trading insights and analysis tagged with ${tag}`,
       images: [{ url: "/og-banner.png", width: 1200, height: 630 }],
     },

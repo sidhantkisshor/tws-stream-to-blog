@@ -9,19 +9,19 @@ const RAW: TermDef[] = [
   {
     id: "vwap",
     label: "VWAP",
-    short: "Volume-Weighted Average Price — the average price weighted by traded volume across the session.",
+    short: "Volume-Weighted Average Price: the average price weighted by traded volume across the session.",
     long: "Used as a benchmark for execution quality; many institutions transact relative to VWAP.",
   },
   {
     id: "orderflow",
     label: "Orderflow",
-    short: "The sequence of buy and sell orders hitting the market — a real-time read of who is in control.",
+    short: "The sequence of buy and sell orders hitting the market, a real-time read of who is in control.",
   },
   {
     id: "absorption",
     label: "Absorption",
     short: "When aggressive market orders are met by hidden passive size that prevents price from moving.",
-    long: "Absorption is a sign that the side being absorbed is exhausted — opposing momentum often follows.",
+    long: "Absorption is a sign that the side being absorbed is exhausted. Opposing momentum often follows.",
   },
   {
     id: "footprint",
@@ -31,17 +31,17 @@ const RAW: TermDef[] = [
   {
     id: "delta",
     label: "Delta",
-    short: "Buy volume minus sell volume — positive means aggressive buyers, negative means aggressive sellers.",
+    short: "Buy volume minus sell volume: positive means aggressive buyers, negative means aggressive sellers.",
   },
   {
     id: "cvd",
     label: "Cumulative Delta (CVD)",
-    short: "A running total of delta over time — divergences from price often signal exhaustion.",
+    short: "A running total of delta over time. Divergences from price often signal exhaustion.",
   },
   {
     id: "liquidity",
     label: "Liquidity",
-    short: "Resting orders waiting to be filled — the visible (and hidden) supply on the book.",
+    short: "Resting orders waiting to be filled: the visible (and hidden) supply on the book.",
   },
   {
     id: "imbalance",
@@ -61,7 +61,7 @@ const RAW: TermDef[] = [
   {
     id: "poc",
     label: "POC",
-    short: "Point of Control — the price level where the most volume traded inside a profile.",
+    short: "Point of Control: the price level where the most volume traded inside a profile.",
   },
   {
     id: "valuearea",

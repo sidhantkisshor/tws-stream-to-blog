@@ -1,20 +1,23 @@
 interface KeyTakeawaysProps {
-  hook: string;
-  sections: { heading: string }[];
+  sections: { keyTakeaway?: string }[];
 }
 
-export function KeyTakeaways({ hook, sections }: KeyTakeawaysProps) {
-  if (sections.length === 0) return null;
+export function KeyTakeaways({ sections }: KeyTakeawaysProps) {
+  const takeaways = sections
+    .map((section) => section.keyTakeaway)
+    .filter((t): t is string => typeof t === "string" && t.trim() !== "")
+    .map((t) => t.trim());
+
+  if (takeaways.length === 0) return null;
 
   return (
     <div className="rounded-lg border-l-3 border-wealth-teal bg-wealth-teal/5 px-5 py-4">
       <h3 className="font-instrument text-lg text-deep-slate">Key Takeaways</h3>
-      <p className="mt-2 text-deep-slate/75">{hook.replace(/\s*—\s*/g, ", ")}</p>
       <ul className="mt-3 space-y-1.5">
-        {sections.map((section, i) => (
+        {takeaways.map((takeaway, i) => (
           <li key={i} className="flex items-start gap-2 text-deep-slate/75">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal" />
-            {section.heading.replace(/\s*—\s*/g, ", ")}
+            {takeaway}
           </li>
         ))}
       </ul>

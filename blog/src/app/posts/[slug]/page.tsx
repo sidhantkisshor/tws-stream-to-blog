@@ -24,6 +24,7 @@ export const revalidate = 60;
 interface Section {
   heading: string;
   body: string;
+  keyTakeaway?: string;
   chartRef?: string;
 }
 
@@ -188,11 +189,9 @@ export default async function PostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      <div className="mx-auto flex max-w-5xl justify-center gap-8 px-4 py-12 lg:justify-start">
-        {/* Desktop TOC sidebar */}
-        <div className="hidden lg:block">
-          <TableOfContents sections={sections} />
-        </div>
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-8 px-4 py-12 lg:flex-row lg:items-start lg:justify-start">
+        {/* TOC: renders its own desktop sidebar and mobile disclosure */}
+        <TableOfContents sections={sections} />
 
         <article className="min-w-0 max-w-prose">
           <header className="animate-reveal mb-8">
@@ -237,17 +236,12 @@ export default async function PostPage({
             </div>
           )}
 
-          {/* Mobile TOC */}
-          <div className="lg:hidden animate-reveal delay-1">
-            <TableOfContents sections={sections} />
-          </div>
-
           <div className="animate-reveal delay-2 space-y-10">
             <div className="text-lg leading-relaxed text-deep-slate/75">
               <MarkdownBody>{post.intro}</MarkdownBody>
             </div>
 
-            <KeyTakeaways hook={post.hook} sections={sections} />
+            <KeyTakeaways sections={sections} />
 
             {sections.map((section, i) => (
               <div key={i}>
