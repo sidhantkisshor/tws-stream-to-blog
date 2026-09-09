@@ -41,7 +41,7 @@ Starts Redis, FastAPI, ARQ worker, Cloudflare tunnel, and Next.js dev server.
 Operator submits the manual-transcript form (video URL + transcript)
   → [n8n: manual-transcript-to-blog] parses video ID, maps channel → voice, records pipeline_runs
   → [n8n: process-stream] calls local FastAPI via Cloudflare Tunnel (only for runs needing transcription)
-  → [n8n: llm-pipeline] GPT-4o-mini compress → GPT-4o title/SEO → Tavily research → chart vision → Claude blog body → Editorial Board agent → Imagen hero image → R2 upload
+  → [n8n: llm-pipeline] GPT-4o-mini compress → GPT-4o title/SEO → Tavily research → chart vision → Claude blog body → Editorial Board agent → rendered takeaway-card hero (streams) or YouTube thumbnail hero (long-form, AI illustrations off) → R2 upload
   → [n8n: publish] POST /api/posts → Prisma upsert → validates page → updates pipeline_runs → Telegram notification
 ```
 
@@ -51,7 +51,7 @@ YouTube every 5 minutes was removed on 2026-07-27; every run now starts from the
 ### blog/ — Next.js 16, React 19, TypeScript, Tailwind CSS v4, Prisma v7
 
 - App Router only. Pages: `/`, `/posts`, `/posts/[slug]`, `/tags/[tag]`, `/about`, `/privacy`, `/terms`
-- API routes: `POST /api/posts` (publish, X-API-Key auth), `POST /api/subscribe` (WhatsApp opt-in, rate-limited), `POST /api/subscribe-email` (email newsletter, rate-limited)
+- API routes: `POST /api/posts` (publish, X-API-Key auth), `POST /api/hero-card` (renders the takeaway hero PNG for live-stream posts, X-API-Key auth), `POST /api/subscribe` (WhatsApp opt-in, rate-limited), `POST /api/subscribe-email` (email newsletter, rate-limited)
 - Route handlers for SEO: `/feed.xml`, `/sitemap.xml`, `/robots.txt`, `/llms.txt` (AI crawler discovery), `/llms-full.txt`
 - Prisma client output: `src/generated/prisma/` (non-standard). Import from `@/lib/prisma` (singleton).
 - Data access helpers in `@/lib/posts.ts` (`getRecentPosts`, `getPostBySlug`, `getPostsByTag`, `getAllTags`, `getRelatedPosts`, `getAdjacentPosts`). ISR with `revalidate = 60`.
