@@ -147,7 +147,7 @@ export interface ChartGeometry {
   width: number;
   height: number;
   candles: { x: number; w: number; yO: number; yC: number; yH: number; yL: number; up: boolean }[];
-  levels: { y: number; label: string; price: number }[];
+  levels: { y: number; label: string; price: number; labelY: number }[];
   ticks: { y: number; label: string }[];
   lastClose: { y: number; label: string; up: boolean } | null;
 }
@@ -179,7 +179,15 @@ export function layoutChart(chart: HeroChart, width: number, height: number): Ch
     const x = padL + slot * i + slot / 2;
     return { x, w, yO: y(c.o), yC: y(c.c), yH: y(c.h), yL: y(c.l), up: c.c >= c.o };
   });
-  const levels = inRange.map((lv) => ({ y: y(lv.price), label: lv.label, price: lv.price }));
+  // Labels sit above their line; when two lines are closer than a label height, alternate below/above
+  // and push further apart so the text never overlaps.
+  const sorted = inRange.map((lv) => ({ y: y(lv.price), label: lv.label, price: lv.price, labelY: y(lv.price) - 22 })).sort((a, b) => a.y - b.y);
+  const LABEL_H = 22;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    if (sorted[i].labelY < prev.labelY + LABEL_H) sorted[i].labelY = prev.labelY + LABEL_H;
+  }
+  const levels = sorted;
   const ticks = [hi - span * 0.06, (hi + lo) / 2, lo + span * 0.06].map((p) => ({ y: y(p), label: formatPrice(p) }));
   const last = all[n - 1];
   const lastClose = last ? { y: y(last.c), label: formatPrice(last.c), up: last.c >= last.o } : null;

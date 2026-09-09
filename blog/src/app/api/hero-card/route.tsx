@@ -129,7 +129,7 @@ function Chart({ card }: { card: HeroCardInput }) {
             style={{
               position: "absolute",
               left: 6,
-              top: lv.y - 22,
+              top: lv.labelY,
               display: "flex",
               alignItems: "center",
               gap: 6,
@@ -213,12 +213,12 @@ function Card({ card }: { card: HeroCardInput }) {
                     background: CARD,
                     border: `1px solid ${DEEP}1F`,
                     borderRadius: 14,
-                    padding: "12px 18px",
-                    minWidth: 150,
+                    padding: hasChart ? "10px 14px" : "12px 18px",
+                    minWidth: hasChart ? 120 : 150,
                   }}
                 >
-                  <span style={{ fontSize: 30, fontWeight: 700, color: i === 0 ? TEAL : DEEP, letterSpacing: -0.5 }}>{s.value}</span>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: `${DEEP}88`, marginTop: 2, textTransform: "uppercase", letterSpacing: 1.2 }}>{s.label}</span>
+                  <span style={{ fontSize: hasChart ? 26 : 30, fontWeight: 700, color: i === 0 ? TEAL : DEEP, letterSpacing: -0.5, whiteSpace: "nowrap" }}>{s.value}</span>
+                  <span style={{ fontSize: hasChart ? 12 : 13, fontWeight: 500, color: `${DEEP}88`, marginTop: 2, textTransform: "uppercase", letterSpacing: 1.1, whiteSpace: "nowrap" }}>{s.label}</span>
                 </div>
               ))}
             </div>
