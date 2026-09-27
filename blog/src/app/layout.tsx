@@ -3,7 +3,6 @@ import Script from "next/script";
 import localFont from "next/font/local";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { CookieConsent } from "@/components/CookieConsent";
 import { BackToTop } from "@/components/BackToTop";
 import {
   SITE_URL,
@@ -131,17 +130,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${satoshi.variable} ${instrumentSerif.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();` }} />
-        <Script id="gtm-init" strategy="afterInteractive">{`
-          window.dataLayer=window.dataLayer||[];
-          window.loadGTM=function(){if(window.__gtmLoaded)return;window.__gtmLoaded=true;
-          var f=document.getElementsByTagName('script')[0],
-          j=document.createElement('script');j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id=${GTM_ID}';
-          f.parentNode.insertBefore(j,f);window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});};
-          try{if(localStorage.getItem('cookie_consent')==='accepted'){
-          if('requestIdleCallback' in window){requestIdleCallback(window.loadGTM);}
-          else{setTimeout(window.loadGTM,2000);}}}catch(e){}
-        `}</Script>
+        <Script
+          src="/scripts/tws-consent.js"
+          strategy="beforeInteractive"
+          data-policy-url="/privacy"
+        />
       </head>
       <body className="grain min-h-screen antialiased">
         <script
@@ -166,7 +159,6 @@ export default function RootLayout({
         <div id="main-content" className="min-h-[calc(100vh-160px)]">{children}</div>
         <Footer />
         <BackToTop />
-        <CookieConsent />
       </body>
     </html>
   );
