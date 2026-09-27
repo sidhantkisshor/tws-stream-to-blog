@@ -7,8 +7,9 @@
     - EEA, UK and Switzerland: every tracking storage type starts DENIED.
     - Everywhere else: starts GRANTED.
   Google applies the region-specific default over the global one, whatever
-  order they are pushed in. The banner still shows to every visitor, and a
-  Reject anywhere updates consent to DENIED and is remembered.
+  order they are pushed in. The banner shows to every visitor except those in
+  India (browser time zone Asia/Kolkata), who get no opt-out. A Reject updates
+  consent to DENIED and is remembered.
 
   Non-Google tags (Meta pixel, OpenAI pixel, Clarity) honour this only because
   each one carries a "requires consent" setting in GTM-P3PR2NBT, and the server
@@ -131,8 +132,15 @@
   var autoLoad = cfg.loadGtm !== false && !(script && script.getAttribute('data-load-gtm') === 'false');
   if (autoLoad) window.loadGTM();
 
-  // Banner
-  if (!showBanner || stored) return;
+  // Banner. Not shown to visitors in India (decided 2026-09-27): they keep the
+  // granted default and get no in-page opt-out. Detected by browser time zone,
+  // since a static page has no country header. A choice stored before this
+  // change is still honoured above.
+  var tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { /* ignore */ }
+  var inIndia = tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta';
+  window.twsConsentRegion = inIndia ? 'IN' : '';
+  if (!showBanner || stored || inIndia) return;
 
   var CSS =
     '#tws-consent{position:fixed;z-index:2147483000;left:16px;right:16px;bottom:16px;max-width:420px;' +
