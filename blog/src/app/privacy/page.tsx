@@ -104,9 +104,11 @@ export default function PrivacyPage() {
                   (Google Analytics cookies, Meta, OpenAI Ads, Microsoft
                   Clarity) runs until you accept, though Google may still send
                   a cookieless measurement ping. Everywhere else, these run by
-                  default, and you can reject them at any time using the
-                  cookie banner. Analytics data may include pages visited,
-                  time on site, browser type, and approximate location.
+                  default, and you can reject them using the cookie banner,
+                  and change your choice later by clearing your browser&apos;s
+                  site data for this domain. Analytics data may include pages
+                  visited, time on site, browser type, and approximate
+                  location.
                 </span>
               </li>
             </ul>
@@ -188,7 +190,8 @@ export default function PrivacyPage() {
                   Switzerland, analytics and advertising cookies are loaded
                   only after you accept the cookie consent banner. Everywhere
                   else, these cookies are set by default and you may reject
-                  them at any time using the banner.
+                  them using the banner, and change your choice later by
+                  clearing your browser&apos;s site data for this domain.
                 </span>
               </li>
             </ul>
@@ -333,8 +336,9 @@ export default function PrivacyPage() {
               identifier, including Google Analytics cookies, Meta, OpenAI
               Ads, and Microsoft Clarity, runs until you accept, though Google
               may still send a cookieless measurement ping. Everywhere else,
-              these run by default, and you can reject them at any time using
-              the banner.
+              these run by default, and you can reject them using the banner,
+              and change your choice later by clearing your browser&apos;s
+              site data for this domain.
             </p>
             <p>
               Your choice is stored in a{" "}
