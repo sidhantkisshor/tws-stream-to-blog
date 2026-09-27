@@ -103,12 +103,15 @@ export default function PrivacyPage() {
                   </strong>{" "}
                   (Google Analytics cookies, Meta, OpenAI Ads, Microsoft
                   Clarity) runs until you accept, though Google may still send
-                  a cookieless measurement ping. Everywhere else, these run by
-                  default, and you can reject them using the cookie banner,
-                  and change your choice later by clearing your browser&apos;s
-                  site data for this domain. Analytics data may include pages
-                  visited, time on site, browser type, and approximate
-                  location.
+                  a cookieless measurement ping. If you are in India, these
+                  run by default and the Site shows no cookie banner and
+                  offers no in-page way to reject them. Outside the European
+                  Union, the EEA, the UK, Switzerland, and India, these also
+                  run by default, but you can reject them using the cookie
+                  banner, and change your choice later by clearing your
+                  browser&apos;s site data for this domain. Analytics data may
+                  include pages visited, time on site, browser type, and
+                  approximate location.
                 </span>
               </li>
             </ul>
@@ -188,16 +191,22 @@ export default function PrivacyPage() {
                 <span>
                   If you are in the European Union, the EEA, the UK, or
                   Switzerland, analytics and advertising cookies are loaded
-                  only after you accept the cookie consent banner. Everywhere
-                  else, these cookies are set by default and you may reject
-                  them using the banner, and change your choice later by
-                  clearing your browser&apos;s site data for this domain.
+                  only after you accept the cookie consent banner. If you are
+                  in India, these cookies are set by default and the Site does
+                  not show a cookie banner, so there is no in-page way to
+                  reject them. Outside the European Union, the EEA, the UK,
+                  Switzerland, and India, these cookies are also set by
+                  default and you may reject them using the banner, and
+                  change your choice later by clearing your browser&apos;s
+                  site data for this domain.
                 </span>
               </li>
             </ul>
             <p>
-              You may withdraw consent at any time by contacting us (see
-              below), after which we will cease processing the relevant data.
+              You may withdraw consent for your phone number by contacting us
+              (see below), after which we will cease using it. Where the Site
+              shows a cookie banner, you can withdraw cookie consent there or
+              by clearing your browser&apos;s site data for this domain.
             </p>
           </div>
         </section>
@@ -253,8 +262,9 @@ export default function PrivacyPage() {
                   </strong>:{" "}
                   Analytics and tracking. Loads for every visitor; in the
                   European Union, the EEA, the UK, and Switzerland it withholds
-                  cookies that store an identifier until you accept. Subject
-                  to{" "}
+                  cookies that store an identifier until you accept. In India,
+                  these cookies are set by default and the Site shows no
+                  cookie banner. Subject to{" "}
                   <a
                     href="https://policies.google.com/privacy"
                     target="_blank"
@@ -330,13 +340,16 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-bold text-deep-slate">Cookie Policy</h2>
           <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
             <p>
-              The Site uses a cookie consent banner. Google Tag Manager loads
-              for every visitor. If you are in the European Union, the EEA,
-              the UK, or Switzerland, we ask first: nothing that stores an
-              identifier, including Google Analytics cookies, Meta, OpenAI
-              Ads, and Microsoft Clarity, runs until you accept, though Google
-              may still send a cookieless measurement ping. Everywhere else,
-              these run by default, and you can reject them using the banner,
+              The Site shows a cookie consent banner to most visitors. Google
+              Tag Manager loads for every visitor. If you are in the European
+              Union, the EEA, the UK, or Switzerland, we ask first: nothing
+              that stores an identifier, including Google Analytics cookies,
+              Meta, OpenAI Ads, and Microsoft Clarity, runs until you accept,
+              though Google may still send a cookieless measurement ping. If
+              you are in India, these run by default and the Site shows no
+              banner and offers no in-page way to reject them. Outside the
+              European Union, the EEA, the UK, Switzerland, and India, these
+              also run by default, and you can reject them using the banner,
               and change your choice later by clearing your browser&apos;s
               site data for this domain.
             </p>
