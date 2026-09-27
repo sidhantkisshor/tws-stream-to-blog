@@ -23,7 +23,7 @@ export default function PrivacyPage() {
     // @type and name are restated because most consumers parse each
     // ld+json block on its own and would otherwise see a nameless stub.
     publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
-    dateModified: "2026-03-06",
+    dateModified: "2026-09-27",
     inLanguage: "en",
   };
 
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
             <span className="font-instrument text-burnt-amber">Policy</span>
           </h1>
           <p className="mt-3 text-sm text-deep-slate/40">
-            Last updated: March 6, 2026
+            Last updated: September 27, 2026
           </p>
         </div>
 
@@ -95,12 +95,18 @@ export default function PrivacyPage() {
                     Analytics data (cookies)
                   </strong>:{" "}
                   We use Google Tag Manager (GTM) to understand how visitors
-                  use the Site. GTM is loaded{" "}
+                  use the Site. GTM loads for every visitor. If you are in the
+                  European Union, the EEA, the UK, or Switzerland, we ask
+                  first, and{" "}
                   <strong className="text-deep-slate/90">
-                    only after you accept cookies
+                    nothing that stores an identifier
                   </strong>{" "}
-                  via our consent banner. Analytics data may include pages
-                  visited, time on site, browser type, and approximate location.
+                  (Google Analytics cookies, Meta, OpenAI Ads, Microsoft
+                  Clarity) runs until you accept, though Google may still send
+                  a cookieless measurement ping. Everywhere else, these run by
+                  default, and you can reject them at any time using the
+                  cookie banner. Analytics data may include pages visited,
+                  time on site, browser type, and approximate location.
                 </span>
               </li>
             </ul>
@@ -178,8 +184,11 @@ export default function PrivacyPage() {
               <li className="flex items-start gap-3">
                 <span className="mt-1.5 block h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal/60" />
                 <span>
-                  Analytics cookies are loaded only after you accept the cookie
-                  consent banner.
+                  If you are in the European Union, the EEA, the UK, or
+                  Switzerland, analytics and advertising cookies are loaded
+                  only after you accept the cookie consent banner. Everywhere
+                  else, these cookies are set by default and you may reject
+                  them at any time using the banner.
                 </span>
               </li>
             </ul>
@@ -239,8 +248,10 @@ export default function PrivacyPage() {
                   <strong className="text-deep-slate/90">
                     Google Tag Manager
                   </strong>:{" "}
-                  Analytics and tracking, loaded only after cookie consent.
-                  Subject to{" "}
+                  Analytics and tracking. Loads for every visitor; in the
+                  European Union, the EEA, the UK, and Switzerland it withholds
+                  cookies that store an identifier until you accept. Subject
+                  to{" "}
                   <a
                     href="https://policies.google.com/privacy"
                     target="_blank"
@@ -316,25 +327,31 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-bold text-deep-slate">Cookie Policy</h2>
           <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
             <p>
-              The Site uses a cookie consent banner. Google Tag Manager and its
-              associated cookies are loaded{" "}
-              <strong className="text-deep-slate/90">
-                only after you click &quot;Accept&quot;
-              </strong>
-              . If you decline or ignore the banner, no analytics cookies are
-              set.
+              The Site uses a cookie consent banner. Google Tag Manager loads
+              for every visitor. If you are in the European Union, the EEA,
+              the UK, or Switzerland, we ask first: nothing that stores an
+              identifier, including Google Analytics cookies, Meta, OpenAI
+              Ads, and Microsoft Clarity, runs until you accept, though Google
+              may still send a cookieless measurement ping. Everywhere else,
+              these run by default, and you can reject them at any time using
+              the banner.
             </p>
             <p>
-              A single{" "}
+              Your choice is stored in a{" "}
+              <code className="rounded bg-deep-slate/5 px-1.5 py-0.5 text-sm">
+                tws_consent
+              </code>{" "}
+              cookie, shared across tradingwithsidhant.com and its
+              subdomains, and in a{" "}
               <code className="rounded bg-deep-slate/5 px-1.5 py-0.5 text-sm">
                 cookie_consent
               </code>{" "}
-              key is stored in your browser&apos;s localStorage to remember your
-              preference. This is not a cookie and contains no personal data.
+              key in your browser&apos;s localStorage. Both are kept for one
+              year.
             </p>
             <p>
-              You can withdraw cookie consent at any time by clearing your
-              browser&apos;s localStorage or site data for this domain.
+              To change your choice, clear your browser&apos;s site data for
+              this domain.
             </p>
           </div>
         </section>
