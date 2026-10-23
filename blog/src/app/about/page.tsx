@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { TelegramCTA } from "@/components/TelegramCTA";
-import { SITE_NAME, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL, OG_IMAGE } from "@/lib/site";
+import { SITE_NAME, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL, OG_IMAGE, SITE_OPEN_GRAPH } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "About",
@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     title: `About ${SITE_NAME}`,
     description: `About ${SITE_NAME}: live stream trading analysis from Trading With Sidhant Team`,
     images: [OG_IMAGE],
+    ...SITE_OPEN_GRAPH,
   },
 };
 

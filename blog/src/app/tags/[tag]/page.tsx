@@ -3,7 +3,7 @@ import Image from "next/image";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { getPostsByTag, getAllTags } from "@/lib/posts";
 import { notFound } from "next/navigation";
-import { SITE_URL, SITE_NAME, OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_NAME, OG_IMAGE, SITE_OPEN_GRAPH } from "@/lib/site";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -32,6 +32,7 @@ export async function generateMetadata({
       title: `#${tag} | ${SITE_NAME}`,
       description: `Trading insights and analysis tagged with ${tag}`,
       images: [OG_IMAGE],
+      ...SITE_OPEN_GRAPH,
     },
   };
 }

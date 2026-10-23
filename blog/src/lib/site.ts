@@ -5,7 +5,12 @@
  * `process.env.NEXT_PUBLIC_SITE_URL || "https://<host>"` was duplicated in 13
  * files, so a domain move meant 13 edits and any miss shipped a wrong canonical
  * URL. Import from here instead of re-deriving.
+ *
+ * The legal entity, the GTM container, the profile URLs and the X handle are
+ * read from the family module (src/lib/family.ts, generated from the tws-family
+ * registry), so the whole family shares one copy of each.
  */
+import { TWS_ORGANIZATION, TWS_SOCIALS, TWS_TRACKING, TWS_TWITTER_SITE } from "./family";
 
 /** Public brand name, as readers see it. */
 export const SITE_NAME = "Trading With Sidhant";
@@ -40,17 +45,26 @@ export const SITE_HOST = new URL(SITE_URL).host;
 export const MAIN_SITE_URL = "https://tradingwithsidhant.com";
 
 /** Paid programs / courses landing page. */
-export const PROGRAMS_URL = "https://tradingwithsidhant.com/programs/";
+export const PROGRAMS_URL = "https://tradingwithsidhant.com/programs";
 
 /** Registered entity named in legal copy and JSON-LD. */
-export const LEGAL_ENTITY = "Trading With Sidhant LLP";
+export const LEGAL_ENTITY: string = TWS_ORGANIZATION.legalName;
 
 /**
- * Google Tag Manager container. `GTM-P3PR2NBT` is the "tradingwithsidhant.com"
- * container in the TWS (2026) account. The blog moved here from the GurukulX
- * container `GTM-TMQ589CP` so blog and marketing site report into one property.
+ * Google Tag Manager container, read from the family registry. It is the one
+ * web container every family site loads (the "tradingwithsidhant.com" container
+ * in the TWS (2026) account), so blog and marketing site report into one
+ * property. The consent loader in public/scripts/tws-consent.js loads it for
+ * scripts; this constant only feeds the `<noscript>` fallback in layout.tsx.
  */
-export const GTM_ID = "GTM-P3PR2NBT";
+export const GTM_ID: string = TWS_TRACKING.gtmWeb;
+
+/** One registry profile URL by key. Throws at import time if the key is ever removed. */
+function socialUrl(key: (typeof TWS_SOCIALS)[number]["key"]): string {
+  const found = TWS_SOCIALS.find((social) => social.key === key);
+  if (!found) throw new Error(`Unknown social profile: ${key}`);
+  return found.url;
+}
 
 /**
  * Every outbound channel the brand owns, profiles and contact alike. The five
@@ -63,11 +77,11 @@ export const GTM_ID = "GTM-P3PR2NBT";
  * to one entity. Every profile here is the redirect target, never the redirect.
  */
 export const SOCIAL = {
-  youtube: "https://www.youtube.com/@tradingwithsidhant",
-  instagram: "https://www.instagram.com/tradingwithsidhant",
-  x: "https://x.com/tradingwsidhant",
-  telegram: "https://t.me/tradingwsidhant",
-  linkedin: "https://www.linkedin.com/company/trading-with-sidhant",
+  youtube: socialUrl("youtube"),
+  instagram: socialUrl("instagram"),
+  x: socialUrl("x"),
+  telegram: socialUrl("telegram"),
+  linkedin: socialUrl("linkedin"),
   whatsapp: "https://wa.me/918062963333",
 } as const;
 
@@ -75,9 +89,10 @@ export const SOCIAL = {
  * The subset of SOCIAL that belongs in schema.org `sameAs`, which wants URLs
  * that identify the organisation. A wa.me link is a way to message us, not a
  * profile page, so it is excluded here while staying in the footer where
- * readers expect a contact route.
+ * readers expect a contact route. It is the registry list itself, in registry
+ * order, so it cannot drift from the parent Organization node.
  */
-export const SAME_AS = [SOCIAL.youtube, SOCIAL.instagram, SOCIAL.x, SOCIAL.telegram, SOCIAL.linkedin] as const;
+export const SAME_AS: readonly string[] = TWS_SOCIALS.map((social) => social.url);
 
 /**
  * The brand mark, everywhere it is shown to a reader: the circular photo the
@@ -107,5 +122,13 @@ export const SCHEMA_LOGO = "/brand-icon-512.png";
  */
 export const OG_IMAGE = "/opengraph-image";
 
-export const TWITTER_HANDLE = "@tradingwsidhant";
-export const CONTACT_PHONE = "+91-8062963333";
+export const TWITTER_HANDLE: string = TWS_TWITTER_SITE;
+
+/**
+ * Brand field a page must restate when it sets its own `openGraph` object. Next
+ * replaces that object wholesale rather than merging it with the root layout's,
+ * so a page that omits this drops og:site_name. Spread it into each page-level
+ * `openGraph`. Pages that set no `twitter` object inherit twitter:site from the
+ * root layout, so they need nothing.
+ */
+export const SITE_OPEN_GRAPH = { siteName: SITE_NAME } as const;

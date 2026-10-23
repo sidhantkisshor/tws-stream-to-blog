@@ -17,6 +17,7 @@ import { SessionNav } from "@/components/SessionNav";
 import { NewsletterCTA } from "@/components/NewsletterCTA";
 import { ScrollNewsletterPrompt } from "@/components/ScrollNewsletterPrompt";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { TWS_FOUNDER, TWS_ORGANIZATION, TWS_TWITTER_SITE } from "@/lib/family";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -82,11 +83,16 @@ export async function generateMetadata({
       description: post.seoDesc,
       // images intentionally omitted, picked up from app/posts/[slug]/opengraph-image.tsx
       type: "article",
+      // A child openGraph object replaces the root one instead of merging with
+      // it, so siteName has to be restated here or posts lose og:site_name.
+      siteName: SITE_NAME,
       publishedTime: post.publishedAt.toISOString(),
       tags: post.tags,
     },
     twitter: {
       card: "summary_large_image",
+      // Restated for the same reason as openGraph.siteName above.
+      site: TWS_TWITTER_SITE,
       title: post.title,
       description: post.seoDesc,
       // images fall back to the OG image route via the file-based convention
@@ -150,18 +156,25 @@ export default async function PostPage({
   const jsonLd = [
     {
       "@context": "https://schema.org",
-      "@type": "Article",
+      "@type": "BlogPosting",
       headline: post.title,
       description: post.seoDesc,
       ...(post.heroImage ? { image: post.heroImage } : {}),
       datePublished: post.publishedAt.toISOString(),
       dateModified: post.updatedAt.toISOString(),
-      // The @id ties both back to the Organization the root layout declares.
-      // @type and name are restated because most consumers parse each ld+json
-      // block on its own, and Article.author without a name fails Google's
-      // required-field check on every indexed post.
-      author: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
-      publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
+      // The author and publisher are the family founder and parent Organization,
+      // referenced by the same @id the root layout declares. @type and name are
+      // restated because most consumers parse each ld+json block on its own, and
+      // BlogPosting.author without a name fails Google's required-field check on
+      // every indexed post.
+      author: { "@type": "Person", "@id": TWS_FOUNDER.id, name: TWS_FOUNDER.name, url: TWS_FOUNDER.url },
+      publisher: {
+        "@type": "Organization",
+        "@id": TWS_ORGANIZATION.id,
+        name: TWS_ORGANIZATION.name,
+        logo: { "@type": "ImageObject", url: TWS_ORGANIZATION.logo },
+      },
+      isPartOf: { "@id": `${baseUrl}/#blog` },
       mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}/posts/${slug}` },
       url: `${baseUrl}/posts/${slug}`,
       keywords: post.keywords.join(", "),

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ArchiveList } from "@/components/ArchiveList";
 import { getRecentPosts } from "@/lib/posts";
-import { SITE_NAME, OG_IMAGE } from "@/lib/site";
+import { SITE_NAME, OG_IMAGE, SITE_OPEN_GRAPH } from "@/lib/site";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     description:
       `Browse every trading analysis and market insight from ${SITE_NAME} live streams.`,
     images: [OG_IMAGE],
+    ...SITE_OPEN_GRAPH,
   },
 };
 

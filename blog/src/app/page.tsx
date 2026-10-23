@@ -3,7 +3,8 @@ import { PostsDisplay } from "@/components/PostsDisplay";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ProgramCTA } from "@/components/ProgramCTA";
 import { NewsletterCTA } from "@/components/NewsletterCTA";
-import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
+import { TWS_ORGANIZATION } from "@/lib/family";
 
 export const revalidate = 60;
 
@@ -15,14 +16,15 @@ export default async function HomePage() {
     {
       "@context": "https://schema.org",
       "@type": "Blog",
-      name: SITE_TITLE,
+      "@id": `${baseUrl}/#blog`,
+      name: `${SITE_NAME} Blog`,
       description: SITE_DESCRIPTION,
       url: baseUrl,
       inLanguage: "en",
-      // The @id ties this back to the Organization the root layout declares.
+      // The @id ties this back to the parent Organization the root layout declares.
       // @type and name are restated because most consumers parse each
       // ld+json block on its own and would otherwise see a nameless stub.
-      publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
+      publisher: { "@id": TWS_ORGANIZATION.id, "@type": "Organization", name: TWS_ORGANIZATION.name },
     },
   ];
 

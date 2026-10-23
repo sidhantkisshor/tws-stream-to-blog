@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { SITE_URL, SITE_NAME, SITE_HOST, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL, OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_HOST, LEGAL_ENTITY, SOCIAL, MAIN_SITE_URL, OG_IMAGE, SITE_OPEN_GRAPH } from "@/lib/site";
+import { TWS_ORGANIZATION } from "@/lib/family";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
     title: `Privacy Policy | ${SITE_NAME}`,
     description: `Privacy policy for ${SITE_NAME}: how we collect, use, and protect your data.`,
     images: [OG_IMAGE],
+    ...SITE_OPEN_GRAPH,
   },
 };
 
@@ -19,10 +21,10 @@ export default function PrivacyPage() {
     "@type": "WebPage",
     name: "Privacy Policy",
     url: `${baseUrl}/privacy`,
-    // The @id ties this back to the Organization the root layout declares.
+    // The @id ties this back to the parent Organization the root layout declares.
     // @type and name are restated because most consumers parse each
     // ld+json block on its own and would otherwise see a nameless stub.
-    publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
+    publisher: { "@id": TWS_ORGANIZATION.id, "@type": "Organization", name: TWS_ORGANIZATION.name },
     dateModified: "2026-09-27",
     inLanguage: "en",
   };
