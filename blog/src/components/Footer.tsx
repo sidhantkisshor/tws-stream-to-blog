@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getAllTags } from "@/lib/posts";
-import { PROGRAMS_URL, MAIN_SITE_URL, LEGAL_ENTITY, SOCIAL } from "@/lib/site";
+import { PROGRAMS_URL, LEGAL_ENTITY, SOCIAL } from "@/lib/site";
 import { BrandLockup } from "@/components/BrandLockup";
+import { FamilyStrip } from "@/components/FamilyStrip";
 
 export async function Footer() {
   const tags = await getAllTags();
@@ -22,6 +23,7 @@ export async function Footer() {
             ))}
           </div>
         )}
+        <FamilyStrip />
         <div className="mb-6 flex flex-wrap items-center gap-4">
           <a
             href={SOCIAL.youtube}
@@ -73,19 +75,9 @@ export async function Footer() {
           </a>
           <a
             href={PROGRAMS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
           >
             tradingwithsidhant.com/programs
-          </a>
-          <a
-            href={MAIN_SITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
-          >
-            tradingwithsidhant.com
           </a>
         </div>
         <div className="mb-6 flex flex-wrap items-center gap-4">

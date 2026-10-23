@@ -11,11 +11,8 @@ import {
   SITE_DESCRIPTION,
   TWITTER_HANDLE,
   GTM_ID,
-  LEGAL_ENTITY,
-  SAME_AS,
-  CONTACT_PHONE,
-  SCHEMA_LOGO,
 } from "@/lib/site";
+import { TWS_ORGANIZATION, familyJsonLdGraph } from "@/lib/family";
 import "./globals.css";
 
 const satoshi = localFont({
@@ -84,42 +81,24 @@ export const metadata: Metadata = {
 };
 
 /**
- * The one canonical description of the publisher and the site, emitted here
- * because the root layout wraps every route. Page-level schema (Blog, Article,
- * WebPage) points at these two stable @id values instead of restating name,
- * legalName and logo, so the entity cannot drift apart page by page the way it
- * did when five files each declared their own Organization.
+ * The family JSON-LD graph, emitted here because the root layout wraps every
+ * route. The parent Organization and the founder Person come from the shared
+ * family module, unchanged, so every Trading With Sidhant site names the same
+ * entity by the same @id. This site adds its own WebSite node (from the
+ * helper) and a Blog node. Page-level schema (Blog, BlogPosting, WebPage)
+ * points at the parent Organization by its @id instead of restating name,
+ * legalName and logo, so the entity cannot drift apart page by page.
  */
-const siteJsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": `${SITE_URL}/#organization`,
-      name: SITE_NAME,
-      legalName: LEGAL_ENTITY,
-      url: SITE_URL,
-      // Deliberately not BRAND_AVATAR: the display mark is too small for
-      // Google's 112x112 floor on an Organization logo, so schema gets the
-      // 512x512 rendering of the same avatar. See SCHEMA_LOGO in lib/site.
-      logo: `${SITE_URL}${SCHEMA_LOGO}`,
-      sameAs: [...SAME_AS],
-      contactPoint: {
-        "@type": "ContactPoint",
-        telephone: CONTACT_PHONE,
-        contactType: "customer service",
-      },
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${SITE_URL}/#website`,
-      name: SITE_NAME,
-      url: SITE_URL,
-      inLanguage: "en",
-      publisher: { "@id": `${SITE_URL}/#organization` },
-    },
-  ],
-};
+const siteJsonLd = familyJsonLdGraph({ url: SITE_URL, name: `${SITE_NAME} Blog` }, [
+  {
+    "@type": "Blog",
+    "@id": `${SITE_URL}/#blog`,
+    url: SITE_URL,
+    name: `${SITE_NAME} Blog`,
+    inLanguage: "en",
+    publisher: { "@id": TWS_ORGANIZATION.id },
+  },
+]);
 
 export default function RootLayout({
   children,

@@ -8,7 +8,9 @@ import {
   MAIN_SITE_URL,
   PROGRAMS_URL,
   OG_IMAGE,
+  SITE_OPEN_GRAPH,
 } from "@/lib/site";
+import { TWS_ORGANIZATION } from "@/lib/family";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -18,6 +20,7 @@ export const metadata: Metadata = {
     title: `Terms of Service | ${SITE_NAME}`,
     description: `Terms of service for ${SITE_NAME}: usage terms, disclaimers, and legal information.`,
     images: [OG_IMAGE],
+    ...SITE_OPEN_GRAPH,
   },
 };
 
@@ -28,10 +31,10 @@ export default function TermsPage() {
     "@type": "WebPage",
     name: "Terms of Service",
     url: `${baseUrl}/terms`,
-    // The @id ties this back to the Organization the root layout declares.
+    // The @id ties this back to the parent Organization the root layout declares.
     // @type and name are restated because most consumers parse each
     // ld+json block on its own and would otherwise see a nameless stub.
-    publisher: { "@id": `${baseUrl}/#organization`, "@type": "Organization", name: SITE_NAME },
+    publisher: { "@id": TWS_ORGANIZATION.id, "@type": "Organization", name: TWS_ORGANIZATION.name },
     dateModified: "2026-03-06",
     inLanguage: "en",
   };

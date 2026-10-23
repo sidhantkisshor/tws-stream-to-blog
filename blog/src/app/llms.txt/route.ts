@@ -1,7 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { TWS_FAMILY_PROPERTIES, TWS_ORGANIZATION } from "@/lib/family";
 
 export const revalidate = 60;
+
+// Every site a reader or an AI crawler can reach from the family strip, plus the
+// short link host, in registry order. Roles come from the registry as written.
+const FAMILY_LINES = TWS_FAMILY_PROPERTIES.filter((p) => p.strip || p.key === "shortlinks").map(
+  (p) => `- ${p.label} (${p.url}): ${p.role}`,
+);
 
 export async function GET() {
   const baseUrl = SITE_URL;
@@ -22,6 +29,10 @@ export async function GET() {
     "",
     `- [About](${baseUrl}/about): About ${SITE_NAME} and the team behind it`,
     `- [Full content for LLMs](${baseUrl}/llms-full.txt): Complete text of all posts`,
+    "",
+    `## ${TWS_ORGANIZATION.name} family`,
+    "",
+    ...FAMILY_LINES,
     "",
     "## Blog Posts",
     "",

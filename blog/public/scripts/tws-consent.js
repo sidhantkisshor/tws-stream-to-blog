@@ -90,7 +90,7 @@
     try {
       var v = localStorage.getItem(LS_KEY);
       if (v === 'accepted' || v === 'rejected') return v;
-    } catch (e) { /* storage blocked: treat as unanswered */ }
+    } catch { /* storage blocked: treat as unanswered */ }
     return null;
   }
 
@@ -99,7 +99,7 @@
     if (location.protocol === 'https:') c += '; Secure';
     if (onSharedDomain()) c += '; Domain=.' + SHARED_DOMAIN;
     document.cookie = c;
-    try { localStorage.setItem(LS_KEY, choice); } catch (e) { /* ignore */ }
+    try { localStorage.setItem(LS_KEY, choice); } catch { /* ignore */ }
   }
 
   gtag('consent', 'default', assign({ region: STRICT_REGIONS, wait_for_update: 500 }, DENIED));
@@ -137,7 +137,7 @@
   // since a static page has no country header. A choice stored before this
   // change is still honoured above.
   var tz = '';
-  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { /* ignore */ }
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch { /* ignore */ }
   var inIndia = tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta';
   window.twsConsentRegion = inIndia ? 'IN' : '';
   if (!showBanner || stored || inIndia) return;
