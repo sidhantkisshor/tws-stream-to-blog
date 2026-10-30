@@ -160,7 +160,7 @@ export async function getTape(sections: unknown): Promise<Tape | null> {
 export const TAPE_W = 1600;
 export const TAPE_H = 900;
 const TOP = 70;
-export const TAPE_CANDLE_BOTTOM = 440;
+export const TAPE_CANDLE_BOTTOM = 385;
 const BOTTOM = TAPE_CANDLE_BOTTOM;
 const RIGHT_GUTTER = 40;
 
@@ -170,8 +170,9 @@ export interface TapeDrawing {
   levels: { y: number; title: string; kind: TapeLevelKind }[];
 }
 
-export function drawTape(tape: Tape): TapeDrawing {
-  const { candles, levels } = tape;
+export function drawTape(tape: Tape, { levels: withLevels = true } = {}): TapeDrawing {
+  const { candles } = tape;
+  const levels = withLevels ? tape.levels : [];
   let lo = Infinity;
   let hi = -Infinity;
   for (const c of candles) {

@@ -13,7 +13,7 @@ const TAG_CHAR = 12.5;
  * under: a line through big type reads as a strikethrough.
  */
 export function TapePlate({ tape, strip = false }: { tape: Tape; strip?: boolean }) {
-  const drawing = drawTape(tape);
+  const drawing = drawTape(tape, { levels: !strip });
   const taggedIndex = drawing.levels.findIndex((l) => l.kind !== "level");
   return (
     <svg
