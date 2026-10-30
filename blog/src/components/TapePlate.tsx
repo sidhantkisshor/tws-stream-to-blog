@@ -1,4 +1,4 @@
-import { drawTape, TAPE_CANDLE_BOTTOM, TAPE_H, TAPE_W, type Tape } from "@/lib/tape";
+import { drawTape, TAPE_CANDLE_BOTTOM, TAPE_W, type Tape } from "@/lib/tape";
 
 /** Rough width of one label character, for sizing the price tag. */
 const TAG_CHAR = 12.5;
@@ -19,7 +19,7 @@ export function TapePlate({ tape, strip = false }: { tape: Tape; strip?: boolean
     <svg
       aria-hidden="true"
       className="tape"
-      viewBox={`0 0 ${TAPE_W} ${strip ? TAPE_CANDLE_BOTTOM + 30 : TAPE_H}`}
+      viewBox={`0 0 ${TAPE_W} ${TAPE_CANDLE_BOTTOM + 30}`}
       preserveAspectRatio={strip ? "none" : "xMaxYMin slice"}
     >
       <path d={drawing.up} className="tape-up" />
@@ -30,7 +30,7 @@ export function TapePlate({ tape, strip = false }: { tape: Tape; strip?: boolean
           <g key={i} className={traded ? "tape-level-hot" : "tape-level"}>
             <line x1="0" x2={TAPE_W} y1={level.y} y2={level.y} />
             {i === taggedIndex && (
-              <>
+              <g>
                 <rect
                   x={TAPE_W - level.title.length * TAG_CHAR - 40}
                   y={level.y - 20}
@@ -40,7 +40,7 @@ export function TapePlate({ tape, strip = false }: { tape: Tape; strip?: boolean
                 <text x={TAPE_W - 20} y={level.y + 8} textAnchor="end">
                   {level.title}
                 </text>
-              </>
+              </g>
             )}
           </g>
         );

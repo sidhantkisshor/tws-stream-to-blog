@@ -109,8 +109,12 @@ export default async function HomePage() {
         ) : (
           <>
             <Link href={`/posts/${featured.slug}`} className="plate block no-underline">
-              {featuredTape && <TapePlate tape={featuredTape} />}
-              <div className="px-[var(--gutter)] pb-[80px] pt-[200px] md:pb-[136px] md:pt-[300px] md:pl-[calc(var(--sheet-offset)+56px)]">
+              {featuredTape && (
+                <div className="plate-tape">
+                  <TapePlate tape={featuredTape} />
+                </div>
+              )}
+              <div className="px-[var(--gutter)] pb-[80px] pt-4 md:pb-[136px] md:pt-[300px] md:pl-[calc(var(--sheet-offset)+56px)]">
                 {featured.tags[0] && (
                   <p className="label mb-3 text-[#ff8259]">{tagLabel(featured.tags[0])}</p>
                 )}

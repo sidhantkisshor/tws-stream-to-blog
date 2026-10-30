@@ -156,9 +156,8 @@ export async function getTape(sections: unknown): Promise<Tape | null> {
   }
 }
 
-/** The drawing, in a 1600 x 900 box. Candles use the upper part of the box. */
+/** The drawing is 1600 wide, with candles between TOP and TAPE_CANDLE_BOTTOM. */
 export const TAPE_W = 1600;
-export const TAPE_H = 900;
 const TOP = 70;
 export const TAPE_CANDLE_BOTTOM = 385;
 const BOTTOM = TAPE_CANDLE_BOTTOM;

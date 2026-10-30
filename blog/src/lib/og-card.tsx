@@ -1,7 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { layoutShout } from "./shout";
-import { drawTape, TAPE_H, TAPE_W, type Tape } from "./tape";
+import { drawTape, TAPE_CANDLE_BOTTOM, TAPE_W, type Tape } from "./tape";
+
+const TAPE_BOX_H = TAPE_CANDLE_BOTTOM + 30;
 import { SITE_NAME } from "./site";
 
 /**
@@ -46,12 +48,9 @@ export function ogFonts() {
 }
 
 function tapeImage(tape: Tape): string {
-  const d = drawTape(tape);
-  const levels = d.levels
-    .filter((l) => l.kind !== "level")
-    .map((l) => `<rect x="0" y="${l.y}" width="${TAPE_W}" height="3" fill="${HOT}"/>`)
-    .join("");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TAPE_W} ${TAPE_H}"><path d="${d.up}" fill="#dfe2e7"/><path d="${d.down}" fill="#6d737d"/>${levels}</svg>`;
+  // No level line here: across big type it reads as a strikethrough.
+  const d = drawTape(tape, { levels: false });
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TAPE_W} ${TAPE_BOX_H}"><path d="${d.up}" fill="#dfe2e7"/><path d="${d.down}" fill="#6d737d"/></svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
@@ -87,9 +86,9 @@ export function OgCard({ line, tag, tape }: { line: string; tag?: string; tape: 
         <img
           src={tapeImage(tape)}
           alt=""
-          width={1200}
-          height={675}
-          style={{ position: "absolute", top: 0, left: 0, width: 1200, height: 675, opacity: 0.5 }}
+          width={OG_SIZE.width}
+          height={OG_SIZE.height}
+          style={{ position: "absolute", top: 0, left: 0, width: OG_SIZE.width, height: OG_SIZE.height, objectFit: "cover", opacity: 0.3 }}
         />
       )}
       <div

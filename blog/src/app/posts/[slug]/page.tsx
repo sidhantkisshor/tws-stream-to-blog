@@ -242,8 +242,10 @@ export default async function PostPage({
 
       {tape ? (
         <header className="plate">
-          <TapePlate tape={tape} />
-          <div className="px-[var(--gutter)] pb-[72px] pt-[220px] md:pb-[136px] md:pl-[calc(var(--sheet-offset)+56px)] md:pt-[300px]">
+          <div className="plate-tape">
+            <TapePlate tape={tape} />
+          </div>
+          <div className="px-[var(--gutter)] pb-[72px] pt-4 md:pb-[136px] md:pl-[calc(var(--sheet-offset)+56px)] md:pt-[300px]">
             {firstTag && (
               <Link
                 href={`/tags/${encodeURIComponent(firstTag)}`}
