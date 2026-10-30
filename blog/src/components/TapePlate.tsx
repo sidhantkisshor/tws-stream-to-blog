@@ -11,6 +11,7 @@ const TAG_CHAR = 12.5;
  */
 export function TapePlate({ tape, tags = true }: { tape: Tape; tags?: boolean }) {
   const drawing = drawTape(tape);
+  const taggedIndex = drawing.levels.findIndex((l) => l.kind !== "level");
   return (
     <svg
       aria-hidden="true"
@@ -25,7 +26,7 @@ export function TapePlate({ tape, tags = true }: { tape: Tape; tags?: boolean })
         return (
           <g key={i} className={traded ? "tape-level-hot" : "tape-level"}>
             <line x1="0" x2={TAPE_W} y1={level.y} y2={level.y} />
-            {traded && tags && (
+            {tags && i === taggedIndex && (
               <>
                 <rect
                   x={TAPE_W - level.title.length * TAG_CHAR - 40}

@@ -22,16 +22,19 @@ Written before any design work, 2026-10-30.
 
 ## Gap test
 
-Cold read files: filled in after the build. Readers: two fresh cold-readers (glance only, night only).
+Two rounds, six fresh cold-readers on the phone first fold (glance only, night only). Round one used the 81,700 post, round two the gold VWAP post. These are model readers: a proxy for hierarchy and legibility, not proof that a person stops scrolling.
 
-| Item | Intended | Seen by cold reader | Pass | Fix |
+| Item | Intended | Seen by cold readers | Pass | Fix |
 |---|---|---|---|---|
-| 1st noticed | | | | |
-| 2nd noticed | | | | |
-| Message | | | | |
-| Action | | | | |
-| Feel 5 s later | | | | |
-| Could not read | none | | | |
-| Confusing | nothing | | | |
+| 1st noticed, index | The giant line | "YOUR GURU WON'T POST THIS" | Yes | |
+| 2nd noticed, index | Real chart with serif title | Dark section, chart, Bitcoin serif headline | Yes | |
+| 1st noticed, post | Serif title over the chart | The post title, both rounds | Yes | |
+| 2nd noticed, post | Giant hard line | "SHORTING THE 81,700...", "A POOR REACTION AT VWAP IS..." | Yes | |
+| Message | They show the real trade, including what did not work | Index: a trading blog with a bold claim, one reader: "can't tell yet what kind of trader this is". Post: clear trade lesson | Partly | Receipt line added to the index plate. The claim only proves itself once they read a post |
+| Action | Keep reading | Read the post, in all four night reads | Yes | |
+| Would stop scrolling | Yes | Yes, in all four night reads | Yes | |
+| Feel 5 s later | This is not what I expected, expensive, not selling | "Curious, a bit skeptical", "Hooked, slightly suspicious", "Bold, a bit loud" | Partly | None. Skepticism matches the arrival state, and loud is the brief on the shout. "Expensive" was not named by any reader |
+| Could not read | none | Text cut by the fold (expected), small receipt line in the night view | Partly | None, the fold cut is the design |
+| Confusing | nothing | Faded candles behind the title (fixed). Second entry tag behind the title (fixed). "Trading With Sidhant" brand against a post about Fahad (open) | Partly | Owner call on a byline |
 
-Verdict: pending.
+Verdict: hierarchy passes. Stopped after two rounds as the skill says, so the owner sees this table instead of a third guess. The human phone test is still owed.
