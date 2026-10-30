@@ -8,7 +8,7 @@
 2. **Cream takeaway cards and YouTube thumbnails leave the page.** `heroImage` stops rendering on every reader surface and on share cards. It stays in the BlogPosting JSON-LD, and `POST /api/hero-card` and the schema do not change, so n8n and old posts need nothing.
 3. **Heavy face: Archivo (OFL), instanced at wdth 62, wght 900, subset to Latin, 6 KB.** Self-hosted. Instrument Serif stays, set upright for the J.P. Morgan read. Satoshi stays for body.
 4. **The big line comes from the post.** `lib/hard-line.ts` picks a section heading or a first takeaway sentence of at most 64 characters, verbatim. No line qualifies: no shout. Nothing is shortened or invented.
-5. **Real charts only.** `lib/tape.ts` reads candles and levels out of the stored `*-chart-*.html` on R2. 31 of 73 posts have one. The other 42 get a type-only masthead. The AI illustration rasters never get promoted to a masthead.
+5. **Real charts only.** `lib/tape.ts` reads candles and levels out of the stored `*-chart-*.html` on R2. 30 of 73 posts have one. The other 43 get a type-only masthead. The AI illustration rasters never get promoted to a masthead.
 
 ## Tokens
 
