@@ -30,7 +30,21 @@ export interface Tape {
 }
 
 const MAX_CANDLES = 240;
-const R2_HOST = /^https:\/\/[a-z0-9-]+\.r2\.dev\//i;
+const MAX_LEVELS = 12;
+const MAX_LEVEL_TITLE = 48;
+/** Real chart files are about 12 KB. Anything far larger is not one of them. */
+const MAX_BYTES = 2_000_000;
+/** The one bucket the pipeline writes charts to. This fetch runs on our server, so it is pinned. */
+const CHART_HOST = "pub-51d4279cb27a40238df5b851ddc02ffa.r2.dev";
+
+function isChartHost(ref: string): boolean {
+  try {
+    const url = new URL(ref);
+    return url.protocol === "https:" && url.hostname === CHART_HOST;
+  } catch {
+    return false;
+  }
+}
 
 function isCandle(c: unknown): c is TapeCandle {
   if (!c || typeof c !== "object") return false;
@@ -90,10 +104,11 @@ export function parseTape(html: string): Tape | null {
     if (candles.length < 10) return null;
     const levels: TapeLevel[] = Array.isArray(data.levels)
       ? (data.levels as Record<string, unknown>[])
-          .filter((l) => typeof l?.price === "number" && typeof l?.title === "string")
+          .filter((l) => Number.isFinite(l?.price) && typeof l?.title === "string")
+          .slice(0, MAX_LEVELS)
           .map((l) => ({
             price: l.price as number,
-            title: l.title as string,
+            title: (l.title as string).slice(0, MAX_LEVEL_TITLE),
             kind: (["entry", "target", "stop"].includes(l.kind as string)
               ? l.kind
               : "level") as TapeLevelKind,
@@ -115,7 +130,7 @@ export function chartUrl(sections: unknown): string | null {
   if (!Array.isArray(sections)) return null;
   for (const s of sections as { chartRef?: unknown }[]) {
     const ref = s?.chartRef;
-    if (typeof ref === "string" && /-chart-[^/]*\.html$/.test(ref) && R2_HOST.test(ref)) return ref;
+    if (typeof ref === "string" && /-chart-[^/]*\.html$/.test(ref) && isChartHost(ref)) return ref;
   }
   return null;
 }
@@ -133,7 +148,9 @@ export async function getTape(sections: unknown): Promise<Tape | null> {
       signal: AbortSignal.timeout(2500),
     });
     if (!res.ok) return null;
-    return parseTape(await res.text());
+    if (Number(res.headers.get("content-length") ?? 0) > MAX_BYTES) return null;
+    const html = await res.text();
+    return html.length > MAX_BYTES ? null : parseTape(html);
   } catch {
     return null;
   }
@@ -143,7 +160,7 @@ export async function getTape(sections: unknown): Promise<Tape | null> {
 export const TAPE_W = 1600;
 export const TAPE_H = 900;
 const TOP = 70;
-const BOTTOM = 540;
+const BOTTOM = 440;
 const RIGHT_GUTTER = 40;
 
 export interface TapeDrawing {

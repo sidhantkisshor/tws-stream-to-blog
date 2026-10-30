@@ -121,6 +121,7 @@ export default async function HomePage() {
                 <p className="label mt-4 text-white/60">
                   {formatDate(featured.publishedAt)}, {featured.readingMinutes} min read
                 </p>
+                {featuredTape?.caption && <p className="label mt-1 text-white/60">{featuredTape.caption}</p>}
               </div>
             </Link>
 

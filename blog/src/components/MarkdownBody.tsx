@@ -5,6 +5,7 @@ import Markdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Term } from "./Term";
+import { plainDashes } from "@/lib/display";
 
 /** Convert raw HTML <img> tags to markdown ![alt](url) so they go through the component override. */
 function preprocessMarkdown(md: string): string {
@@ -35,6 +36,7 @@ const OPTIMIZED_HOSTS = [".r2.dev", "storage.googleapis.com", "placehold.co"];
 
 function ImgComponent({ src, alt }: { src?: string; alt?: string }) {
   const url = typeof src === "string" ? src : "";
+  const caption = alt ? plainDashes(alt) : "";
   const isOptimizable =
     url.startsWith("/") || OPTIMIZED_HOSTS.some((h) => url.includes(h));
 
@@ -42,18 +44,14 @@ function ImgComponent({ src, alt }: { src?: string; alt?: string }) {
     <span className="my-8 block">
       <Image
         src={url}
-        alt={alt || ""}
+        alt={caption}
         width={800}
         height={450}
         className="w-full"
         sizes="(max-width: 768px) 100vw, 65ch"
         unoptimized={!isOptimizable}
       />
-      {alt && (
-        <span className="label block pt-2 text-mute">
-          {alt}
-        </span>
-      )}
+      {caption && <span className="label block pt-2 text-mute">{caption}</span>}
     </span>
   );
 }

@@ -41,9 +41,10 @@ describe("parseTape", () => {
 
 describe("chartUrl", () => {
   it("takes only a stored chart page", () => {
-    const good = "https://pub-abc.r2.dev/givi7ocg6tm-btc-chart-u2gxbj.html";
+    const good = "https://pub-51d4279cb27a40238df5b851ddc02ffa.r2.dev/givi7ocg6tm-btc-chart-u2gxbj.html";
     expect(chartUrl([{ chartRef: "/demos/orderflow.html" }, { chartRef: good }])).toBe(good);
     expect(chartUrl([{ chartRef: "https://evil.example/x-chart-y.html" }])).toBeNull();
+    expect(chartUrl([{ chartRef: "https://other-bucket.r2.dev/x-chart-y.html" }])).toBeNull();
     expect(chartUrl([{ chartRef: "https://pub-abc.r2.dev/a-1-illustration.png" }])).toBeNull();
   });
 });

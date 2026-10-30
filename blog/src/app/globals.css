@@ -151,7 +151,7 @@ h3 {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(to top, rgb(11 11 12 / 0.96) 22%, rgb(11 11 12 / 0.55) 55%, rgb(11 11 12 / 0) 80%);
+  background: linear-gradient(to top, rgb(11 11 12 / 0.98) 40%, rgb(11 11 12 / 0.7) 56%, rgb(11 11 12 / 0) 76%);
 }
 
 .tape {
