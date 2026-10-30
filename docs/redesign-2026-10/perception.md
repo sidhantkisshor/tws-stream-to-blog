@@ -22,7 +22,7 @@ Written before any design work, 2026-10-30.
 
 ## Gap test
 
-Two rounds, six fresh cold-readers on the phone first fold (glance only, night only). Round one used the 81,700 post, round two the gold VWAP post. These are model readers: a proxy for hierarchy and legibility, not proof that a person stops scrolling.
+Two rounds, seven fresh cold-readers on the phone first fold (glance only, night only). Round one used the 81,700 post, round two the gold VWAP post. These are model readers: a proxy for hierarchy and legibility, not proof that a person stops scrolling.
 
 | Item | Intended | Seen by cold readers | Pass | Fix |
 |---|---|---|---|---|

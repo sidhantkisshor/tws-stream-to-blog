@@ -28,7 +28,7 @@ export function HardLineBand({
       className="band on-market plate my-12 block no-underline md:my-16"
       style={{ minHeight: 0 }}
     >
-      <TapePlate tape={tape} tags={false} />
+      <TapePlate tape={tape} strip />
       <div className="px-[var(--gutter)] pb-10 pt-40 md:pb-14 md:pt-72">
         <Shout text={line} />
         <p className="mt-5 max-w-[60ch] text-base text-white/80">

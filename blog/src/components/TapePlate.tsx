@@ -1,4 +1,4 @@
-import { drawTape, TAPE_H, TAPE_W, type Tape } from "@/lib/tape";
+import { drawTape, TAPE_CANDLE_BOTTOM, TAPE_H, TAPE_W, type Tape } from "@/lib/tape";
 
 /** Rough width of one label character, for sizing the price tag. */
 const TAG_CHAR = 12.5;
@@ -8,25 +8,28 @@ const TAG_CHAR = 12.5;
  * it reads as a photograph, with one hot line for the level that was traded. It
  * is decorative for assistive tech: the interactive chart further down the post
  * holds the same data, and the caption names the source.
+ *
+ * `strip` draws the whole session as a band with no levels, for a shout to sit
+ * under: a line through big type reads as a strikethrough.
  */
-export function TapePlate({ tape, tags = true }: { tape: Tape; tags?: boolean }) {
+export function TapePlate({ tape, strip = false }: { tape: Tape; strip?: boolean }) {
   const drawing = drawTape(tape);
   const taggedIndex = drawing.levels.findIndex((l) => l.kind !== "level");
   return (
     <svg
       aria-hidden="true"
       className="tape"
-      viewBox={`0 0 ${TAPE_W} ${TAPE_H}`}
-      preserveAspectRatio="xMaxYMin slice"
+      viewBox={`0 0 ${TAPE_W} ${strip ? TAPE_CANDLE_BOTTOM + 30 : TAPE_H}`}
+      preserveAspectRatio={strip ? "none" : "xMaxYMin slice"}
     >
       <path d={drawing.up} className="tape-up" />
       <path d={drawing.down} className="tape-down" />
-      {drawing.levels.map((level, i) => {
+      {!strip && drawing.levels.map((level, i) => {
         const traded = level.kind !== "level";
         return (
           <g key={i} className={traded ? "tape-level-hot" : "tape-level"}>
             <line x1="0" x2={TAPE_W} y1={level.y} y2={level.y} />
-            {tags && i === taggedIndex && (
+            {i === taggedIndex && (
               <>
                 <rect
                   x={TAPE_W - level.title.length * TAG_CHAR - 40}

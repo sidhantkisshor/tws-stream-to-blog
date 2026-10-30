@@ -230,6 +230,22 @@ h3 {
   }
 }
 
+.band::before,
+.band::after {
+  display: none;
+}
+
+.band .tape {
+  height: 150px;
+  top: 12px;
+}
+
+@media (min-width: 768px) {
+  .band .tape {
+    height: 270px;
+  }
+}
+
 /* A band undoes the sheet's offset and padding to reach both screen edges. */
 .band {
   margin-left: calc(-1 * (var(--sheet-offset) + 20px));

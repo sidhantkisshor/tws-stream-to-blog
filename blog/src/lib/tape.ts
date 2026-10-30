@@ -160,7 +160,8 @@ export async function getTape(sections: unknown): Promise<Tape | null> {
 export const TAPE_W = 1600;
 export const TAPE_H = 900;
 const TOP = 70;
-const BOTTOM = 440;
+export const TAPE_CANDLE_BOTTOM = 440;
+const BOTTOM = TAPE_CANDLE_BOTTOM;
 const RIGHT_GUTTER = 40;
 
 export interface TapeDrawing {
@@ -177,13 +178,13 @@ export function drawTape(tape: Tape): TapeDrawing {
     lo = Math.min(lo, c.low);
     hi = Math.max(hi, c.high);
   }
-  // Traded levels stretch the scale. A level that was only discussed is drawn
-  // when it already falls on the chart, so it cannot squash the candles.
-  for (const l of levels) {
-    if (l.kind !== "level") {
-      lo = Math.min(lo, l.price);
-      hi = Math.max(hi, l.price);
-    }
+  // Only the first traded level stretches the scale, because it is the one the
+  // plate labels. Any other level is drawn when it already falls on the chart,
+  // so it cannot squash the candles or run behind the title.
+  const main = levels.find((l) => l.kind !== "level");
+  if (main) {
+    lo = Math.min(lo, main.price);
+    hi = Math.max(hi, main.price);
   }
   const span = hi - lo || 1;
   const y = (price: number) => +(BOTTOM - ((price - lo) / span) * (BOTTOM - TOP)).toFixed(1);
