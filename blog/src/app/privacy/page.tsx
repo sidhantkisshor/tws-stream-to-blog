@@ -37,7 +37,7 @@ export default function PrivacyPage() {
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <main className="mx-auto max-w-[68ch] px-[var(--gutter)] py-12">
+      <main className="mx-auto max-w-[68ch] px-4 py-12 md:px-12">
         <div className="animate-reveal">
           <h1 className="text-3xl font-bold tracking-tight text-deep-slate sm:text-4xl">
             Privacy{" "}

@@ -33,7 +33,7 @@ export default function AboutPage() {
       </header>
 
       <div className="sheet">
-        <div className="max-w-[68ch] space-y-14">
+        <div className="max-w-[68ch] space-y-14 lg:grid lg:max-w-none lg:grid-cols-2 lg:gap-x-16 lg:gap-y-14 lg:space-y-0">
           <p className="text-xl leading-[1.6] text-ink">
             Trading With Sidhant Team breaks down Nifty, BankNifty, and options setups live, every
             trading day. This blog captures those sessions so you can revisit the analysis, study the

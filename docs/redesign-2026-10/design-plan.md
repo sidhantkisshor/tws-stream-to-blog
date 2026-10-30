@@ -60,7 +60,7 @@ All  Bitcoin  Risk  Order flow
 █████ BAND: candles + SHOUT █
 ```
 
-Index, 1440: the same, shout on two lines across the full width, sheet starts 8vw in from the left and runs to the right edge.
+Index, 1024 and up (reworked 2026-10-30 after the owner said desktop was bad): one content width of 1280, and nav, masthead, plate text and reading all share one left edge. The shout is one line. The plate is split, title on the left and candles on the right, so candles never sit behind type. The sheet is centred and overlaps the plate, with the post list beside a sticky rail for Telegram and email.
 
 Post with a chart, 390 and 1440:
 
@@ -79,6 +79,8 @@ Post with a chart, 390 and 1440:
      │            FAQ, open, no accordion
      │            share, related, next
 ```
+
+Post, 1024 and up: the same split plate, then a two line shout, then contents, reading column and, from 1400, a sticky rail with share and Telegram.
 
 Post with no chart: no plate, because there is no market to show.
 

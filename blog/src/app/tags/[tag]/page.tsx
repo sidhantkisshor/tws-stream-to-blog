@@ -75,7 +75,7 @@ export default async function TagPage({
       />
       <main>
         <header className="px-[var(--gutter)] pb-8 pt-6 md:pb-12 md:pt-10">
-          <Shout as="h1" text={tagLabel(tag)} wideMin={0.13} />
+          <Shout as="h1" text={tagLabel(tag)} />
           <p className="mt-5 text-xl text-ink">
             {posts.length} {posts.length === 1 ? "post" : "posts"}.{" "}
             <Link href="/posts" className="link-rule">
@@ -84,7 +84,7 @@ export default async function TagPage({
           </p>
         </header>
 
-        <div className="sheet">
+        <div className="sheet @container">
           {posts.map((post) => (
             <PostRow key={post.id} post={post} />
           ))}

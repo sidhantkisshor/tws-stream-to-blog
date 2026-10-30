@@ -5,8 +5,8 @@ import { plainDashes, tagLabel } from "@/lib/display";
 import type { Tape } from "@/lib/tape";
 
 /**
- * A post's hard line over its own candles, breaking out of the sheet to full
- * width. The margins undo the sheet's left offset and padding, so they must
+ * A post's hard line over its own candles, breaking out of the sheet on a phone
+ * and a tablet. The margins undo the sheet's offset and padding, so they must
  * match `.sheet` in globals.css.
  */
 export function HardLineBand({
@@ -29,7 +29,7 @@ export function HardLineBand({
       style={{ minHeight: 0 }}
     >
       <TapePlate tape={tape} strip />
-      <div className="px-[var(--gutter)] pb-10 pt-40 md:pb-14 md:pt-72">
+      <div className="band-text px-[var(--gutter)] pb-10 pt-40 md:pb-14 md:pt-72">
         <Shout text={line} />
         <p className="mt-5 max-w-[60ch] text-base text-white/80">
           {tag ? `${tagLabel(tag)}. ` : ""}

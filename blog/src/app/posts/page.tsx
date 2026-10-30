@@ -37,7 +37,7 @@ export default async function ArchivePage() {
   return (
     <main>
       <header className="px-[var(--gutter)] pb-8 pt-6 md:pb-12 md:pt-10">
-        <Shout as="h1" text="All Posts" wideMin={0.13} />
+        <Shout as="h1" text="All Posts" />
         <p className="mt-5 text-xl text-ink">
           {posts.length} {posts.length === 1 ? "post" : "posts"} published
         </p>
@@ -50,7 +50,9 @@ export default async function ArchivePage() {
             <p className="mt-2 text-mute">Check back after the next live stream.</p>
           </div>
         ) : (
-          <ArchiveList posts={serializedPosts} />
+          <div className="@container">
+            <ArchiveList posts={serializedPosts} />
+          </div>
         )}
 
         <section className="mt-14 border-t border-rule pt-12">

@@ -81,7 +81,7 @@ export default async function HomePage() {
       />
       <main>
         <header className="px-[var(--gutter)] pb-8 pt-6 md:pb-12 md:pt-10">
-          <Shout as="h1" text="Your guru won't post this" hot="last" wideMin={0.13} />
+          <Shout as="h1" text="Your guru won't post this" hot="last" />
           <p className="mt-5 max-w-[34ch] text-xl leading-snug text-ink md:mt-7 md:max-w-none md:text-2xl">
             Real trades from our live sessions. The stops, the skips and the reasons.
           </p>
@@ -114,7 +114,7 @@ export default async function HomePage() {
                   <TapePlate tape={featuredTape} />
                 </div>
               )}
-              <div className="px-[var(--gutter)] pb-[80px] pt-4 md:pb-[136px] md:pt-[300px] md:pl-[calc(var(--sheet-offset)+56px)]">
+              <div className="plate-text px-[var(--gutter)] pb-[80px] pt-4 md:pb-[136px]">
                 {featured.tags[0] && (
                   <p className="label mb-3 text-[#ff8259]">{tagLabel(featured.tags[0])}</p>
                 )}
@@ -130,12 +130,15 @@ export default async function HomePage() {
             </Link>
 
             <div className="sheet sheet-over">
-              <PostsDisplay posts={serializedPosts} bands={bands} />
-
-              <section className="mt-16 grid gap-12 border-t border-rule pt-12 md:grid-cols-2 md:gap-16">
-                <TelegramCTA />
-                <NewsletterCTA />
-              </section>
+              <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+                <div className="min-w-0">
+                  <PostsDisplay posts={serializedPosts} bands={bands} />
+                </div>
+                <aside className="mt-16 grid gap-12 border-t border-rule pt-12 md:grid-cols-2 md:gap-16 lg:sticky lg:top-24 lg:mt-0 lg:h-fit lg:grid-cols-1 lg:gap-12 lg:border-t-0 lg:pt-0">
+                  <TelegramCTA />
+                  <NewsletterCTA />
+                </aside>
+              </div>
               <section className="mt-12 border-t border-rule pt-12">
                 <ProgramCTA variant="banner" />
               </section>

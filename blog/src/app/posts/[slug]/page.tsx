@@ -245,7 +245,7 @@ export default async function PostPage({
           <div className="plate-tape">
             <TapePlate tape={tape} />
           </div>
-          <div className="px-[var(--gutter)] pb-[72px] pt-4 md:pb-[136px] md:pl-[calc(var(--sheet-offset)+56px)] md:pt-[300px]">
+          <div className="plate-text px-[var(--gutter)] pb-[72px] pt-4 md:pb-[136px]">
             {firstTag && (
               <Link
                 href={`/tags/${encodeURIComponent(firstTag)}`}
@@ -286,7 +286,7 @@ export default async function PostPage({
       <div className={`sheet ${tape ? "sheet-over" : ""}`}>
         {tape && line && <Shout text={line} className="mb-10 md:mb-16" />}
 
-        <div className="lg:grid lg:grid-cols-[13rem_minmax(0,68ch)] lg:gap-16">
+        <div className="lg:grid lg:grid-cols-[13rem_minmax(0,68ch)] lg:gap-16 min-[87.5rem]:grid-cols-[12rem_minmax(0,68ch)_14rem] min-[87.5rem]:justify-between min-[87.5rem]:gap-10">
           {/* TOC: renders its own desktop sidebar and mobile disclosure */}
           <TableOfContents sections={sections.map((s) => ({ heading: s.heading, label: plainDashes(s.heading) }))} />
 
@@ -361,6 +361,17 @@ export default async function PostPage({
               <NewsletterCTA />
             </div>
           </article>
+
+          {/* Fills the right of the sheet on a large screen. A phone reads these at the end. */}
+          <aside className="sticky top-24 hidden h-fit space-y-10 min-[87.5rem]:block">
+            <div>
+              <p className="label mb-3 text-mute">Share this post</p>
+              <ShareButtons title={post.title} slug={post.slug} />
+            </div>
+            <div className="border-t border-rule pt-8">
+              <TelegramCTA />
+            </div>
+          </aside>
         </div>
       </div>
     </>

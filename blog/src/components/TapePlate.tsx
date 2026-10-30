@@ -30,7 +30,7 @@ export function TapePlate({ tape, strip = false }: { tape: Tape; strip?: boolean
           <g key={i} className={traded ? "tape-level-hot" : "tape-level"}>
             <line x1="0" x2={TAPE_W} y1={level.y} y2={level.y} />
             {i === taggedIndex && (
-              <g>
+              <g className="tape-tag">
                 <rect
                   x={TAPE_W - level.title.length * TAG_CHAR - 40}
                   y={level.y - 20}

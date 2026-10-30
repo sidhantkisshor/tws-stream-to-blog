@@ -17,15 +17,24 @@
   --tws-hot-text: #c2390a;
   /* Same dark as the stored interactive charts, so a chart and a plate read as one thing. */
   --tws-market: #0b0b0c;
-  /* How far the reading sheet starts in from the left. */
+  /* How far the reading sheet starts in from the left, on a phone. */
   --sheet-offset: 12px;
+  /* The one left edge: nav, masthead, plate text and reading all start here. */
   --gutter: 16px;
 }
 
 @media (min-width: 768px) {
   :root {
-    --sheet-offset: 8vw;
     --gutter: 48px;
+    /* How far the wider sheet reaches past the text edge on each side. */
+    --sheet-bleed: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: max(64px, calc((100vw - 1280px) / 2));
+    --sheet-bleed: 40px;
   }
 }
 
@@ -140,41 +149,39 @@ h3 {
   color: #f4f5f7;
 }
 
-@media (min-width: 768px) {
-  .plate {
-    min-height: 640px;
-  }
-}
-
 /*
- * On a phone the chart has its own zone above the text, so candles can never
- * sit behind a title of any length. On a wide screen the chart fills the plate
- * and the title sits on its dark left side.
+ * The chart always has its own zone, so candles can never sit behind a title of
+ * any length: above the text up to a tablet, beside it on a wide screen.
  */
 .plate-tape {
   position: relative;
   flex: 1 0 230px;
 }
 
-@media (min-width: 768px) {
-  /* The drawing is 1600 by 415, so this height shows the whole session at any width. */
-  .plate-tape {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 25.94vw;
-    z-index: -2;
+@media (min-width: 1024px) {
+  .plate {
+    display: grid;
+    min-height: 560px;
+    grid-template-columns: calc(var(--gutter) + (100vw - 2 * var(--gutter)) * 0.46) minmax(0, 1fr);
   }
-}
-
-@media (min-width: 768px) {
-  .plate::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(to right, rgb(11 11 12 / 0.88) 18%, rgb(11 11 12 / 0.5) 52%, rgb(11 11 12 / 0) 74%);
+  .plate-tape {
+    grid-column: 2;
+    grid-row: 1;
+    /* The sheet covers the bottom of the plate, and must not cover candles. */
+    margin-bottom: 96px;
+    mask-image: linear-gradient(to right, transparent, #000 14%);
+  }
+  .plate-text {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+    padding: 56px 32px 136px var(--gutter);
+  }
+  /* The drawing scales up on a wide plate, so the tag scales back to reading size. */
+  .tape-tag {
+    transform: scale(0.7);
+    transform-box: fill-box;
+    transform-origin: right center;
   }
 }
 
@@ -222,6 +229,12 @@ h3 {
   text-wrap: balance;
 }
 
+@media (min-width: 1024px) {
+  .plate-title {
+    font-size: clamp(2.75rem, 4.4vw, 4.5rem);
+  }
+}
+
 /* The reading sheet, overlapping the plate. */
 .sheet {
   position: relative;
@@ -236,15 +249,12 @@ h3 {
 
 @media (min-width: 768px) {
   .sheet {
-    padding: 56px var(--gutter) 96px 56px;
+    margin-inline: calc(var(--gutter) - var(--sheet-bleed));
+    padding: 56px var(--sheet-bleed) 96px;
   }
   .sheet-over {
     margin-top: -96px;
   }
-}
-
-.band::before {
-  display: none;
 }
 
 .band .tape {
@@ -266,7 +276,18 @@ h3 {
 
 @media (min-width: 768px) {
   .band {
-    margin-left: calc(-1 * (var(--sheet-offset) + 56px));
+    margin-inline: calc(-1 * var(--sheet-bleed));
+  }
+  .band-text {
+    padding-inline: var(--sheet-bleed);
+  }
+}
+
+/* On a wide screen the list shares the sheet with a rail, so a band fills its column. */
+@media (min-width: 1024px) {
+  .band {
+    display: block;
+    margin-inline: 0;
   }
 }
 

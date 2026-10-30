@@ -38,3 +38,7 @@ Two rounds, seven fresh cold-readers on the phone first fold (glance only, night
 | Confusing | nothing | Faded candles behind the title (fixed). Second entry tag behind the title (fixed). "Trading With Sidhant" brand against a post about Fahad (open) | Partly | Owner call on a byline |
 
 Verdict: hierarchy passes. Stopped after two rounds as the skill says, so the owner sees this table instead of a third guess. The human phone test is still owed.
+
+## Desktop re-test, 2026-10-30
+
+Two fresh readers on the reworked index at 1440. 1st seen: the headline, then the candles, as intended. Message: a trading blog, read the Bitcoin post or join Telegram. Feeling: curious, a bit sceptical, then mildly pushed. One reader saw the top bar and the dark plate as two sites stuck together, on the dimmed view only. Would stop: yes, wary of a signals pitch.

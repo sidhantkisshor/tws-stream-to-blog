@@ -80,4 +80,4 @@ export function layoutShout(
 }
 
 export const PHONE_SHOUT = { minFraction: 0.17, maxFraction: 0.3, maxLines: 6 };
-export const WIDE_SHOUT = { minFraction: 0.085, maxFraction: 0.16, maxLines: 3 };
+export const WIDE_SHOUT = { minFraction: 0.065, maxFraction: 0.11, maxLines: 3 };

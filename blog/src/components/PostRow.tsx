@@ -29,11 +29,11 @@ export function PostRow({ post, stacked = false }: { post: PostRowData; stacked?
           <time dateTime={iso}>{formatDate(post.publishedAt)}</time>
         </span>
       </div>
-      <div className="min-w-0">
-        <h3 className={`post-row-title text-[1.875rem] leading-[1.1] ${stacked ? "" : "md:text-[2.5rem]"}`}>
+      <div className="min-w-0 @5xl:grid @5xl:grid-cols-[minmax(0,1fr)_22rem] @5xl:gap-x-12">
+        <h3 className={`post-row-title text-[1.875rem] leading-[1.1] @5xl:row-span-2 ${stacked ? "" : "md:text-[2.5rem]"}`}>
           {plainDashes(post.title)}
         </h3>
-        <p className="mt-3 max-w-[60ch] text-base leading-relaxed text-body">{plainDashes(post.hook)}</p>
+        <p className="mt-3 max-w-[60ch] text-base leading-relaxed text-body @5xl:mt-2">{plainDashes(post.hook)}</p>
         <p className="label mt-3 text-mute">
           <span className={stacked ? "" : "md:hidden"}>
             {formatDate(post.publishedAt)}

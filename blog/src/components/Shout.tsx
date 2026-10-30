@@ -12,19 +12,16 @@ export function Shout({
   as: Tag = "p",
   className = "",
   hot = "number",
-  wideMin,
 }: {
   text: string;
   as?: "p" | "h1" | "h2";
   className?: string;
   /** What takes the hot colour: the first number, or the last word. */
   hot?: "number" | "last";
-  /** Raises the wide screen minimum size, for a page masthead that should wrap and fill. */
-  wideMin?: number;
 }) {
   const words = text.trim().split(/\s+/);
   const phone = layoutShout(text, PHONE_SHOUT);
-  const wide = layoutShout(text, wideMin ? { ...WIDE_SHOUT, minFraction: wideMin, maxFraction: 0.2 } : WIDE_SHOUT);
+  const wide = layoutShout(text, WIDE_SHOUT);
   const hotIndex = hot === "last" ? words.length - 1 : words.findIndex((w) => /\d/.test(w));
 
   return (
