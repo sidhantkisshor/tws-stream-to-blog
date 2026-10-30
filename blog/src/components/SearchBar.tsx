@@ -27,28 +27,21 @@ export function SearchBar({ query, onChange }: SearchBarProps) {
   }, [onChange]);
 
   return (
-    <div className="relative mb-8">
-      <svg
-        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-deep-slate/30"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        viewBox="0 0 24 24"
-      >
-        <circle cx={11} cy={11} r={8} />
-        <path d="m21 21-4.35-4.35" strokeLinecap="round" />
-      </svg>
+    <div className="relative mb-10 max-w-md">
+      <label htmlFor="post-search" className="label block text-mute">
+        Search posts
+      </label>
       <input
+        id="post-search"
         type="text"
         value={local}
         onChange={(e) => update(e.target.value)}
-        placeholder="Search posts..."
-        className="w-full rounded-lg border border-deep-slate/10 bg-surface px-4 py-2.5 pl-10 text-sm text-deep-slate outline-none transition-colors placeholder:text-deep-slate/30 focus:border-burnt-amber/40 focus:ring-1 focus:ring-burnt-amber/20"
+        className="w-full border-0 border-b border-ink bg-transparent py-2 pr-8 text-lg text-ink outline-none focus:border-hot-text"
       />
       {local && (
         <button
           onClick={clear}
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-deep-slate/30 transition-colors hover:text-deep-slate/60"
+          className="absolute bottom-2 right-0 p-1 text-mute transition-colors hover:text-ink"
           aria-label="Clear search"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

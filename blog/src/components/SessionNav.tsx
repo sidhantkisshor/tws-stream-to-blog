@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate, plainDashes } from "@/lib/display";
 
 interface NavPost {
   title: string;
@@ -11,59 +12,26 @@ interface SessionNavProps {
   next: NavPost | null;
 }
 
+function Side({ post, label, end = false }: { post: NavPost | null; label: string; end?: boolean }) {
+  if (!post) return <div />;
+  return (
+    <Link href={`/posts/${post.slug}`} className={`post-row group block no-underline ${end ? "sm:text-right" : ""}`}>
+      <span className="label text-mute">{label}</span>
+      <p className="post-row-title mt-1 font-instrument text-[1.5rem] leading-[1.15] text-ink">{plainDashes(post.title)}</p>
+      <time className="label mt-1 block text-mute" dateTime={post.publishedAt.toISOString()}>
+        {formatDate(post.publishedAt)}
+      </time>
+    </Link>
+  );
+}
+
 export function SessionNav({ previous, next }: SessionNavProps) {
   if (!previous && !next) return null;
 
   return (
-    <nav className="grid grid-cols-2 gap-4">
-      <div>
-        {previous && (
-          <Link
-            href={`/posts/${previous.slug}`}
-            className="group block no-underline"
-          >
-            <span className="text-xs text-deep-slate/40">
-              &larr; Previous Session
-            </span>
-            <p className="mt-0.5 text-sm text-deep-slate/50 transition-colors group-hover:text-deep-slate">
-              {previous.title}
-            </p>
-            <time
-              className="mt-0.5 block text-xs text-deep-slate/30"
-              dateTime={previous.publishedAt.toISOString()}
-            >
-              {previous.publishedAt.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
-          </Link>
-        )}
-      </div>
-      <div className="text-right">
-        {next && (
-          <Link
-            href={`/posts/${next.slug}`}
-            className="group block no-underline"
-          >
-            <span className="text-xs text-deep-slate/40">
-              Next Session &rarr;
-            </span>
-            <p className="mt-0.5 text-sm text-deep-slate/50 transition-colors group-hover:text-deep-slate">
-              {next.title}
-            </p>
-            <time
-              className="mt-0.5 block text-xs text-deep-slate/30"
-              dateTime={next.publishedAt.toISOString()}
-            >
-              {next.publishedAt.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
-          </Link>
-        )}
-      </div>
+    <nav aria-label="Other sessions" className="grid gap-8 border-t border-rule pt-8 sm:grid-cols-2">
+      <Side post={previous} label="Previous session" />
+      <Side post={next} label="Next session" end />
     </nav>
   );
 }

@@ -18,11 +18,11 @@ export function FamilyStrip() {
   return (
     <nav
       aria-label="Trading With Sidhant family"
-      className="mb-8 grid gap-6 sm:grid-cols-3"
+      className="mb-10 grid gap-8 sm:grid-cols-3"
     >
       {GROUPS.map((group) => (
         <div key={group.key}>
-          <p className="mb-2 text-xs font-medium text-deep-slate/50">{group.label}</p>
+          <p className="label mb-2 text-ink">{group.label}</p>
           <ul className="flex flex-col gap-1.5">
             {group.items.map((item) => {
               const href = familyHref(item.url, SOURCE, PLACEMENT);
@@ -31,7 +31,7 @@ export function FamilyStrip() {
                   <a
                     href={href}
                     onClick={() => trackFamilyLinkClick(href, PLACEMENT, SOURCE)}
-                    className="text-xs text-deep-slate/30 no-underline transition-colors hover:text-deep-slate/60"
+                    className="text-[0.9375rem] text-mute no-underline transition-colors hover:text-ink"
                   >
                     {item.label}
                   </a>

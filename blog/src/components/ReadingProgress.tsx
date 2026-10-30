@@ -19,12 +19,8 @@ export function ReadingProgress() {
 
   return (
     <div
-      className="fixed top-0 left-0 z-60 h-[3px] transition-opacity duration-300"
-      style={{
-        width: `${progress * 100}%`,
-        opacity: progress > 0 ? 1 : 0,
-        background: "linear-gradient(to right, var(--color-wealth-teal), var(--color-burnt-amber))",
-      }}
+      className="fixed left-0 top-0 z-60 h-[3px] w-full origin-left bg-hot"
+      style={{ transform: `scaleX(${progress})` }}
     />
   );
 }

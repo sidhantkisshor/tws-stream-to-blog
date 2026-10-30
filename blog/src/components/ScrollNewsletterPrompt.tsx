@@ -87,13 +87,13 @@ export function ScrollNewsletterPrompt() {
       role="dialog"
       aria-label="Subscribe to new post alerts"
       aria-live="polite"
-      className="scroll-nl-prompt fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-xl border border-deep-slate/10 bg-surface px-5 py-4 shadow-[0_8px_32px_rgba(44,53,57,0.18)] sm:left-auto sm:right-6 sm:bottom-6"
+      className="scroll-nl-prompt fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md border border-ink bg-sheet px-5 py-4 sm:left-auto sm:right-6 sm:bottom-6"
     >
       <button
         type="button"
         onClick={dismiss}
         aria-label="Dismiss subscribe prompt"
-        className="absolute right-2 top-2 rounded p-1 text-deep-slate/40 transition-colors hover:text-deep-slate"
+        className="absolute right-2 top-2 p-1 text-mute transition-colors hover:text-ink"
       >
         <svg
           className="h-4 w-4"
@@ -105,11 +105,11 @@ export function ScrollNewsletterPrompt() {
           <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
         </svg>
       </button>
-      <p className="pr-6 text-sm font-bold text-deep-slate">
+      <p className="pr-6 font-instrument text-[1.375rem] leading-tight text-ink">
         Enjoying this? Get new posts in your inbox.
       </p>
       {status === "success" ? (
-        <p className="mt-2 text-sm text-wealth-teal">{message}</p>
+        <p className="mt-2 text-sm text-hot-text">{message}</p>
       ) : (
         <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap items-center gap-2">
           <input
@@ -117,27 +117,28 @@ export function ScrollNewsletterPrompt() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            aria-label="Email"
             placeholder="you@example.com"
-            className="min-w-0 flex-1 rounded-lg border border-deep-slate/10 bg-warm-white px-3 py-2 text-sm text-deep-slate placeholder:text-deep-slate/30 focus:border-wealth-teal/40 focus:outline-none focus:ring-2 focus:ring-wealth-teal/10"
+            className="min-w-0 flex-1 border-0 border-b border-ink bg-transparent py-2 text-ink outline-none placeholder:text-mute focus:border-hot-text"
           />
           <button
             type="submit"
             disabled={status === "loading"}
-            className="rounded-lg bg-wealth-teal px-4 py-2 text-sm font-bold text-white transition-all hover:bg-wealth-teal/90 disabled:opacity-60"
+            className="btn disabled:opacity-60"
           >
             {status === "loading" ? "..." : "Subscribe"}
           </button>
           <button
             type="button"
             onClick={dismiss}
-            className="text-xs text-deep-slate/45 underline-offset-2 hover:underline"
+            className="link-rule text-sm text-mute"
           >
             no thanks
           </button>
         </form>
       )}
       {status === "error" && (
-        <p className="mt-2 text-xs text-red-500">{message}</p>
+        <p className="mt-2 text-sm text-hot-text">{message}</p>
       )}
     </div>
   );

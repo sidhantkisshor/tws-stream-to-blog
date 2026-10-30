@@ -47,13 +47,13 @@ export default function TermsPage() {
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <main className="mx-auto max-w-prose px-4 py-12">
+      <main className="mx-auto max-w-[68ch] px-[var(--gutter)] py-12">
         <div className="animate-reveal">
           <h1 className="text-3xl font-bold tracking-tight text-deep-slate sm:text-4xl">
             Terms of{" "}
             <span className="font-instrument text-burnt-amber">Service</span>
           </h1>
-          <p className="mt-3 text-sm text-deep-slate/40">
+          <p className="mt-3 text-sm text-mute">
             Last updated: March 6, 2026
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function TermsPage() {
 
         {/* Introduction */}
         <section className="mt-10 animate-reveal delay-2">
-          <div className="space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="space-y-4 leading-[1.75] text-body">
             <p>
               These Terms of Service (&quot;Terms&quot;) govern your use of{" "}
               <a
@@ -87,9 +87,9 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             Educational Content Only, Not Financial Advice
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
-            <div className="rounded-lg border border-burnt-amber/20 bg-burnt-amber/5 p-4">
-              <p className="font-medium text-deep-slate/90">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
+            <div className=" border border-burnt-amber/20 bg-burnt-amber/5 p-4">
+              <p className="font-medium text-body">
                 All content on this Site is provided for educational and
                 informational purposes only. Nothing on this Site constitutes
                 financial advice, investment advice, trading advice, or any
@@ -141,7 +141,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             No Guarantee of Accuracy
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               Blog posts are generated through an automated pipeline that
               transcribes live stream audio and processes it through multiple AI
@@ -180,7 +180,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             Intellectual Property
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               All content on the Site (including blog posts, images, graphics,
               and design) is owned by {LEGAL_ENTITY} or used under
@@ -212,7 +212,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             WhatsApp Subscription
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               The Site offers an optional WhatsApp notification service for new
               blog posts. By subscribing:
@@ -256,7 +256,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             Limitation of Liability
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               To the fullest extent permitted by Indian law:
             </p>
@@ -293,7 +293,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             Third-Party Links
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               The Site may contain links to third-party websites (including
               YouTube, social media platforms, and partner sites such as{" "}
@@ -326,7 +326,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             Governing Law &amp; Jurisdiction
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               These Terms are governed by and construed in accordance with the
               laws of India. Any disputes arising from or relating to these
@@ -341,7 +341,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold text-deep-slate">
             Changes to These Terms
           </h2>
-          <div className="mt-4 space-y-4 leading-[1.75] text-deep-slate/70">
+          <div className="mt-4 space-y-4 leading-[1.75] text-body">
             <p>
               We may update these Terms from time to time. Changes will be
               posted on this page with a revised &quot;Last updated&quot; date.
@@ -354,8 +354,8 @@ export default function TermsPage() {
         {/* Contact */}
         <section className="mt-10 animate-reveal delay-4">
           <h2 className="text-2xl font-bold text-deep-slate">Contact Us</h2>
-          <div className="mt-4 space-y-1.5 text-deep-slate/70">
-            <p className="font-medium text-deep-slate/50">
+          <div className="mt-4 space-y-1.5 text-body">
+            <p className="font-medium text-mute">
               {LEGAL_ENTITY}
             </p>
             <p>

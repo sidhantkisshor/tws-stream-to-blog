@@ -1,5 +1,7 @@
 "use client";
 
+import { Shout } from "@/components/Shout";
+
 export default function Error({
   reset,
 }: {
@@ -7,18 +9,12 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <main className="mx-auto flex min-h-[60vh] max-w-prose flex-col items-center justify-center px-4 text-center">
-      <p className="font-instrument text-6xl text-burnt-amber/20">Oops</p>
-      <h1 className="mt-4 text-2xl font-bold text-deep-slate">
-        Something went wrong
-      </h1>
-      <p className="mt-2 text-deep-slate/50">
-        An unexpected error occurred. Please try again.
+    <main className="px-[var(--gutter)] pb-24 pt-6 md:pt-10">
+      <Shout as="h1" text="Stopped out" hot="last" />
+      <p className="mt-6 max-w-[40ch] text-xl leading-snug text-ink">
+        Something went wrong on our side. Please try again.
       </p>
-      <button
-        onClick={reset}
-        className="mt-6 cursor-pointer rounded-lg bg-wealth-teal px-5 py-2.5 text-sm font-medium text-warm-white hover:bg-wealth-teal/90"
-      >
+      <button onClick={reset} className="btn mt-7 cursor-pointer">
         Try again
       </button>
     </main>

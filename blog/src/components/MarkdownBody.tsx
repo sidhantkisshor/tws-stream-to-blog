@@ -9,10 +9,12 @@ import { Term } from "./Term";
 /** Convert raw HTML <img> tags to markdown ![alt](url) so they go through the component override. */
 function preprocessMarkdown(md: string): string {
   return md
-    // Replace em dashes with a comma, but not inside markdown links. The dash
-    // in this regex is intentional and load bearing: it is what strips em
+    // Numeric ranges become "to" (11 PM to 8 AM). Written as unicode escapes.
+    .replace(/(\d(?:\s?[AaPp][Mm])?)\s*[\u2013\u2014]\s*(\d)/g, "$1 to $2")
+    // Replace em and en dashes with a comma, but not inside markdown links. The
+    // class in this regex is intentional and load bearing: it is what strips
     // dashes out of generated copy. Do not remove it in a dash sweep.
-    .replace(/(?<!\[[^\]]*)\s*—\s*(?![^\[]*\])/g, ", ")
+    .replace(/(?<!\[[^\]]*)\s*[\u2013\u2014]\s*(?![^\[]*\])/g, ", ")
     .replace(
       /<img\s+[^>]*?src=["']([^"']+)["'][^>]*?(?:alt=["']([^"']*)["'])?[^>]*?\/?>/gi,
       (_m, src: string, alt?: string) => `![${alt ?? ""}](${src})`
@@ -37,7 +39,7 @@ function ImgComponent({ src, alt }: { src?: string; alt?: string }) {
     url.startsWith("/") || OPTIMIZED_HOSTS.some((h) => url.includes(h));
 
   return (
-    <span className="my-5 block overflow-hidden rounded-lg border border-deep-slate/8 bg-deep-slate/3">
+    <span className="my-8 block">
       <Image
         src={url}
         alt={alt || ""}
@@ -48,7 +50,7 @@ function ImgComponent({ src, alt }: { src?: string; alt?: string }) {
         unoptimized={!isOptimizable}
       />
       {alt && (
-        <span className="block px-3 py-2 text-xs text-deep-slate/40">
+        <span className="label block pt-2 text-mute">
           {alt}
         </span>
       )}
@@ -67,7 +69,7 @@ const components: Components = {
     return (
       <a
         href={href}
-        className="text-wealth-teal underline decoration-wealth-teal/30 underline-offset-2 hover:decoration-wealth-teal"
+        className="link-rule text-ink"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -82,41 +84,41 @@ const components: Components = {
       return <code className={className}>{children}</code>;
     }
     return (
-      <code className="rounded bg-deep-slate/8 px-1.5 py-0.5 font-mono text-[0.92em] text-deep-slate">
+      <code className="bg-rule px-1.5 py-0.5 font-mono text-[0.92em] text-ink">
         {children}
       </code>
     );
   },
   pre: ({ children }) => (
-    <pre className="my-5 overflow-x-auto rounded-lg border border-deep-slate/10 bg-deep-slate/[0.04] p-4 font-mono text-sm leading-relaxed text-deep-slate/85">
+    <pre className="my-6 overflow-x-auto border-l-2 border-ink p-4 font-mono text-sm leading-relaxed text-ink">
       {children}
     </pre>
   ),
   table: ({ children }) => (
-    <div className="my-5 overflow-x-auto rounded-lg border border-deep-slate/10">
-      <table className="w-full border-collapse text-sm">{children}</table>
+    <div className="my-8 overflow-x-auto border-t-2 border-ink">
+      <table className="w-full border-collapse text-[0.9375rem]">{children}</table>
     </div>
   ),
-  thead: ({ children }) => <thead className="bg-deep-slate/5">{children}</thead>,
+  thead: ({ children }) => <thead>{children}</thead>,
   th: ({ children }) => (
-    <th className="border-b border-deep-slate/10 px-4 py-2 text-left font-bold text-deep-slate">
+    <th className="border-b border-rule py-3 pr-5 text-left font-bold text-ink">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="border-b border-deep-slate/8 px-4 py-2 text-deep-slate/75">
+    <td className="border-b border-rule py-3 pr-5 text-body">
       {children}
     </td>
   ),
   img: ImgComponent as Components["img"],
   strong: ({ children }) => (
-    <strong className="font-bold text-deep-slate">{children}</strong>
+    <strong className="font-bold text-ink">{children}</strong>
   ),
   ul: ({ children }) => (
-    <ul className="my-3 ml-5 list-disc space-y-1.5">{children}</ul>
+    <ul className="my-5 ml-5 list-disc space-y-2 marker:text-mute">{children}</ul>
   ),
   ol: ({ children }) => (
-    <ol className="my-3 ml-5 list-decimal space-y-1.5">{children}</ol>
+    <ol className="my-5 ml-5 list-decimal space-y-2 marker:text-mute">{children}</ol>
   ),
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   p: ({ children, node }) => {
@@ -126,7 +128,7 @@ const components: Components = {
     if (kids?.length === 1 && kids[0].type === "element" && (kids[0] as { tagName?: string }).tagName === "img") {
       return <>{children}</>;
     }
-    return <p className="my-4 first:mt-0 last:mb-0">{children}</p>;
+    return <p className="my-5 first:mt-0 last:mb-0">{children}</p>;
   },
   blockquote: ({ children, node }) => {
     const extractText = (n: unknown): string => {
@@ -142,29 +144,29 @@ const components: Components = {
 
     if (isCallout) {
       return (
-        <blockquote className="my-5 rounded-lg border-l-4 border-wealth-teal bg-wealth-teal/5 px-5 py-4 not-italic text-deep-slate/80 [&>p]:my-1 [&_strong]:text-wealth-teal">
+        <blockquote className="my-8 border-l-2 border-hot pl-5 font-medium text-ink [&>p]:my-1">
           {children}
         </blockquote>
       );
     }
 
     return (
-      <blockquote className="my-4 border-l-2 border-burnt-amber/40 pl-4 italic text-deep-slate/60">
+      <blockquote className="my-8 border-l-2 border-rule pl-5 text-body">
         {children}
       </blockquote>
     );
   },
   h3: ({ children }) => (
-    <h3 className="mt-6 mb-2 text-lg font-bold text-deep-slate">{children}</h3>
+    <h3 className="mb-2 mt-8 text-[1.75rem] leading-tight">{children}</h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mt-4 mb-2 font-bold text-deep-slate">{children}</h4>
+    <h4 className="mb-2 mt-6 font-bold text-ink">{children}</h4>
   ),
 };
 
-export function MarkdownBody({ children }: { children: string }) {
+export function MarkdownBody({ children, tone = "body" }: { children: string; tone?: "body" | "lead" }) {
   return (
-    <div className="text-lg leading-[1.75] text-deep-slate/75">
+    <div className={tone === "lead" ? "text-xl leading-[1.6] text-ink" : "text-[1.125rem] leading-[1.72] text-body"}>
       <Markdown remarkPlugins={[remarkGfm]} components={components}>{preprocessMarkdown(children)}</Markdown>
     </div>
   );

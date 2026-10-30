@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { getPostBySlug, getRelatedPosts, getAdjacentPosts } from "@/lib/posts";
 import { prisma } from "@/lib/prisma";
@@ -16,6 +15,11 @@ import { RelatedPosts } from "@/components/RelatedPosts";
 import { SessionNav } from "@/components/SessionNav";
 import { NewsletterCTA } from "@/components/NewsletterCTA";
 import { ScrollNewsletterPrompt } from "@/components/ScrollNewsletterPrompt";
+import { Shout } from "@/components/Shout";
+import { TapePlate } from "@/components/TapePlate";
+import { formatDate, plainDashes, tagLabel } from "@/lib/display";
+import { hardLine } from "@/lib/hard-line";
+import { getTape } from "@/lib/tape";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 import { TWS_FOUNDER, TWS_ORGANIZATION, TWS_TWITTER_SITE } from "@/lib/family";
 import type { Metadata } from "next";
@@ -119,9 +123,10 @@ export default async function PostPage({
       )
     : [];
 
-  const [relatedPosts, { previous, next }] = await Promise.all([
+  const [relatedPosts, { previous, next }, tape] = await Promise.all([
     getRelatedPosts(post.id, post.tags, 3),
     getAdjacentPosts(post.publishedAt),
+    getTape(post.sections),
   ]);
 
   const faqItems: FaqItem[] = Array.isArray(post.faq)
@@ -215,6 +220,17 @@ export default async function PostPage({
       .replace(/(^-|-$)/g, "");
   }
 
+  const title = plainDashes(post.title);
+  const hook = plainDashes(post.hook);
+  const line = hardLine(post.sections);
+  const firstTag = post.tags[0];
+
+  const meta = (
+    <>
+      <time dateTime={post.publishedAt.toISOString()}>{formatDate(post.publishedAt)}</time>, {readingTime} min read
+    </>
+  );
+
   return (
     <>
       <ReadingProgress />
@@ -223,132 +239,127 @@ export default async function PostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-8 px-4 py-12 lg:flex-row lg:items-start lg:justify-start">
-        {/* TOC: renders its own desktop sidebar and mobile disclosure */}
-        <TableOfContents sections={sections} />
 
-        <article className="min-w-0 max-w-prose">
-          <header className="animate-reveal mb-8">
-            <div className="mb-4 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <Link
-                  key={tag}
-                  href={`/tags/${encodeURIComponent(tag)}`}
-                  className="tag-pill rounded-full bg-wealth-teal/8 px-3 py-1 text-xs font-medium text-wealth-teal no-underline hover:bg-wealth-teal/15"
-                >
-                  {tag}
-                </Link>
-              ))}
-            </div>
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-deep-slate sm:text-4xl">
-              {post.title}
-            </h1>
-            {/* The dash in this regex is intentional and load bearing: it strips
-                em dashes out of generated hooks. Do not remove it in a dash sweep. */}
-            <p className="mt-3 font-instrument text-xl text-burnt-amber/80">{post.hook.replace(/\s*—\s*/g, ", ")}</p>
-            <div className="mt-3 flex items-center gap-2 text-sm text-deep-slate/35">
-              <time dateTime={post.publishedAt.toISOString()}>
-                {post.publishedAt.toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </time>
-              <span aria-hidden="true">&middot;</span>
-              <span>{readingTime} min read</span>
-            </div>
-          </header>
-
-          {post.heroImage && (
-            <div className="animate-image-reveal relative mb-10 aspect-video overflow-hidden rounded-xl bg-deep-slate/5">
-              <Image
-                src={post.heroImage}
-                alt={post.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 65ch"
-                className="object-cover"
-                priority
-              />
-            </div>
-          )}
-
-          <div className="animate-reveal delay-2 space-y-10">
-            <div className="text-lg leading-relaxed text-deep-slate/75">
-              <MarkdownBody>{post.intro}</MarkdownBody>
-            </div>
-
-            <KeyTakeaways sections={sections} />
-
-            {sections.map((section, i) => (
-              <div key={i}>
-                <section id={slugify(section.heading)}>
-                  <h2 className="text-2xl font-bold tracking-tight text-deep-slate">
-                    {section.heading}
-                  </h2>
-                  <div className="mt-3">
-                    <MarkdownBody>{section.body}</MarkdownBody>
-                  </div>
-                  {section.chartRef && (
-                    section.chartRef.endsWith(".html") ? (
-                      <InteractiveDemo
-                        src={section.chartRef}
-                        title={`${section.heading} (interactive)`}
-                      />
-                    ) : (
-                      <ChartImage
-                        src={section.chartRef}
-                        alt={`Chart: ${section.heading}`}
-                      />
-                    )
-                  )}
-                </section>
-                {i === midpoint && sections.length >= 3 && (
-                  <div className="my-8">
-                    <ProgramCTA variant="inline" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            <div className="accent-line" />
-
-            <section className="pt-2">
-              <MarkdownBody>{post.conclusion}</MarkdownBody>
-            </section>
-
-            {faqItems.length > 0 && (
-              <section className="mt-10 rounded-xl border border-deep-slate/8 bg-surface px-6 py-6">
-                <h2 className="text-xl font-bold text-deep-slate">Frequently Asked Questions</h2>
-                <dl className="mt-4 space-y-5">
-                  {faqItems.map((faq, i) => (
-                    <div key={i}>
-                      <dt className="font-bold text-deep-slate/85">{faq.question}</dt>
-                      <dd className="mt-1 text-[0.95rem] leading-relaxed text-deep-slate/60">
-                        {faq.answer}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
+      {tape ? (
+        <header className="plate">
+          <TapePlate tape={tape} />
+          <div className="px-[var(--gutter)] pb-[72px] pt-[220px] md:pb-[136px] md:pl-[calc(var(--sheet-offset)+56px)] md:pt-[300px]">
+            {firstTag && (
+              <Link
+                href={`/tags/${encodeURIComponent(firstTag)}`}
+                className="label mb-3 block w-fit text-[#ff8259] no-underline hover:underline"
+              >
+                {tagLabel(firstTag)}
+              </Link>
             )}
+            <h1 className="plate-title max-w-[20ch]">{title}</h1>
+            <p className="mt-4 max-w-[56ch] text-[1.0625rem] leading-relaxed text-white/80">{hook}</p>
+            <p className="label mt-4 text-white/60">{meta}</p>
+            {tape.caption && <p className="label mt-1 text-white/60">{tape.caption}</p>}
           </div>
+        </header>
+      ) : (
+        <header className="px-[var(--gutter)] pb-10 pt-6 md:pb-14 md:pt-10">
+          {firstTag && (
+            <Link
+              href={`/tags/${encodeURIComponent(firstTag)}`}
+              className="label mb-4 block w-fit text-hot-text no-underline hover:underline"
+            >
+              {tagLabel(firstTag)}
+            </Link>
+          )}
+          {line ? (
+            <>
+              <Shout text={line} />
+              <h1 className="title-serif mt-8 max-w-[22ch]">{title}</h1>
+            </>
+          ) : (
+            <Shout as="h1" text={title} />
+          )}
+          <p className="mt-5 max-w-[56ch] text-xl leading-snug text-ink">{hook}</p>
+          <p className="label mt-4 text-mute">{meta}</p>
+        </header>
+      )}
 
-          <div className="mt-10 space-y-10">
-            <div>
-              <p className="mb-3 text-sm text-deep-slate/40">Share this post</p>
+      <div className={`sheet ${tape ? "sheet-over" : ""}`}>
+        {tape && line && <Shout text={line} className="mb-10 md:mb-16" />}
+
+        <div className="lg:grid lg:grid-cols-[13rem_minmax(0,68ch)] lg:gap-16">
+          {/* TOC: renders its own desktop sidebar and mobile disclosure */}
+          <TableOfContents sections={sections.map((s) => ({ heading: s.heading, label: plainDashes(s.heading) }))} />
+
+          <article className="min-w-0">
+            <div className="space-y-12">
+              <MarkdownBody tone="lead">{post.intro}</MarkdownBody>
+
+              <KeyTakeaways sections={sections} />
+
+              {sections.map((section, i) => (
+                <div key={i}>
+                  <section id={slugify(section.heading)}>
+                    <h2 className="section-heading">{plainDashes(section.heading)}</h2>
+                    <div className="mt-5">
+                      <MarkdownBody>{section.body}</MarkdownBody>
+                    </div>
+                    {section.chartRef && (
+                      section.chartRef.endsWith(".html") ? (
+                        <InteractiveDemo
+                          src={section.chartRef}
+                          title={`${section.heading} (interactive)`}
+                        />
+                      ) : (
+                        <ChartImage
+                          src={section.chartRef}
+                          alt={`Chart: ${section.heading}`}
+                        />
+                      )
+                    )}
+                  </section>
+                  {i === midpoint && sections.length >= 3 && (
+                    <div className="mt-12">
+                      <ProgramCTA variant="inline" />
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <section className="border-t border-rule pt-10">
+                <MarkdownBody>{post.conclusion}</MarkdownBody>
+              </section>
+
+              {faqItems.length > 0 && (
+                <section className="border-t border-rule pt-10">
+                  <h2 className="section-heading">Frequently Asked Questions</h2>
+                  <dl className="mt-8 space-y-8">
+                    {faqItems.map((faq, i) => (
+                      <div key={i}>
+                        <dt className="text-lg font-bold leading-snug text-ink">{plainDashes(faq.question)}</dt>
+                        <dd className="mt-2 text-[1.0625rem] leading-relaxed text-body">
+                          {plainDashes(faq.answer)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              )}
+            </div>
+
+            <div className="mt-14 border-t border-rule pt-8">
+              <p className="label mb-3 text-mute">Share this post</p>
               <ShareButtons title={post.title} slug={post.slug} />
             </div>
 
-            <RelatedPosts posts={relatedPosts} />
+            <div className="mt-14 space-y-14">
+              <RelatedPosts posts={relatedPosts} />
+              <SessionNav previous={previous} next={next} />
+            </div>
 
-            <SessionNav previous={previous} next={next} />
-          </div>
-
-          <div className="mt-14 animate-reveal delay-4 space-y-6">
-            <NewsletterCTA />
-            <TelegramCTA />
-          </div>
-        </article>
+            <div className="mt-14 grid gap-12 border-t border-rule pt-12">
+              <TelegramCTA />
+              <NewsletterCTA />
+            </div>
+          </article>
+        </div>
       </div>
     </>
   );

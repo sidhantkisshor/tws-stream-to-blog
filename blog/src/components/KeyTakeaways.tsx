@@ -1,3 +1,5 @@
+import { plainDashes } from "@/lib/display";
+
 interface KeyTakeawaysProps {
   sections: { keyTakeaway?: string }[];
 }
@@ -11,16 +13,15 @@ export function KeyTakeaways({ sections }: KeyTakeawaysProps) {
   if (takeaways.length === 0) return null;
 
   return (
-    <div className="rounded-lg border-l-3 border-wealth-teal bg-wealth-teal/5 px-5 py-4">
-      <h3 className="font-instrument text-lg text-deep-slate">Key Takeaways</h3>
-      <ul className="mt-3 space-y-1.5">
+    <section className="border-t-2 border-ink pt-5">
+      <h2 className="text-[1.75rem] leading-tight">Key Takeaways</h2>
+      <ul className="mt-5 space-y-4">
         {takeaways.map((takeaway, i) => (
-          <li key={i} className="flex items-start gap-2 text-deep-slate/75">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-wealth-teal" />
-            {takeaway}
+          <li key={i} className="text-[1.125rem] font-medium leading-snug text-ink">
+            {plainDashes(takeaway)}
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

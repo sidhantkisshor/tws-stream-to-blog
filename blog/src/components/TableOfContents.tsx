@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 interface TOCProps {
-  sections: { heading: string }[];
+  sections: { heading: string; label?: string }[];
 }
 
 function slugify(text: string): string {
@@ -62,11 +62,9 @@ export function TableOfContents({ sections }: TOCProps) {
   return (
     <>
       {/* Desktop sidebar */}
-      <nav className="hidden lg:block sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto w-48 shrink-0">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-deep-slate/30">
-          Contents
-        </p>
-        <ul className="space-y-1">
+      <nav aria-label="Contents" className="sticky top-24 hidden h-fit max-h-[calc(100vh-8rem)] overflow-y-auto lg:block">
+        <p className="label mb-3 text-mute">Contents</p>
+        <ul className="space-y-3">
           {sections.map((section, i) => {
             const id = ids[i];
             const isActive = activeId === id;
@@ -74,13 +72,11 @@ export function TableOfContents({ sections }: TOCProps) {
               <li key={id}>
                 <button
                   onClick={() => handleClick(id)}
-                  className={`block w-full text-left border-l-2 pl-3 py-1 text-sm transition-colors duration-200 ${
-                    isActive
-                      ? "border-wealth-teal text-wealth-teal font-medium"
-                      : "border-transparent text-deep-slate/40 hover:text-deep-slate/60 hover:border-deep-slate/20"
+                  className={`block w-full text-left text-sm leading-snug transition-colors duration-150 ${
+                    isActive ? "font-medium text-hot-text" : "text-mute hover:text-ink"
                   }`}
                 >
-                  {section.heading}
+                  {section.label ?? section.heading}
                 </button>
               </li>
             );
@@ -88,18 +84,16 @@ export function TableOfContents({ sections }: TOCProps) {
         </ul>
       </nav>
 
-      {/* Mobile collapsible */}
-      <div className="lg:hidden mb-6">
+      {/* Mobile disclosure */}
+      <div className="mb-8 border-y border-rule lg:hidden">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex w-full items-center justify-between rounded-lg border border-deep-slate/10 bg-surface px-4 py-3 text-sm font-medium text-deep-slate/70"
+          className="flex w-full items-center justify-between py-3 text-[0.9375rem] font-medium text-ink"
           aria-expanded={mobileOpen}
         >
-          <span>Table of Contents</span>
+          <span>Contents</span>
           <svg
-            className={`h-4 w-4 text-deep-slate/40 transition-transform duration-200 ${
-              mobileOpen ? "rotate-180" : ""
-            }`}
+            className={`h-4 w-4 text-mute transition-transform duration-200 ${mobileOpen ? "rotate-180" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -108,32 +102,25 @@ export function TableOfContents({ sections }: TOCProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <div
-          className={`overflow-hidden transition-all duration-300 ${
-            mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <ul className="mt-2 space-y-0.5 rounded-lg border border-deep-slate/10 bg-surface p-3">
+        {mobileOpen && (
+          <ul className="space-y-2 pb-4">
             {sections.map((section, i) => {
               const id = ids[i];
-              const isActive = activeId === id;
               return (
                 <li key={id}>
                   <button
                     onClick={() => handleClick(id)}
-                    className={`block w-full text-left rounded-md px-3 py-1.5 text-sm transition-colors ${
-                      isActive
-                        ? "bg-wealth-teal/8 text-wealth-teal font-medium"
-                        : "text-deep-slate/50 hover:text-deep-slate/70 hover:bg-deep-slate/5"
+                    className={`block w-full text-left text-[0.9375rem] leading-snug ${
+                      activeId === id ? "font-medium text-hot-text" : "text-body"
                     }`}
                   >
-                    {section.heading}
+                    {section.label ?? section.heading}
                   </button>
                 </li>
               );
             })}
           </ul>
-        </div>
+        )}
       </div>
     </>
   );

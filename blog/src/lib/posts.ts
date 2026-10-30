@@ -35,6 +35,8 @@ export type PostCard = {
   tags: string[];
   publishedAt: Date;
   readingMinutes: number;
+  /** Raw sections, read only for the hard line and the chart reference. */
+  sections: unknown;
 };
 
 export function getReadingMinutes(
@@ -63,6 +65,7 @@ function toCard(p: RawCardPost): PostCard {
     tags: p.tags,
     publishedAt: p.publishedAt,
     readingMinutes: getReadingMinutes(p.intro, p.sections, p.conclusion),
+    sections: p.sections,
   };
 }
 

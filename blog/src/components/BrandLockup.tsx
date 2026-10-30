@@ -92,7 +92,7 @@ export function BrandLockup({
          */
         className={`font-satoshi font-bold tracking-tight whitespace-nowrap ${
           muted
-            ? "text-deep-slate/75 transition-colors group-hover:text-deep-slate"
+            ? "text-mute transition-colors group-hover:text-ink"
             : "text-deep-slate"
         }`}
         style={{ fontSize: size * NAME_SIZE_RATIO, lineHeight: 1.1 }}

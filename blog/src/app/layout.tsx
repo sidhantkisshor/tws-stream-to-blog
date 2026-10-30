@@ -34,6 +34,14 @@ const instrumentSerif = localFont({
   display: "swap",
 });
 
+// Archivo (SIL OFL, see fonts/Archivo-OFL.txt) instanced at wdth 62, wght 900 and
+// subset to Latin. Used only for the shout, the one condensed line on a page.
+const shoutFont = localFont({
+  src: [{ path: "./fonts/Archivo-CondensedBlack.woff2", weight: "900", style: "normal" }],
+  variable: "--font-shout-var",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -106,23 +114,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${satoshi.variable} ${instrumentSerif.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${satoshi.variable} ${instrumentSerif.variable} ${shoutFont.variable}`}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}})();` }} />
         <Script
           src="/scripts/tws-consent.js"
           strategy="beforeInteractive"
           data-policy-url="/privacy"
         />
       </head>
-      <body className="grain min-h-screen antialiased">
+      <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd).replace(/</g, "\\u003c") }}
         />
         <a
           href="#main-content"
-          className="fixed left-2 top-2 z-50 -translate-y-16 rounded-md bg-wealth-teal px-4 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
+          className="btn fixed left-2 top-2 z-50 -translate-y-16 focus:translate-y-0"
         >
           Skip to content
         </a>

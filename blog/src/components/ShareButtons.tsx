@@ -39,12 +39,12 @@ export function ShareButtons({ title, slug }: ShareButtonsProps) {
   };
 
   const btnClass =
-    "flex items-center gap-1.5 rounded-lg bg-deep-slate/5 px-3 py-2 text-sm text-deep-slate/50 no-underline transition-colors hover:bg-deep-slate/10 hover:text-deep-slate/70";
+    "flex items-center gap-1.5 py-1 text-[0.9375rem] text-body no-underline transition-colors hover:text-hot-text";
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-x-6 gap-y-2">
       {canNativeShare && (
-        <button onClick={nativeShare} className={`${btnClass} !bg-wealth-teal/8 !text-wealth-teal`}>
+        <button onClick={nativeShare} className={btnClass}>
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
             <polyline points="16 6 12 2 8 6" />

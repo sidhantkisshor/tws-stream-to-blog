@@ -41,7 +41,7 @@ export function Term({ id, label }: { id: string; label?: string }) {
         onClick={() => setOpen((v) => !v)}
         onMouseEnter={() => setOpen(true)}
         onFocus={() => setOpen(true)}
-        className="cursor-help border-b border-dotted border-wealth-teal/60 text-deep-slate hover:text-wealth-teal focus:outline-none focus:ring-2 focus:ring-wealth-teal/30 focus:rounded-sm"
+        className="cursor-help border-b border-dotted border-hot-text text-ink hover:text-hot-text"
       >
         {display}
       </button>
@@ -49,13 +49,13 @@ export function Term({ id, label }: { id: string; label?: string }) {
         <span
           id={popoverId}
           role="tooltip"
-          className="absolute left-0 top-full z-30 mt-2 w-72 rounded-lg border border-deep-slate/10 bg-surface px-4 py-3 text-left text-sm font-normal not-italic text-deep-slate/80 shadow-[0_8px_24px_rgba(44,53,57,0.15)]"
+          className="absolute left-0 top-full z-30 mt-2 w-[min(18rem,70vw)] bg-ink px-4 py-3 text-left text-sm font-normal not-italic text-sheet"
           style={{ display: "block" }}
         >
-          <span className="block font-bold text-wealth-teal">{term.label}</span>
+          <span className="block font-bold">{term.label}</span>
           <span className="mt-1 block leading-relaxed">{term.short}</span>
           {term.long && (
-            <span className="mt-2 block text-xs text-deep-slate/55">
+            <span className="mt-2 block text-xs opacity-80">
               {term.long}
             </span>
           )}

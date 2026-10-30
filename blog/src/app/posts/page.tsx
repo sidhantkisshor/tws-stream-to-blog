@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Shout } from "@/components/Shout";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { ArchiveList } from "@/components/ArchiveList";
 import { getRecentPosts } from "@/lib/posts";
@@ -29,49 +29,34 @@ export default async function ArchivePage() {
     title: p.title,
     slug: p.slug,
     hook: p.hook,
-    heroImage: p.heroImage,
     tags: p.tags,
     publishedAt: p.publishedAt.toISOString(),
     readingMinutes: p.readingMinutes,
   }));
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <header className="animate-reveal mb-8">
-        <Link
-          href="/"
-          className="text-sm text-wealth-teal no-underline hover:underline"
-        >
-          &larr; Home
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-deep-slate">
-          All Posts
-        </h1>
-        <p className="mt-1 text-sm text-deep-slate/50">
+    <main>
+      <header className="px-[var(--gutter)] pb-8 pt-6 md:pb-12 md:pt-10">
+        <Shout as="h1" text="All Posts" wideMin={0.13} />
+        <p className="mt-5 text-xl text-ink">
           {posts.length} {posts.length === 1 ? "post" : "posts"} published
         </p>
       </header>
 
-      <div className="accent-line mb-8 animate-reveal delay-1" />
-
-      {posts.length === 0 ? (
-        <div className="animate-reveal py-20 text-center">
-          <p className="font-instrument text-2xl text-deep-slate/30">
-            No posts yet.
-          </p>
-          <p className="mt-2 text-sm text-deep-slate/40">
-            Check back after the next live stream.
-          </p>
-        </div>
-      ) : (
-        <div className="animate-reveal delay-2">
+      <div className="sheet">
+        {posts.length === 0 ? (
+          <div className="py-16">
+            <p className="text-2xl text-ink">No posts yet.</p>
+            <p className="mt-2 text-mute">Check back after the next live stream.</p>
+          </div>
+        ) : (
           <ArchiveList posts={serializedPosts} />
-        </div>
-      )}
+        )}
 
-      <section className="mt-14 animate-reveal delay-3">
-        <TelegramCTA />
-      </section>
+        <section className="mt-14 border-t border-rule pt-12">
+          <TelegramCTA />
+        </section>
+      </div>
     </main>
   );
 }
