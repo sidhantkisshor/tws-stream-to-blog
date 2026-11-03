@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllTags } from "@/lib/posts";
 import { PROGRAMS_URL, LEGAL_ENTITY, SOCIAL, SITE_NAME } from "@/lib/site";
+import { tagSlug } from "@/lib/tags";
 import { tagLabel } from "@/lib/display";
 import { FamilyStrip } from "@/components/FamilyStrip";
 import { Shout } from "@/components/Shout";
@@ -25,7 +26,7 @@ export async function Footer() {
       {tags.length > 0 && (
         <nav aria-label="All topics" className="mb-8 flex flex-wrap gap-x-5 gap-y-1.5">
           {tags.map((tag) => (
-            <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`} className={SMALL}>
+            <Link key={tag} href={`/tags/${tagSlug(tag)}`} className={SMALL}>
               {tagLabel(tag)}
             </Link>
           ))}

@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { tagSlug, uniqueTagSlugs } from "./tags";
 
 const CARD_SELECT = {
   id: true,
@@ -82,9 +83,14 @@ export async function getPostBySlug(slug: string) {
   return prisma.post.findUnique({ where: { slug } });
 }
 
+/** Posts for a canonical tag slug, across every stored spelling of it. */
 export async function getPostsByTag(tag: string): Promise<PostCard[]> {
+  const slug = tagSlug(tag);
+  const stored = await getStoredTags();
+  const variants = stored.filter((t) => tagSlug(t) === slug);
+  if (variants.length === 0) return [];
   const rows = await prisma.post.findMany({
-    where: { tags: { has: tag } },
+    where: { tags: { hasSome: variants } },
     orderBy: { publishedAt: "desc" },
     select: CARD_SELECT,
   });
@@ -126,9 +132,14 @@ export async function getAdjacentPosts(publishedAt: Date) {
   return { previous: prevArr[0] ?? null, next: nextArr[0] ?? null };
 }
 
-export async function getAllTags(): Promise<string[]> {
+async function getStoredTags(): Promise<string[]> {
   const rows = await prisma.$queryRaw<{ tag: string }[]>`
     SELECT DISTINCT unnest(tags) AS tag FROM "Post" ORDER BY tag
   `;
   return rows.map((r) => r.tag);
+}
+
+/** Canonical (lowercase-hyphen) tag slugs, one per tag. */
+export async function getAllTags(): Promise<string[]> {
+  return uniqueTagSlugs(await getStoredTags());
 }
