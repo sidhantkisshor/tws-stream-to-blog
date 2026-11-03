@@ -5,6 +5,7 @@ import { tagLabel } from "@/lib/display";
 import { TelegramCTA } from "@/components/TelegramCTA";
 import { getPostsByTag, getAllTags } from "@/lib/posts";
 import { notFound } from "next/navigation";
+import { tagSlug } from "@/lib/tags";
 import { SITE_URL, SITE_NAME, OG_IMAGE, SITE_OPEN_GRAPH } from "@/lib/site";
 import type { Metadata } from "next";
 
@@ -25,11 +26,11 @@ export async function generateMetadata({
   params: Promise<{ tag: string }>;
 }): Promise<Metadata> {
   const { tag: rawTag } = await params;
-  const tag = decodeURIComponent(rawTag);
+  const tag = tagSlug(decodeURIComponent(rawTag));
   return {
     title: `#${tag}`,
     description: `Trading insights and analysis tagged with ${tag}`,
-    alternates: { canonical: `/tags/${encodeURIComponent(tag)}` },
+    alternates: { canonical: `/tags/${tag}` },
     openGraph: {
       title: `#${tag} | ${SITE_NAME}`,
       description: `Trading insights and analysis tagged with ${tag}`,
@@ -45,7 +46,9 @@ export default async function TagPage({
   params: Promise<{ tag: string }>;
 }) {
   const { tag: rawTag } = await params;
-  const tag = decodeURIComponent(rawTag);
+  const decoded = decodeURIComponent(rawTag);
+  const tag = tagSlug(decoded);
+  // Non-canonical spellings never reach here: src/proxy.ts 308s them first.
   const posts = await getPostsByTag(tag);
 
   if (posts.length === 0) notFound();
@@ -56,7 +59,7 @@ export default async function TagPage({
     "@type": "ItemList",
     name: `Posts tagged #${tag}`,
     description: `Trading insights and analysis tagged with ${tag}`,
-    url: `${baseUrl}/tags/${encodeURIComponent(tag)}`,
+    url: `${baseUrl}/tags/${tag}`,
     numberOfItems: posts.length,
     inLanguage: "en",
     itemListElement: posts.map((post, index) => ({

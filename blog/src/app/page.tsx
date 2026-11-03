@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { tagSlug } from "@/lib/tags";
 import { getRecentPosts } from "@/lib/posts";
 import { PostsDisplay } from "@/components/PostsDisplay";
 import { TelegramCTA } from "@/components/TelegramCTA";
@@ -89,7 +90,7 @@ export default async function HomePage() {
             {TOPICS.map((tag) => (
               <Link
                 key={tag}
-                href={`/tags/${encodeURIComponent(tag)}`}
+                href={`/tags/${tagSlug(tag)}`}
                 className="link-rule text-[0.9375rem] font-medium text-ink"
               >
                 {tagLabel(tag)}

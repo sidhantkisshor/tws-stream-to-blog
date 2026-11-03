@@ -1,3 +1,4 @@
+import { tagSlug } from "@/lib/tags";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPostBySlug, getRelatedPosts, getAdjacentPosts } from "@/lib/posts";
@@ -248,7 +249,7 @@ export default async function PostPage({
           <div className="plate-text px-[var(--gutter)] pb-[72px] pt-4 md:pb-[136px]">
             {firstTag && (
               <Link
-                href={`/tags/${encodeURIComponent(firstTag)}`}
+                href={`/tags/${tagSlug(firstTag)}`}
                 className="label mb-3 block w-fit text-[#ff8259] no-underline hover:underline"
               >
                 {tagLabel(firstTag)}
@@ -264,7 +265,7 @@ export default async function PostPage({
         <header className="px-[var(--gutter)] pb-10 pt-6 md:pb-14 md:pt-10">
           {firstTag && (
             <Link
-              href={`/tags/${encodeURIComponent(firstTag)}`}
+              href={`/tags/${tagSlug(firstTag)}`}
               className="label mb-4 block w-fit text-hot-text no-underline hover:underline"
             >
               {tagLabel(firstTag)}
